@@ -9,13 +9,6 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly IDockerGateway _dockerGateway;
 
-        public Container(IDockerGateway dockerGateway, string imageName)
-        {
-            _dockerGateway = dockerGateway;
-
-            Id = _dockerGateway.Run(imageName);
-        }
-
         public Container(IDockerGateway dockerGateway, string imageName, string command)
         {
             _dockerGateway = dockerGateway;

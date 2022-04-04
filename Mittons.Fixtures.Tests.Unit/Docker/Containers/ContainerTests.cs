@@ -10,16 +10,16 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("myimage")]
         [InlineData("otherimage")]
-        public void Ctor_WhenInitializedWithAnImageName_ExpectADockerRunCommandToIncludeTheImage(string image)
+        public void Ctor_WhenInitializedWithAnImageName_ExpectADockerRunCommandToIncludeTheImage(string imageName)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            using var container = new Container(gatewayMock.Object, image);
+            using var container = new Container(gatewayMock.Object, imageName, string.Empty);
 
             // Assert
-            gatewayMock.Verify(x => x.Run(image), Times.Once);
+            gatewayMock.Verify(x => x.Run(imageName, string.Empty), Times.Once);
         }
 
         [Theory]
@@ -43,7 +43,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, string.Empty);
+            using var container = new Container(gatewayMock.Object, string.Empty, string.Empty);
 
             // Act
             container.Dispose();
@@ -57,11 +57,11 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.Run("runningimage")).Returns("runningid");
-            gatewayMock.Setup(x => x.Run("disposingimage")).Returns("disposingid");
+            gatewayMock.Setup(x => x.Run("runningimage", string.Empty)).Returns("runningid");
+            gatewayMock.Setup(x => x.Run("disposingimage", string.Empty)).Returns("disposingid");
 
-            using var runningContainer = new Container(gatewayMock.Object, "runningimage");
-            using var disposingContainer = new Container(gatewayMock.Object, "disposingimage");
+            using var runningContainer = new Container(gatewayMock.Object, "runningimage", string.Empty);
+            using var disposingContainer = new Container(gatewayMock.Object, "disposingimage", string.Empty);
 
             // Act
             disposingContainer.Dispose();

@@ -120,5 +120,43 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
             Assert.Equal("'[/bin/bash]'", output);
         }
+
+        [Fact]
+        public void Remove_WhenTheContainerDoesNotExist_ExpectSuccessfulReturn()
+        {
+            // Arrange
+            var gateway = new DefaultDockerGateway();
+
+            // Act
+            // Assert
+            gateway.Remove("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72");
+        }
+
+        [Fact]
+        public void Remove_WhenTheContainerExists_ExpectTheContainerToBeRemoved()
+        {
+            // Arrange
+            var gateway = new DefaultDockerGateway();
+
+            var containerId = gateway.Run("alpine:3.15", string.Empty);
+            containerIds.Add(containerId);
+
+            // Act
+            gateway.Remove(containerId);
+
+            // Assert
+            var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"ps -a --filter id={containerId} --format '{{{{.ID}}}}'";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadToEnd();
+
+            Assert.Empty(output);
+        }
     }
 }

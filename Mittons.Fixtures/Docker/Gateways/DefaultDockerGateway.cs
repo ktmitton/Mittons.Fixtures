@@ -4,9 +4,16 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public void Remove(string containerName)
+        public void Remove(string containerId)
         {
-            throw new System.NotImplementedException();
+            var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"rm --force {containerId}";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
         }
 
         public string Run(string imageName, string command)

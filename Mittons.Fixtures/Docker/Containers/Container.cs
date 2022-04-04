@@ -16,6 +16,13 @@ namespace Mittons.Fixtures.Docker.Containers
             Id = _dockerGateway.Run(imageName);
         }
 
+        public Container(IDockerGateway dockerGateway, string imageName, string command)
+        {
+            _dockerGateway = dockerGateway;
+
+            Id = _dockerGateway.Run(imageName, command);
+        }
+
         public void Dispose()
         {
             _dockerGateway.Remove(Id);

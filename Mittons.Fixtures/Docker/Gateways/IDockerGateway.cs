@@ -4,6 +4,8 @@ namespace Mittons.Fixtures.Docker.Gateways
     {
         string Run(string imageName);
 
+        string Run(string imageName, string command);
+
         void Remove(string containerName);
     }
 }

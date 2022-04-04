@@ -22,6 +22,21 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Verify(x => x.Run(image), Times.Once);
         }
 
+        [Theory]
+        [InlineData("mycommand")]
+        [InlineData("othercommand")]
+        public void Ctor_WhenInitializedWithACommand_ExpectTheCommandToBePassedToTheDockerRunCommand(string command)
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+
+            // Act
+            using var container = new Container(gatewayMock.Object, string.Empty, command);
+
+            // Assert
+            gatewayMock.Verify(x => x.Run(string.Empty, command), Times.Once);
+        }
+
         [Fact]
         public void Dispose_WhenCalled_ExpectADockerRemoveCommandToBeExecuted()
         {

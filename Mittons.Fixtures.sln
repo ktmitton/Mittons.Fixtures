@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures", "Mittons.Fixtures\Mittons.Fixtures.csproj", "{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Tests.Unit", "Mittons.Fixtures.Tests.Unit\Mittons.Fixtures.Tests.Unit.csproj", "{BC58AC80-60CC-4CA3-863F-3CF545544FAC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC58AC80-60CC-4CA3-863F-3CF545544FAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC58AC80-60CC-4CA3-863F-3CF545544FAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC58AC80-60CC-4CA3-863F-3CF545544FAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC58AC80-60CC-4CA3-863F-3CF545544FAC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

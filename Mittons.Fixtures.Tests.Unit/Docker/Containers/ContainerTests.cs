@@ -10,7 +10,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("myimage")]
         [InlineData("otherimage")]
-        public void Ctor_WhenInitializedWithAnImageName_ExpectADockerRunCommandToIncludeTheImage(string imageName)
+        public void Ctor_WhenInitializedWithAnImageName_ExpectTheImageNameToBePassedToTheDockerRunCommand(string imageName)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();

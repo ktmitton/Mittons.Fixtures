@@ -16,7 +16,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            new Container(gatewayMock.Object, image);
+            using var container = new Container(gatewayMock.Object, image);
 
             // Assert
             gatewayMock.Verify(x => x.Run(image), Times.Once);
@@ -28,7 +28,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, string.Empty);
+            using var container = new Container(gatewayMock.Object, string.Empty);
 
             // Act
             container.Dispose();
@@ -45,8 +45,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.Run("runningimage")).Returns("runningid");
             gatewayMock.Setup(x => x.Run("disposingimage")).Returns("disposingid");
 
-            var runningContainer = new Container(gatewayMock.Object, "runningimage");
-            var disposingContainer = new Container(gatewayMock.Object, "disposingimage");
+            using var runningContainer = new Container(gatewayMock.Object, "runningimage");
+            using var disposingContainer = new Container(gatewayMock.Object, "disposingimage");
 
             // Act
             disposingContainer.Dispose();

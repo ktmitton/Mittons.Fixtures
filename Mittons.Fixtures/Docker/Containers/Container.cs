@@ -1,8 +1,9 @@
+using System;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
-    public class Container
+    public class Container : IDisposable
     {
         public string Id { get; }
 

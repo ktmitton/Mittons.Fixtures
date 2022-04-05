@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Containers
@@ -8,6 +10,11 @@ namespace Mittons.Fixtures.Docker.Containers
         public string Id { get; }
 
         private readonly IDockerGateway _dockerGateway;
+
+        public Container(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
+            : this(dockerGateway, attributes.OfType<Image>().Single(), string.Empty)
+        {
+        }
 
         public Container(IDockerGateway dockerGateway, Image image, string command)
             : this(dockerGateway, image.ImageName, command)

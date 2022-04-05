@@ -8,7 +8,7 @@ namespace Mittons.Fixtures.Docker.Containers
 {
     public class SftpContainer : Container
     {
-        private const string ImageName = "atmoz/sftp";
+        private const string ImageName = "atmoz/sftp:alpine";
 
         public SftpContainer(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
             : base(dockerGateway, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(attributes.OfType<SftpUserAccount>()))}))

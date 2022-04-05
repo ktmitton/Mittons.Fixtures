@@ -12,11 +12,11 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
     {
         public class ContainerTests : IDisposable
         {
-            private List<string> containerIds = new List<string>();
+            private List<string> _containerIds = new List<string>();
 
             public void Dispose()
             {
-                foreach(var containerId in containerIds)
+                foreach(var containerId in _containerIds)
                 {
                     using var proc = new Process();
                     proc.StartInfo.FileName = "docker";
@@ -39,7 +39,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 // Act
                 var containerId = gateway.ContainerRun(imageName, string.Empty);
-                containerIds.Add(containerId);
+                _containerIds.Add(containerId);
 
                 // Assert
                 var proc = new Process();
@@ -70,7 +70,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 // Act
                 var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
-                containerIds.Add(containerId);
+                _containerIds.Add(containerId);
 
                 // Assert
                 var proc = new Process();
@@ -101,7 +101,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 // Act
                 var containerId = gateway.ContainerRun("alpine:3.15", "/bin/bash");
-                containerIds.Add(containerId);
+                _containerIds.Add(containerId);
 
                 // Assert
                 var proc = new Process();
@@ -142,7 +142,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
-                containerIds.Add(containerId);
+                _containerIds.Add(containerId);
 
                 // Act
                 gateway.ContainerRemove(containerId);
@@ -168,8 +168,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp", "guest:guest");
-                containerIds.Add(containerId);
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                _containerIds.Add(containerId);
 
                 // Act
                 var ipAddress = gateway.ContainerGetDefaultNetworkIpAddress(containerId);
@@ -194,8 +194,22 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
         {
             private List<string> _networkNames = new List<string>();
 
+            private List<string> _containerIds = new List<string>();
+
             public void Dispose()
             {
+                foreach(var containerId in _containerIds)
+                {
+                    using var proc = new Process();
+                    proc.StartInfo.FileName = "docker";
+                    proc.StartInfo.Arguments = $"rm --force {containerId}";
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.RedirectStandardOutput = true;
+
+                    proc.Start();
+                    proc.WaitForExit();
+                }
+
                 foreach(var networkName in _networkNames)
                 {
                     using var proc = new Process();
@@ -267,6 +281,50 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var output = proc.StandardOutput.ReadToEnd();
 
                 Assert.True(string.IsNullOrWhiteSpace(output));
+            }
+
+            [Fact]
+            public void NetworkConnect_WhenCalled_ExpectContainerToBeConnectedToNetwork()
+            {
+                // Arrange
+                var networkName = "test";
+                var uniqueName = $"{networkName}-{Guid.NewGuid()}";
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                _containerIds.Add(containerId);
+
+                _networkNames.Add(uniqueName);
+
+                gateway.NetworkCreate(uniqueName);
+
+                // Act
+                gateway.NetworkConnect(uniqueName, containerId, "test.example.com");
+
+                // Assert
+                var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                List<string> connectedNetworks = new List<string>();
+
+                while (!proc.StandardOutput.EndOfStream)
+                {
+                    var network = proc.StandardOutput.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(network))
+                    {
+                        connectedNetworks.Add(network);
+                    }
+                }
+
+                Assert.Contains(uniqueName, connectedNetworks);
             }
         }
     }

@@ -10,7 +10,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
     public class SftpContainerTests
     {
-        private readonly string sftpImageName = "atmoz/sftp";
+        private readonly string sftpImageName = "atmoz/sftp:alpine";
 
         [Fact]
         public void Ctor_WhenCalled_ExpectTheContainerToUseTheAtmozImage()

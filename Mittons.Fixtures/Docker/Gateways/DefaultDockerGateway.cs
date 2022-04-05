@@ -89,7 +89,16 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public void NetworkConnect(string networkName, string containerId, string alias)
         {
-            throw new System.NotImplementedException();
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"network connect --alias {alias} {networkName} {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
         }
     }
 }

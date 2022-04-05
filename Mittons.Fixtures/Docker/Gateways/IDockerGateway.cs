@@ -9,5 +9,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         void CreateNetwork(string name);
 
         void RemoveNetwork(string name);
+
+        void NetworkConnect(string networkName, string containerId, string alias);
     }
 }

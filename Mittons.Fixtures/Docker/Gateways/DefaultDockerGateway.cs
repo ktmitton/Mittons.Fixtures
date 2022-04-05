@@ -9,6 +9,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             throw new System.NotImplementedException();
         }
 
+        public void NetworkConnect(string networkName, string containerId, string alias)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void Remove(string containerId)
         {
             var proc = new Process();

@@ -130,9 +130,12 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             private class NetworkTestEnvironmentFixture : DockerEnvironmentFixture
             {
                 [Image("alpine:3.15")]
-                public Container? GuestContainer { get; set; }
+                [NetworkAlias("network1", "alpine.example.com")]
+                public Container? AlpineContainer { get; set; }
 
-                public SftpContainer? AccountsContainer { get; set; }
+                [NetworkAlias("network1", "sftp.example.com")]
+                [NetworkAlias("network2", "sftp-other.example.com")]
+                public SftpContainer? SftpContainer { get; set; }
 
                 public NetworkTestEnvironmentFixture(IDockerGateway dockerGateway)
                     : base(dockerGateway)
@@ -195,6 +198,29 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Verify(x => x.CreateNetwork($"network2-{fixture1.InstanceId}"), Times.Once);
                 gatewayMock.Verify(x => x.CreateNetwork($"network1-{fixture2.InstanceId}"), Times.Once);
                 gatewayMock.Verify(x => x.CreateNetwork($"network2-{fixture2.InstanceId}"), Times.Once);
+            }
+
+            [Fact]
+            public void Ctor_WhenContainersHaveDefinedNetworkAliases_ExpectTheContainersToBeConnectedToTheDefinedNetworks()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
+                using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+
+                // Assert
+                Assert.NotNull(fixture.AlpineContainer);
+                Assert.NotNull(fixture.SftpContainer);
+
+                if (fixture.AlpineContainer is null || fixture.SftpContainer is null)
+                {
+                    return;
+                }
+
+                gatewayMock.Verify(x => x.NetworkConnect($"network1-{fixture.InstanceId}", fixture.AlpineContainer.Id, "alpine.example.com"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkConnect($"network1-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp.example.com"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkConnect($"network2-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp-other.example.com"), Times.Once);
             }
 
             [Fact]

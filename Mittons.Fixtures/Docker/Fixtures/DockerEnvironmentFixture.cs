@@ -32,9 +32,16 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
             foreach(var propertyInfo in this.GetType().GetProperties().Where(x => typeof(Container).IsAssignableFrom(x.PropertyType)))
             {
-                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, propertyInfo.GetCustomAttributes(false).OfType<Attribute>()});
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>();
+
+                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, attributes});
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
+
+                foreach(var networkAlias in attributes.OfType<NetworkAlias>())
+                {
+                    dockerGateway.NetworkConnect($"{networkAlias.NetworkName}-{InstanceId}", container.Id, networkAlias.Alias);
+                }
             }
         }
 

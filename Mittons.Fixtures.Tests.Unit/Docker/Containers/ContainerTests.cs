@@ -4,6 +4,7 @@ using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Docker.Containers;
 using System;
 using Mittons.Fixtures.Docker.Attributes;
+using System.Net;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -71,6 +72,25 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Assert
             gatewayMock.Verify(x => x.ContainerRemove(disposingContainer.Id), Times.Once);
             gatewayMock.Verify(x => x.ContainerRemove(runningContainer.Id), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("192.168.0.0")]
+        [InlineData("192.168.0.1")]
+        [InlineData("127.0.0.1")]
+        public void Ctor_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
+        {
+            // Arrange
+            var parsed = IPAddress.Parse(ipAddress);
+
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(parsed);
+
+            // Act
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            // Assert
+            Assert.Equal(parsed, container.IpAddress);
         }
     }
 }

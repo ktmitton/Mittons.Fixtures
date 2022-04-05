@@ -1,19 +1,10 @@
 using System.Diagnostics;
+using System.Net;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public void NetworkCreate(string name)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void NetworkConnect(string networkName, string containerId, string alias)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void ContainerRemove(string containerId)
         {
             var proc = new Process();
@@ -24,11 +15,6 @@ namespace Mittons.Fixtures.Docker.Gateways
 
             proc.Start();
             proc.WaitForExit();
-        }
-
-        public void NetworkRemove(string name)
-        {
-            throw new System.NotImplementedException();
         }
 
         public string ContainerRun(string imageName, string command)
@@ -49,6 +35,26 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
 
             return containerId ?? string.Empty;
+        }
+
+        public IPAddress ContainerGetDefaultNetworkIpAddress(string containerId)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void NetworkCreate(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void NetworkConnect(string networkName, string containerId, string alias)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void NetworkRemove(string name)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

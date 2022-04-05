@@ -5,6 +5,7 @@ using Mittons.Fixtures.Docker.Containers;
 using System.Linq;
 using Mittons.Fixtures.Models;
 using System.Collections.Generic;
+using System;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -19,7 +20,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<SftpUserAccount>());
+            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
             gatewayMock.Verify(x => x.Run(sftpImageName, It.IsAny<string>()), Times.Once);
@@ -32,20 +33,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, default(IEnumerable<SftpUserAccount>));
-
-            // Assert
-            gatewayMock.Verify(x => x.Run(sftpImageName, "guest:guest"), Times.Once);
-        }
-
-        [Fact]
-        public void Ctor_InitializedWithEmptyCredentials_ExpectTheCommandToSetupTheGuestAccount()
-        {
-            // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-
-            // Act
-            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<SftpUserAccount>());
+            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
             gatewayMock.Verify(x => x.Run(sftpImageName, "guest:guest"), Times.Once);

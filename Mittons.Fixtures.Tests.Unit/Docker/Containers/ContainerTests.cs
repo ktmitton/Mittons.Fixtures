@@ -2,6 +2,7 @@ using Xunit;
 using Moq;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Docker.Containers;
+using System;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -16,7 +17,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            using var container = new Container(gatewayMock.Object, imageName, string.Empty);
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
 
             // Assert
             gatewayMock.Verify(x => x.Run(imageName, string.Empty), Times.Once);
@@ -31,7 +32,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
 
             // Act
-            using var container = new Container(gatewayMock.Object, string.Empty, command);
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
 
             // Assert
             gatewayMock.Verify(x => x.Run(string.Empty, command), Times.Once);
@@ -43,7 +44,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, string.Empty, string.Empty);
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
             container.Dispose();
@@ -60,8 +61,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.Run("runningimage", string.Empty)).Returns("runningid");
             gatewayMock.Setup(x => x.Run("disposingimage", string.Empty)).Returns("disposingid");
 
-            using var runningContainer = new Container(gatewayMock.Object, "runningimage", string.Empty);
-            using var disposingContainer = new Container(gatewayMock.Object, "disposingimage", string.Empty);
+            using var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
+            using var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
 
             // Act
             disposingContainer.Dispose();

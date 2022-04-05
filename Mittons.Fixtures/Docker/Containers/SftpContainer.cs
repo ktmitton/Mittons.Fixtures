@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mittons.Fixtures.Docker.Gateways;
@@ -9,12 +10,12 @@ namespace Mittons.Fixtures.Docker.Containers
     {
         private const string ImageName = "atmoz/sftp";
 
-        public SftpContainer(IDockerGateway dockerGateway, IEnumerable<SftpUserAccount> userAccounts)
-            : base(dockerGateway, ImageName, BuildCommand(userAccounts))
+        public SftpContainer(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
+            : base(dockerGateway, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(attributes.OfType<SftpUserAccount>()))}))
         {
         }
 
         private static string BuildCommand(IEnumerable<SftpUserAccount> userAccounts)
-            => string.Join(" ", ((userAccounts?.Any() ?? false) ? userAccounts : new SftpUserAccount[] { new SftpUserAccount { Username = "guest", Password = "guest" } }).Select(x => $"{x.Username}:{x.Password}"));
+            => string.Join(" ", ((userAccounts?.Any() ?? false) ? userAccounts : new SftpUserAccount[] { new SftpUserAccount("guest", "guest") }).Select(x => $"{x.Username}:{x.Password}"));
     }
 }

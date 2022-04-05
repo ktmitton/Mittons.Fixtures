@@ -15,6 +15,6 @@ namespace Mittons.Fixtures.Docker.Containers
         }
 
         private static string BuildCommand(IEnumerable<SftpUserAccount> userAccounts)
-            => string.Join(" ", ((userAccounts?.Any() ?? false) ? userAccounts : new SftpUserAccount[] { new SftpUserAccount { Username = "guest", Password = "guest" } }).Select(x => $"{x.Username}:{x.Password}"));
+            => string.Join(" ", ((userAccounts?.Any() ?? false) ? userAccounts : new SftpUserAccount[] { new SftpUserAccount("guest", "guest") }).Select(x => $"{x.Username}:{x.Password}"));
     }
 }

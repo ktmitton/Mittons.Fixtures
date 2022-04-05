@@ -3,13 +3,13 @@ using System;
 namespace Mittons.Fixtures.Docker.Containers
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class Image : Attribute
+    public class Command : Attribute
     {
-        public string Name { get; }
+        public string Value { get; }
 
-        public Image(string name)
+        public Command(string value)
         {
-            Name = name;
+            Value = value;
         }
     }
 }

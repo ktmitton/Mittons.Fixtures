@@ -12,20 +12,10 @@ namespace Mittons.Fixtures.Docker.Containers
         private readonly IDockerGateway _dockerGateway;
 
         public Container(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
-            : this(dockerGateway, attributes.OfType<Image>().Single(), string.Empty)
-        {
-        }
-
-        public Container(IDockerGateway dockerGateway, Image image, string command)
-            : this(dockerGateway, image.ImageName, command)
-        {
-        }
-
-        public Container(IDockerGateway dockerGateway, string imageName, string command)
         {
             _dockerGateway = dockerGateway;
 
-            Id = _dockerGateway.Run(imageName, command);
+            Id = _dockerGateway.Run(attributes.OfType<Image>().Single().Name, attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty);
         }
 
         public void Dispose()

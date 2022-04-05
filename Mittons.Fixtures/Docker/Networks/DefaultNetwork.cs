@@ -14,12 +14,12 @@ namespace Mittons.Fixtures.Docker.Networks
             _dockerGateway = dockerGateway;
             _name = name;
 
-            _dockerGateway.CreateNetwork(_name);
+            _dockerGateway.NetworkCreate(_name);
         }
 
         public void Dispose()
         {
-            _dockerGateway.RemoveNetwork(_name);
+            _dockerGateway.NetworkRemove(_name);
         }
     }
 }

@@ -16,12 +16,12 @@ namespace Mittons.Fixtures.Docker.Containers
         {
             _dockerGateway = dockerGateway;
 
-            Id = _dockerGateway.Run(attributes.OfType<Image>().Single().Name, attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty);
+            Id = _dockerGateway.ContainerRun(attributes.OfType<Image>().Single().Name, attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty);
         }
 
         public void Dispose()
         {
-            _dockerGateway.Remove(Id);
+            _dockerGateway.ContainerRemove(Id);
         }
     }
 }

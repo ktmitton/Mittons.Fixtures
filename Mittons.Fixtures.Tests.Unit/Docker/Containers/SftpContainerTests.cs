@@ -22,7 +22,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
-            gatewayMock.Verify(x => x.Run(sftpImageName, It.IsAny<string>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
-            gatewayMock.Verify(x => x.Run(sftpImageName, "guest:guest"), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, "guest:guest"), Times.Once);
         }
 
         [Theory]
@@ -57,7 +57,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 );
 
             // Assert
-            gatewayMock.Verify(x => x.Run(sftpImageName, $"{username}:{password}"), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, $"{username}:{password}"), Times.Once);
         }
 
         [Fact]
@@ -78,7 +78,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 );
 
             // Assert
-            gatewayMock.Verify(x => x.Run(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest"), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest"), Times.Once);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
 
             // Assert
-            gatewayMock.Verify(x => x.Run(imageName, string.Empty), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(imageName, string.Empty), Times.Once);
         }
 
         [Theory]
@@ -36,7 +36,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
 
             // Assert
-            gatewayMock.Verify(x => x.Run(string.Empty, command), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(string.Empty, command), Times.Once);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             container.Dispose();
 
             // Assert
-            gatewayMock.Verify(x => x.Remove(container.Id), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRemove(container.Id), Times.Once);
         }
 
         [Fact]
@@ -59,8 +59,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.Run("runningimage", string.Empty)).Returns("runningid");
-            gatewayMock.Setup(x => x.Run("disposingimage", string.Empty)).Returns("disposingid");
+            gatewayMock.Setup(x => x.ContainerRun("runningimage", string.Empty)).Returns("runningid");
+            gatewayMock.Setup(x => x.ContainerRun("disposingimage", string.Empty)).Returns("disposingid");
 
             using var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             using var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
@@ -69,8 +69,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             disposingContainer.Dispose();
 
             // Assert
-            gatewayMock.Verify(x => x.Remove(disposingContainer.Id), Times.Once);
-            gatewayMock.Verify(x => x.Remove(runningContainer.Id), Times.Never);
+            gatewayMock.Verify(x => x.ContainerRemove(disposingContainer.Id), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRemove(runningContainer.Id), Times.Never);
         }
     }
 }

@@ -2,12 +2,12 @@ using System;
 
 namespace Mittons.Fixtures.Docker.Attributes
 {
-    [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class Image : Attribute
+    [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
+    public class Network : Attribute
     {
         public string Name { get; }
 
-        public Image(string name)
+        public Network(string name)
         {
             Name = name;
         }

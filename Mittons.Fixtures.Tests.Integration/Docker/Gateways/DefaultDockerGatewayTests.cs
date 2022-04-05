@@ -35,7 +35,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             var gateway = new DefaultDockerGateway();
 
             // Act
-            var containerId = gateway.Run(imageName, string.Empty);
+            var containerId = gateway.ContainerRun(imageName, string.Empty);
             containerIds.Add(containerId);
 
             // Assert
@@ -66,7 +66,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             var gateway = new DefaultDockerGateway();
 
             // Act
-            var containerId = gateway.Run("alpine:3.15", string.Empty);
+            var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
             containerIds.Add(containerId);
 
             // Assert
@@ -97,7 +97,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             var gateway = new DefaultDockerGateway();
 
             // Act
-            var containerId = gateway.Run("alpine:3.15", "/bin/bash");
+            var containerId = gateway.ContainerRun("alpine:3.15", "/bin/bash");
             containerIds.Add(containerId);
 
             // Assert
@@ -129,7 +129,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
             // Act
             // Assert
-            gateway.Remove("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72");
+            gateway.ContainerRemove("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72");
         }
 
         [Fact]
@@ -138,11 +138,11 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             // Arrange
             var gateway = new DefaultDockerGateway();
 
-            var containerId = gateway.Run("alpine:3.15", string.Empty);
+            var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
             containerIds.Add(containerId);
 
             // Act
-            gateway.Remove(containerId);
+            gateway.ContainerRemove(containerId);
 
             // Assert
             var proc = new Process();

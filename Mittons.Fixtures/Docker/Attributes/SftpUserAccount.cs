@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Models
+namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true)]
     public class SftpUserAccount : Attribute

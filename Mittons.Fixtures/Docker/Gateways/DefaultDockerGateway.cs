@@ -4,7 +4,17 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public void Remove(string containerId)
+        public void NetworkCreate(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void NetworkConnect(string networkName, string containerId, string alias)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void ContainerRemove(string containerId)
         {
             var proc = new Process();
             proc.StartInfo.FileName = "docker";
@@ -16,7 +26,12 @@ namespace Mittons.Fixtures.Docker.Gateways
             proc.WaitForExit();
         }
 
-        public string Run(string imageName, string command)
+        public void NetworkRemove(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public string ContainerRun(string imageName, string command)
         {
             var proc = new Process();
             proc.StartInfo.FileName = "docker";

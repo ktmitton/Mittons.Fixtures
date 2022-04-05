@@ -1,7 +1,7 @@
+using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
 using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.Models;
 using Moq;
 using Xunit;
 
@@ -32,7 +32,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 var gatewayMock = new Mock<IDockerGateway>();
 
                 // Act
-                var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
                 gatewayMock.Verify(x => x.Run("alpine:3.15", string.Empty), Times.Once);
@@ -47,7 +47,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.Run("alpine:3.15", string.Empty)).Returns("runningid");
                 gatewayMock.Setup(x => x.Run("node:17-alpine3.15", string.Empty)).Returns("disposingid");
 
-                var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Act
                 fixture.Dispose();
@@ -81,7 +81,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 var gatewayMock = new Mock<IDockerGateway>();
 
                 // Act
-                var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
                 gatewayMock.Verify(x => x.Run("atmoz/sftp", It.IsAny<string>()), Times.Exactly(2));
@@ -95,7 +95,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.Run("atmoz/sftp", "guest:guest")).Returns("guest");
                 gatewayMock.Setup(x => x.Run("atmoz/sftp", "testuser1:testpassword1 testuser2:testpassword2")).Returns("account");
 
-                var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Act
                 fixture.Dispose();

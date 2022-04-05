@@ -3,6 +3,7 @@ using Moq;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Docker.Containers;
 using System;
+using Mittons.Fixtures.Docker.Attributes;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {

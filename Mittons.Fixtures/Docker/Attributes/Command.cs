@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Docker.Containers
+namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
     public class Command : Attribute

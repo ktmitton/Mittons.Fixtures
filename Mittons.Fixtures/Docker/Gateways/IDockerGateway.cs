@@ -10,9 +10,9 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         IPAddress ContainerGetDefaultNetworkIpAddress(string containerId);
 
-        void NetworkCreate(string name);
+        void NetworkCreate(string networkName);
 
-        void NetworkRemove(string name);
+        void NetworkRemove(string networkName);
 
         void NetworkConnect(string networkName, string containerId, string alias);
     }

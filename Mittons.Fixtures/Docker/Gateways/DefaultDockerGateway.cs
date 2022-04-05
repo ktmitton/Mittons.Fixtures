@@ -4,6 +4,11 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
+        public void CreateNetwork(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void Remove(string containerId)
         {
             var proc = new Process();

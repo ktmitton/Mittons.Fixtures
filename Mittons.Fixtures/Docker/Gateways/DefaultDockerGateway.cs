@@ -21,6 +21,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             proc.WaitForExit();
         }
 
+        public void RemoveNetwork(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public string Run(string imageName, string command)
         {
             var proc = new Process();

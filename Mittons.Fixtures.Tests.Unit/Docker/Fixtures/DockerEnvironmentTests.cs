@@ -196,6 +196,21 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Verify(x => x.CreateNetwork($"network1-{fixture2.InstanceId}"), Times.Once);
                 gatewayMock.Verify(x => x.CreateNetwork($"network2-{fixture2.InstanceId}"), Times.Once);
             }
+
+            [Fact]
+            public void Dispose_WhenCalled_ExpectNetworksToBeRemoved()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
+                using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                fixture.Dispose();
+
+                // Assert
+                gatewayMock.Verify(x => x.RemoveNetwork($"network1-{fixture.InstanceId}"), Times.Once);
+                gatewayMock.Verify(x => x.RemoveNetwork($"network2-{fixture.InstanceId}"), Times.Once);
+            }
         }
     }
 }

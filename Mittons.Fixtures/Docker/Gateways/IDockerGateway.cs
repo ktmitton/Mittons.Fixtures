@@ -7,5 +7,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         void Remove(string containerId);
 
         void CreateNetwork(string name);
+
+        void RemoveNetwork(string name);
     }
 }

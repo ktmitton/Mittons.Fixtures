@@ -1,12 +1,25 @@
+using System;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Networks
 {
-    public class DefaultNetwork
+    public class DefaultNetwork : IDisposable
     {
+        private readonly IDockerGateway _dockerGateway;
+
+        private readonly string _name;
+
         public DefaultNetwork(IDockerGateway dockerGateway, string name)
         {
-            dockerGateway.CreateNetwork(name);
+            _dockerGateway = dockerGateway;
+            _name = name;
+
+            _dockerGateway.CreateNetwork(_name);
+        }
+
+        public void Dispose()
+        {
+            _dockerGateway.RemoveNetwork(_name);
         }
     }
 }

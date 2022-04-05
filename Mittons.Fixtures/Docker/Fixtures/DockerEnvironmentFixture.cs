@@ -14,6 +14,8 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         private List<Container> _containers;
 
+        private DefaultNetwork[] _networks;
+
         public DockerEnvironmentFixture(IDockerGateway dockerGateway)
         {
             var networks = Attribute.GetCustomAttributes(this.GetType()).OfType<Network>();
@@ -23,7 +25,8 @@ namespace Mittons.Fixtures.Docker.Fixtures
             {
                 throw new NotSupportedException($"Networks with the same name cannot be created for the same environment. The following networks were duplicated: [{string.Join(", ", duplicateNetworks.Select(x => x.Key))}]");
             }
-            networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}")).ToArray();
+
+            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}")).ToArray();
 
             _containers = new List<Container>();
 
@@ -40,6 +43,11 @@ namespace Mittons.Fixtures.Docker.Fixtures
             foreach(var container in _containers)
             {
                 container.Dispose();
+            }
+
+            foreach(var network in _networks)
+            {
+                network.Dispose();
             }
         }
     }

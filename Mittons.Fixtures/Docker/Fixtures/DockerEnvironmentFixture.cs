@@ -39,15 +39,15 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
             _containers = new List<Container>();
 
-            foreach(var propertyInfo in this.GetType().GetProperties().Where(x => typeof(Container).IsAssignableFrom(x.PropertyType)))
+            foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(Container).IsAssignableFrom(x.PropertyType)))
             {
-                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>();
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
-                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, attributes});
+                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, attributes });
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
 
-                foreach(var networkAlias in attributes.OfType<NetworkAlias>())
+                foreach (var networkAlias in attributes.OfType<NetworkAlias>())
                 {
                     dockerGateway.NetworkConnect($"{networkAlias.NetworkName}-{InstanceId}", container.Id, networkAlias.Alias);
                 }
@@ -56,12 +56,12 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         public void Dispose()
         {
-            foreach(var container in _containers)
+            foreach (var container in _containers)
             {
                 container.Dispose();
             }
 
-            foreach(var network in _networks)
+            foreach (var network in _networks)
             {
                 network.Dispose();
             }

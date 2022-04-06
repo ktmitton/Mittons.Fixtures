@@ -7,6 +7,7 @@ using Mittons.Fixtures.Docker.Attributes;
 using System.Net;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -24,7 +25,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(imageName, string.Empty), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(imageName, string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
         }
 
         [Theory]
@@ -39,7 +40,40 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(string.Empty, command), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRun(string.Empty, command, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("192.168.0.0")]
+        [InlineData("192.168.0.1")]
+        [InlineData("127.0.0.1")]
+        public void Ctor_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
+        {
+            // Arrange
+            var parsed = IPAddress.Parse(ipAddress);
+
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(parsed);
+
+            // Act
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            // Assert
+            Assert.Equal(parsed, container.IpAddress);
+        }
+
+        [Fact]
+        public void Ctor_WhenCreatedWithARun_ExpectLabelsToBePassedToTheGateway()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            var run = new Run();
+
+            // Act
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
+
+            // Assert
+            gatewayMock.Verify(x => x.ContainerRun(string.Empty, string.Empty, It.Is<Dictionary<string, string>>(x => x.ContainsKey("mittons.fixtures.run.id") && x["mittons.fixtures.run.id"] == run.Id)));
         }
 
         [Fact]
@@ -62,8 +96,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerRun("runningimage", string.Empty)).Returns("runningid");
-            gatewayMock.Setup(x => x.ContainerRun("disposingimage", string.Empty)).Returns("disposingid");
+            gatewayMock.Setup(x => x.ContainerRun("runningimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))))
+                .Returns("runningid");
+            gatewayMock.Setup(x => x.ContainerRun("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))))
+                .Returns("disposingid");
 
             using var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             using var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
@@ -74,25 +110,6 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Assert
             gatewayMock.Verify(x => x.ContainerRemove(disposingContainer.Id), Times.Once);
             gatewayMock.Verify(x => x.ContainerRemove(runningContainer.Id), Times.Never);
-        }
-
-        [Theory]
-        [InlineData("192.168.0.0")]
-        [InlineData("192.168.0.1")]
-        [InlineData("127.0.0.1")]
-        public void Ctor_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
-        {
-            // Arrange
-            var parsed = IPAddress.Parse(ipAddress);
-
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(parsed);
-
-            // Act
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
-
-            // Assert
-            Assert.Equal(parsed, container.IpAddress);
         }
 
         [Theory]

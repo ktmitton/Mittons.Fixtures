@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
@@ -10,6 +11,131 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
 {
     public class DockerEnvironmentTests
     {
+        public class RunTests
+        {
+            [Run("BUILD_BUILDID")]
+            [Network("network1")]
+            [Network("network2")]
+            private class BuildEnvironmentFixture : DockerEnvironmentFixture
+            {
+                [Image("alpine:3.15")]
+                public Container? AlpineContainer { get; set; }
+
+                [Image("redis:alpine")]
+                public Container? RedisContainer { get; set; }
+
+                public BuildEnvironmentFixture(IDockerGateway dockerGateway)
+                    : base(dockerGateway)
+                {
+                }
+            }
+
+            [Run("RELEASE_RELEASEID")]
+            [Network("network1")]
+            [Network("network2")]
+            private class ReleaseEnvironmentFixture : DockerEnvironmentFixture
+            {
+                [Image("alpine:3.15")]
+                public Container? AlpineContainer { get; set; }
+
+                [Image("redis:alpine")]
+                public Container? RedisContainer { get; set; }
+
+                public ReleaseEnvironmentFixture(IDockerGateway dockerGateway)
+                    : base(dockerGateway)
+                {
+                }
+            }
+
+            [Run("UNSET_UNSETID")]
+            [Network("network1")]
+            [Network("network2")]
+            private class UnsetEnvironmentFixture : DockerEnvironmentFixture
+            {
+                [Image("alpine:3.15")]
+                public Container? AlpineContainer { get; set; }
+
+                [Image("redis:alpine")]
+                public Container? RedisContainer { get; set; }
+
+                public UnsetEnvironmentFixture(IDockerGateway dockerGateway)
+                    : base(dockerGateway)
+                {
+                }
+            }
+
+            [Network("network1")]
+            [Network("network2")]
+            private class MissingEnvironmentFixture : DockerEnvironmentFixture
+            {
+                [Image("alpine:3.15")]
+                public Container? AlpineContainer { get; set; }
+
+                [Image("redis:alpine")]
+                public Container? RedisContainer { get; set; }
+
+                public MissingEnvironmentFixture(IDockerGateway dockerGateway)
+                    : base(dockerGateway)
+                {
+                }
+            }
+
+            private readonly string _buildId;
+
+            private readonly string _releaseId;
+
+            public RunTests()
+            {
+                _buildId = Guid.NewGuid().ToString();
+                Environment.SetEnvironmentVariable("BUILD_BUILDID", _buildId);
+
+                _releaseId = Guid.NewGuid().ToString();
+                Environment.SetEnvironmentVariable("RELEASE_RELEASEID", _releaseId);
+            }
+
+            [Fact]
+            public void Ctor_WhenInitializedWithRunDetailsFromBuildId_ExpectTheRunIdToBeSet()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
+                using var fixture = new ReleaseEnvironmentFixture(gatewayMock.Object);
+
+                // Assert
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+            }
+
+            [Fact]
+            public void Ctor_WhenInitializedWithRunDetailsFromUnsetEnvironmentVariables_ExpectTheRunIdToBeDefault()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
+                using var fixture = new UnsetEnvironmentFixture(gatewayMock.Object);
+
+                // Assert
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+            }
+
+            [Fact]
+            public void Ctor_WhenInitializedWithoutRunDetails_ExpectTheRunIdToBeDefault()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
+                using var fixture = new MissingEnvironmentFixture(gatewayMock.Object);
+
+                // Assert
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+            }
+        }
+
         public class ContainerTests
         {
             private class ContainerTestEnvironmentFixture : DockerEnvironmentFixture
@@ -168,8 +294,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
             }
 
             [Fact]
@@ -194,10 +320,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture2 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture1.InstanceId}"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture1.InstanceId}"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture2.InstanceId}"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture2.InstanceId}"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
             }
 
             [Fact]

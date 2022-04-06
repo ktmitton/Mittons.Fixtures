@@ -389,7 +389,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Assert
                 var proc = new Process();
@@ -417,7 +417,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
                 gateway.NetworkRemove(uniqueName);
@@ -451,7 +451,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
                 gateway.NetworkConnect(uniqueName, containerId, "test.example.com");

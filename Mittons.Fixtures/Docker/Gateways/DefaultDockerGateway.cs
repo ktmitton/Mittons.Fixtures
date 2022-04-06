@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 
@@ -115,7 +116,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void NetworkCreate(string networkName)
+        public void NetworkCreate(string networkName, Dictionary<string, string> labels)
         {
             using (var proc = new Process())
             {

@@ -59,6 +59,16 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
+        public void ContainerAddFile(string containerId, string hostFilename, string containerFilename, string owner = null, string permissions = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void ContainerRemoveFile(string containerId, string containerFilename)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void NetworkCreate(string networkName)
         {
             using (var proc = new Process())

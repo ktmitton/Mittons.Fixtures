@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using Mittons.Fixtures.Docker.Attributes;
@@ -26,6 +27,41 @@ namespace Mittons.Fixtures.Docker.Containers
         public void Dispose()
         {
             _dockerGateway.ContainerRemove(Id);
+        }
+
+        public void CreateFile(string fileContents, string containerFilename, string owner, string permissions)
+        {
+            var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            File.WriteAllText(temporaryFilename, fileContents);
+
+            AddFile(temporaryFilename, containerFilename, owner, permissions);
+
+            File.Delete(temporaryFilename);
+        }
+
+        public void CreateFile(Stream fileContents, string containerFilename, string owner, string permissions)
+        {
+            var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+            using (var fileStream = new FileStream(temporaryFilename, FileMode.Create, FileAccess.Write))
+            {
+                fileContents.CopyTo(fileStream);
+            }
+
+            AddFile(temporaryFilename, containerFilename, owner, permissions);
+
+            File.Delete(temporaryFilename);
+        }
+
+        public void AddFile(string hostFilename, string containerFilename, string owner, string permissions)
+        {
+            _dockerGateway.ContainerAddFile(Id, hostFilename, containerFilename, owner, permissions);
+        }
+
+        public void RemoveFile(string containerFilename)
+        {
+            _dockerGateway.ContainerRemoveFile(Id, containerFilename);
         }
     }
 }

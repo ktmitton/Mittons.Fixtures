@@ -5,6 +5,8 @@ using Mittons.Fixtures.Docker.Containers;
 using System;
 using Mittons.Fixtures.Docker.Attributes;
 using System.Net;
+using System.IO;
+using System.Text;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -91,6 +93,103 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             // Assert
             Assert.Equal(parsed, container.IpAddress);
+        }
+
+        [Theory]
+        [InlineData("file/one", "destination/one", "testowner", "testpermissions")]
+        [InlineData("two", "two", "owner", "permissions")]
+        public void AddFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string hostFilename, string containerFilename, string owner, string permissions)
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            // Act
+            container.AddFile(hostFilename, containerFilename, owner, permissions);
+
+            // Assert
+            gatewayMock.Verify(x => x.ContainerAddFile(container.Id, hostFilename, containerFilename, owner, permissions), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("destination/one")]
+        [InlineData("two")]
+        public void RemoveFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string containerFilename)
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            // Act
+            container.RemoveFile(containerFilename);
+
+            // Assert
+            gatewayMock.Verify(x => x.ContainerRemoveFile(container.Id, containerFilename), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("destination/one", "testowner", "testpermissions")]
+        [InlineData("two", "owner", "permissions")]
+        public void CreateFile_WhenCalledWithAString_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
+        {
+            // Arrange
+            var fileContents = Guid.NewGuid().ToString();
+
+            var gatewayMock = new Mock<IDockerGateway>();
+
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            var actualFilename = default(string);
+            var actualContents = default(string);
+
+            gatewayMock.Setup(x => x.ContainerAddFile(container.Id, It.IsAny<string>(), containerFilename, owner, permissions))
+                .Callback<string, string, string, string, string>((_, hostFilename, _, _, _) =>
+                {
+                    actualFilename = hostFilename;
+                    actualContents = File.ReadAllText(hostFilename);
+                });
+
+            // Act
+            container.CreateFile(fileContents, containerFilename, owner, permissions);
+
+            // Assert
+            Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));
+            Assert.False(File.Exists(actualFilename));
+            Assert.Equal(fileContents, actualContents);
+        }
+
+        [Theory]
+        [InlineData("destination/one", "testowner", "testpermissions")]
+        [InlineData("two", "owner", "permissions")]
+        public void CreateFile_WhenCalledWithAStream_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
+        {
+            // Arrange
+            var fileContents = Guid.NewGuid().ToString();
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents));
+
+            var gatewayMock = new Mock<IDockerGateway>();
+
+            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
+            var actualFilename = default(string);
+            var actualContents = default(string);
+
+            gatewayMock.Setup(x => x.ContainerAddFile(container.Id, It.IsAny<string>(), containerFilename, owner, permissions))
+                .Callback<string, string, string, string, string>((_, hostFilename, _, _, _) =>
+                {
+                    actualFilename = hostFilename;
+                    actualContents = File.ReadAllText(hostFilename);
+                });
+
+            // Act
+            container.CreateFile(stream, containerFilename, owner, permissions);
+
+            // Assert
+            Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));
+            Assert.False(File.Exists(actualFilename));
+            Assert.Equal(fileContents, actualContents);
         }
     }
 }

@@ -1,54 +1,104 @@
 using System.Diagnostics;
+using System.Net;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public void NetworkCreate(string name)
+        public string ContainerRun(string imageName, string command)
         {
-            throw new System.NotImplementedException();
-        }
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"run -d {imageName} {command}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
 
-        public void NetworkConnect(string networkName, string containerId, string alias)
-        {
-            throw new System.NotImplementedException();
+                proc.Start();
+                proc.WaitForExit();
+
+                var containerId = default(string);
+
+                while (!proc.StandardOutput.EndOfStream) {
+                    containerId = proc.StandardOutput.ReadLine();
+                }
+
+                return containerId ?? string.Empty;
+            }
         }
 
         public void ContainerRemove(string containerId)
         {
-            var proc = new Process();
-            proc.StartInfo.FileName = "docker";
-            proc.StartInfo.Arguments = $"rm --force {containerId}";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
 
-            proc.Start();
-            proc.WaitForExit();
-        }
-
-        public void NetworkRemove(string name)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public string ContainerRun(string imageName, string command)
-        {
-            var proc = new Process();
-            proc.StartInfo.FileName = "docker";
-            proc.StartInfo.Arguments = $"run -d {imageName} {command}";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-
-            proc.Start();
-            proc.WaitForExit();
-
-            var containerId = default(string);
-
-            while (!proc.StandardOutput.EndOfStream) {
-                containerId = proc.StandardOutput.ReadLine();
+                proc.Start();
+                proc.WaitForExit();
             }
+        }
 
-            return containerId ?? string.Empty;
+        public IPAddress ContainerGetDefaultNetworkIpAddress(string containerId)
+        {
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                IPAddress.TryParse(proc.StandardOutput.ReadLine(), out var expectedIpAddress);
+
+                return expectedIpAddress;
+            }
+        }
+
+        public void NetworkCreate(string networkName)
+        {
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"network create {networkName}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        public void NetworkRemove(string networkName)
+        {
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"network rm {networkName}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        public void NetworkConnect(string networkName, string containerId, string alias)
+        {
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"network connect --alias {alias} {networkName} {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
         }
     }
 }

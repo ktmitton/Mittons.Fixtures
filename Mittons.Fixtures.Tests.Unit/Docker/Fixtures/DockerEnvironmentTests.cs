@@ -17,8 +17,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 [Image("alpine:3.15")]
                 public Container? AlpineContainer { get; set; }
 
-                [Image("node:17-alpine3.15")]
-                public Container? NodeContainer { get; set; }
+                [Image("redis:alpine")]
+                public Container? RedisContainer { get; set; }
 
                 public ContainerTestEnvironmentFixture(IDockerGateway dockerGateway)
                     : base(dockerGateway)
@@ -37,7 +37,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", string.Empty), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("node:17-alpine3.15", string.Empty), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", string.Empty), Times.Once);
             }
 
             [Fact]
@@ -46,7 +46,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerRun("alpine:3.15", string.Empty)).Returns("runningid");
-                gatewayMock.Setup(x => x.ContainerRun("node:17-alpine3.15", string.Empty)).Returns("disposingid");
+                gatewayMock.Setup(x => x.ContainerRun("redis:alpine", string.Empty)).Returns("disposingid");
 
                 using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
 
@@ -55,15 +55,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
 
                 // Assert
                 Assert.NotNull(fixture.AlpineContainer);
-                Assert.NotNull(fixture.NodeContainer);
+                Assert.NotNull(fixture.RedisContainer);
 
-                if (fixture.AlpineContainer is null || fixture.NodeContainer is null)
+                if (fixture.AlpineContainer is null || fixture.RedisContainer is null)
                 {
                     return;
                 }
 
                 gatewayMock.Verify(x => x.ContainerRemove(fixture.AlpineContainer.Id), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRemove(fixture.NodeContainer.Id), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRemove(fixture.RedisContainer.Id), Times.Once);
             }
         }
 
@@ -93,7 +93,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.ContainerRun("atmoz/sftp", It.IsAny<string>()), Times.Exactly(2));
+                gatewayMock.Verify(x => x.ContainerRun("atmoz/sftp:alpine", It.IsAny<string>()), Times.Exactly(2));
             }
 
             [Fact]
@@ -101,8 +101,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp", "guest:guest")).Returns("guest");
-                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp", "testuser1:testpassword1 testuser2:testpassword2")).Returns("account");
+                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp:alpine", "guest:guest")).Returns("guest");
+                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2")).Returns("account");
 
                 using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 

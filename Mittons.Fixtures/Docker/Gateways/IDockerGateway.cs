@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace Mittons.Fixtures.Docker.Gateways
 {
     public interface IDockerGateway
@@ -6,9 +8,11 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         void ContainerRemove(string containerId);
 
-        void NetworkCreate(string name);
+        IPAddress ContainerGetDefaultNetworkIpAddress(string containerId);
 
-        void NetworkRemove(string name);
+        void NetworkCreate(string networkName);
+
+        void NetworkRemove(string networkName);
 
         void NetworkConnect(string networkName, string containerId, string alias);
     }

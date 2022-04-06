@@ -294,8 +294,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
             }
 
             [Fact]
@@ -320,10 +320,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture2 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 0)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
             }
 
             [Fact]

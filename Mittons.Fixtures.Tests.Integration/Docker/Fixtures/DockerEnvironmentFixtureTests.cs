@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.Json;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
@@ -7,6 +9,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
 {
+    [Run("BUILD_BUILDID")]
     [Network("network1")]
     [Network("network2")]
     public class ExampleDockerEnvironmentFixture : DockerEnvironmentFixture
@@ -30,13 +33,53 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
         }
 
         [Fact]
+        public void ExpectNetwork1ToHaveRunLabels()
+        {
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"network inspect network1-{_dockerEnvironmentFixture.InstanceId} --format \"{{{{json .Labels}}}}\"";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadToEnd();
+
+            var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+            Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
+            Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+        }
+
+        [Fact]
+        public void ExpectNetwork2ToHaveRunLabels()
+        {
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"network inspect network2-{_dockerEnvironmentFixture.InstanceId} --format \"{{{{json .Labels}}}}\"";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadToEnd();
+
+            var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+            Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
+            Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+        }
+
+        [Fact]
         public void ExpectAlpineContainerToBeCreated()
         {
             Assert.NotNull(_dockerEnvironmentFixture.AlpineContainer);
 
             if (_dockerEnvironmentFixture.AlpineContainer is not null)
             {
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"ps -a --filter id={_dockerEnvironmentFixture.AlpineContainer.Id} --format '{{{{.ID}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -56,7 +99,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
 
             if (_dockerEnvironmentFixture.AlpineContainer is not null)
             {
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.AlpineContainer.Id} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;
@@ -88,7 +131,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
 
             if (_dockerEnvironmentFixture.SftpContainer is not null)
             {
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"ps -a --filter id={_dockerEnvironmentFixture.SftpContainer.Id} --format '{{{{.ID}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -108,7 +151,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
 
             if (_dockerEnvironmentFixture.SftpContainer is not null)
             {
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.SftpContainer.Id} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;
@@ -140,7 +183,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
 
             if (_dockerEnvironmentFixture.SftpContainer is not null)
             {
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.SftpContainer.Id} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;

@@ -304,6 +304,44 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 Assert.Equal(owner, output);
             }
+
+            [Theory]
+            [InlineData("/tmp/test.txt")]
+            [InlineData("/tmp/test2.txt")]
+            [InlineData("/test.txt")]
+            public void ContainerRemoveFile_WhenCalled_ExpectFileToBeRemoved(string containerFilename)
+            {
+                // Arrange
+                var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+                _filenames.Add(temporaryFilename);
+
+                File.WriteAllText(temporaryFilename, "hello, world");
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester");
+                _containerIds.Add(containerId);
+
+                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
+
+                // Act
+                gateway.ContainerRemoveFile(containerId, containerFilename);
+
+                // Assert
+                var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} ls {containerFilename}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                Assert.Empty(output);
+            }
         }
 
         public class NetworkTests : IDisposable

@@ -16,6 +16,11 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         private DefaultNetwork[] _networks;
 
+        public DockerEnvironmentFixture()
+            : this(new DefaultDockerGateway())
+        {
+        }
+
         public DockerEnvironmentFixture(IDockerGateway dockerGateway)
         {
             var networks = Attribute.GetCustomAttributes(this.GetType()).OfType<Network>();

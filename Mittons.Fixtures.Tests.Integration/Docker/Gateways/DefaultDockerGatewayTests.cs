@@ -5,6 +5,7 @@ using System.Text;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.IO;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -13,6 +14,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
         public class ContainerTests : IDisposable
         {
             private List<string> _containerIds = new List<string>();
+
+            private List<string> _filenames = new List<string>();
 
             public void Dispose()
             {
@@ -26,6 +29,11 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                     proc.Start();
                     proc.WaitForExit();
+                }
+
+                foreach(var filename in _filenames)
+                {
+                    File.Delete(filename);
                 }
             }
 
@@ -187,6 +195,114 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 IPAddress.TryParse(proc.StandardOutput.ReadLine(), out var expectedIpAddress);
 
                 Assert.Equal(expectedIpAddress, ipAddress);
+            }
+
+            [Theory]
+            [InlineData("test", "/tmp/test.txt")]
+            [InlineData("test\nfile", "/tmp/test2.txt")]
+            [InlineData("file\ntest", "/test.txt")]
+            public void ContainerAddFile_WhenCalled_ExpectFileToBeCopiedToTheContainer(string fileContents, string containerFilename)
+            {
+                // Arrange
+                var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+                _filenames.Add(temporaryFilename);
+
+                File.WriteAllText(temporaryFilename, fileContents);
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                _containerIds.Add(containerId);
+
+                // Act
+                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
+
+                // Assert
+                var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} cat {containerFilename}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                Assert.Equal(fileContents, output);
+            }
+
+            [Theory]
+            [InlineData("777", "/tmp/test.txt")]
+            [InlineData("757", "/tmp/test2.txt")]
+            [InlineData("557", "/test.txt")]
+            public void ContainerAddFile_WhenCalledWithPermissions_ExpectThePermissionsToBeSet(string permissions, string containerFilename)
+            {
+                // Arrange
+                var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+                _filenames.Add(temporaryFilename);
+
+                File.WriteAllText(temporaryFilename, "hello, world");
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                _containerIds.Add(containerId);
+
+                // Act
+                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), permissions);
+
+                // Assert
+                var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%a\" {containerFilename}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadLine();
+
+                Assert.Equal(permissions, output);
+            }
+
+            [Theory]
+            [InlineData("guest", "/tmp/test.txt")]
+            [InlineData("tester", "/tmp/test2.txt")]
+            [InlineData("root", "/test.txt")]
+            public void ContainerAddFile_WhenCalledWithAnOwner_ExpectThePermissionsToBeSet(string owner, string containerFilename)
+            {
+                // Arrange
+                var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+                _filenames.Add(temporaryFilename);
+
+                File.WriteAllText(temporaryFilename, "hello, world");
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester");
+                _containerIds.Add(containerId);
+
+                // Act
+                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, owner, default(string));
+
+                // Assert
+                var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%U\" {containerFilename}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadLine();
+
+                Assert.Equal(owner, output);
             }
         }
 

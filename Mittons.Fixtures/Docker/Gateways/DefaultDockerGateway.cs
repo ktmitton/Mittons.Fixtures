@@ -61,7 +61,44 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public void ContainerAddFile(string containerId, string hostFilename, string containerFilename, string owner = null, string permissions = null)
         {
-            throw new System.NotImplementedException();
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"cp \"{hostFilename}\" \"{containerId}:{containerFilename}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+
+            if (!string.IsNullOrWhiteSpace(owner))
+            {
+                using (var proc = new Process())
+                {
+                    proc.StartInfo.FileName = "docker";
+                    proc.StartInfo.Arguments = $"exec {containerId} chown {owner} \"{containerFilename}\"";
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.RedirectStandardOutput = true;
+
+                    proc.Start();
+                    proc.WaitForExit();
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(permissions))
+            {
+                using (var proc = new Process())
+                {
+                    proc.StartInfo.FileName = "docker";
+                    proc.StartInfo.Arguments = $"exec {containerId} chmod {permissions} \"{containerFilename}\"";
+                    proc.StartInfo.UseShellExecute = false;
+                    proc.StartInfo.RedirectStandardOutput = true;
+
+                    proc.Start();
+                    proc.WaitForExit();
+                }
+            }
         }
 
         public void ContainerRemoveFile(string containerId, string containerFilename)

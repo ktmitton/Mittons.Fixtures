@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 
 namespace Mittons.Fixtures.Docker.Gateways
@@ -14,7 +15,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         void ContainerRemoveFile(string containerId, string containerFilename);
 
-        void NetworkCreate(string networkName);
+        void NetworkCreate(string networkName, Dictionary<string, string> labels);
 
         void NetworkRemove(string networkName);
 

@@ -23,7 +23,11 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         public DockerEnvironmentFixture(IDockerGateway dockerGateway)
         {
-            var networks = Attribute.GetCustomAttributes(this.GetType()).OfType<Network>();
+            var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
+
+            var run = environmentAttributes.OfType<Run>().SingleOrDefault() ?? new Run();
+
+            var networks = environmentAttributes.OfType<Network>();
             var duplicateNetworks = networks.GroupBy(x => x.Name).Where(x => x.Count() > 1);
 
             if (duplicateNetworks.Any())
@@ -31,7 +35,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
                 throw new NotSupportedException($"Networks with the same name cannot be created for the same environment. The following networks were duplicated: [{string.Join(", ", duplicateNetworks.Select(x => x.Key))}]");
             }
 
-            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}")).ToArray();
+            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", run.Labels)).ToArray();
 
             _containers = new List<Container>();
 

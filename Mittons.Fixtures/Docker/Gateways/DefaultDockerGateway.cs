@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 
 namespace Mittons.Fixtures.Docker.Gateways
@@ -115,12 +117,14 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void NetworkCreate(string networkName)
+        public void NetworkCreate(string networkName, Dictionary<string, string> labels)
         {
+            var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
+
             using (var proc = new Process())
             {
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"network create {networkName}";
+                proc.StartInfo.Arguments = $"network create {string.Join(" ", labelStrings)} {networkName}";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 

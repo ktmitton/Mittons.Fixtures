@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.IO;
+using System.Text.Json;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -50,7 +51,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Image}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -81,7 +82,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -112,7 +113,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -156,7 +157,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerRemove(containerId);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"ps -a --filter id={containerId} --format '{{{{.ID}}}}'";
                 proc.StartInfo.UseShellExecute = false;
@@ -183,7 +184,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var ipAddress = gateway.ContainerGetDefaultNetworkIpAddress(containerId);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;
@@ -219,7 +220,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {containerId} cat {containerFilename}";
                 proc.StartInfo.UseShellExecute = false;
@@ -255,7 +256,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), permissions);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%a\" {containerFilename}";
                 proc.StartInfo.UseShellExecute = false;
@@ -291,7 +292,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, owner, default(string));
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%U\" {containerFilename}";
                 proc.StartInfo.UseShellExecute = false;
@@ -329,7 +330,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerRemoveFile(containerId, containerFilename);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"exec {containerId} ls {containerFilename}";
                 proc.StartInfo.UseShellExecute = false;
@@ -389,10 +390,10 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"network ls -f name={uniqueName} -q";
                 proc.StartInfo.UseShellExecute = false;
@@ -407,6 +408,46 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
+            public void NetworkCreate_WhenCalledWithLabels_ExpectLabelsToBeAttachedToTheNetwork()
+            {
+                // Arrange
+                var networkName = "test";
+                var uniqueName = $"{networkName}-{Guid.NewGuid()}";
+
+                var expectedLabels = new Dictionary<string, string>
+                {
+                    { "first", "second" },
+                    { "third", "fourth" }
+                };
+
+                var gateway = new DefaultDockerGateway();
+
+                _networkNames.Add(uniqueName);
+
+                // Act
+                gateway.NetworkCreate(uniqueName, expectedLabels);
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"network inspect {uniqueName} --format \"{{{{json .Labels}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+                Assert.True(actualLabels.ContainsKey("first"));
+                Assert.True(actualLabels.ContainsKey("third"));
+                Assert.Equal(expectedLabels["first"], actualLabels["first"]);
+                Assert.Equal(expectedLabels["third"], actualLabels["third"]);
+            }
+
+            [Fact]
             public void NetworkRemove_WhenCalled_ExpectNetworkToBeRemoved()
             {
                 // Arrange
@@ -417,13 +458,13 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
                 gateway.NetworkRemove(uniqueName);
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"network ls -f name={uniqueName} -q";
                 proc.StartInfo.UseShellExecute = false;
@@ -451,13 +492,13 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName);
+                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
                 gateway.NetworkConnect(uniqueName, containerId, "test.example.com");
 
                 // Assert
-                var proc = new Process();
+                using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;

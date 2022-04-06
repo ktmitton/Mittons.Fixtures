@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Networks
@@ -9,12 +10,12 @@ namespace Mittons.Fixtures.Docker.Networks
 
         private readonly string _name;
 
-        public DefaultNetwork(IDockerGateway dockerGateway, string name)
+        public DefaultNetwork(IDockerGateway dockerGateway, string name, Dictionary<string, string> labels)
         {
             _dockerGateway = dockerGateway;
             _name = name;
 
-            _dockerGateway.NetworkCreate(_name);
+            _dockerGateway.NetworkCreate(_name, labels);
         }
 
         public void Dispose()

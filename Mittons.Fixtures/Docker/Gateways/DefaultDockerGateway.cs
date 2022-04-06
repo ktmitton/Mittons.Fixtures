@@ -103,7 +103,16 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public void ContainerRemoveFile(string containerId, string containerFilename)
         {
-            throw new System.NotImplementedException();
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} rm \"{containerFilename}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
         }
 
         public void NetworkCreate(string networkName)

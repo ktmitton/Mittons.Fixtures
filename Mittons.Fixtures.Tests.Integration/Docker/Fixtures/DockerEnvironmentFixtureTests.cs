@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
@@ -125,6 +124,31 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
         }
 
         [Fact]
+        public void ExpectAlpineContainerToHaveRunLabel()
+        {
+            Assert.NotNull(_dockerEnvironmentFixture.AlpineContainer);
+
+            if (_dockerEnvironmentFixture.AlpineContainer is not null)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.AlpineContainer.Id} --format \"{{{{json .Config.Labels}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+                Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
+                Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+            }
+        }
+
+        [Fact]
         public void ExpectSftpContainerToBeCreated()
         {
             Assert.NotNull(_dockerEnvironmentFixture.SftpContainer);
@@ -205,6 +229,31 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
                 }
 
                 Assert.Contains(connectedNetworks, x => x.StartsWith($"network2-"));
+            }
+        }
+
+        [Fact]
+        public void ExpectSftpContainerToHaveRunLabel()
+        {
+            Assert.NotNull(_dockerEnvironmentFixture.SftpContainer);
+
+            if (_dockerEnvironmentFixture.SftpContainer is not null)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.SftpContainer.Id} --format \"{{{{json .Config.Labels}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+                Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
+                Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
             }
         }
     }

@@ -100,11 +100,29 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 var gatewayMock = new Mock<IDockerGateway>();
 
                 // Act
+                using var fixture = new BuildEnvironmentFixture(gatewayMock.Object);
+
+                // Assert
+                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+            }
+
+            [Fact]
+            public void Ctor_WhenInitializedWithRunDetailsFromReleaseId_ExpectTheRunIdToBeSet()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+
+                // Act
                 using var fixture = new ReleaseEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
             }
 
             [Fact]
@@ -119,6 +137,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
             }
 
             [Fact]
@@ -133,6 +153,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
             }
         }
 

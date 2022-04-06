@@ -20,7 +20,13 @@ namespace Mittons.Fixtures.Docker.Containers
         {
             _dockerGateway = dockerGateway;
 
-            Id = _dockerGateway.ContainerRun(attributes.OfType<Image>().Single().Name, attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty);
+            var run = attributes.OfType<Run>().SingleOrDefault() ?? new Run();
+
+            Id = _dockerGateway.ContainerRun(
+                    attributes.OfType<Image>().Single().Name,
+                    attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty,
+                    (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels
+                );
             IpAddress = _dockerGateway.ContainerGetDefaultNetworkIpAddress(Id);
         }
 

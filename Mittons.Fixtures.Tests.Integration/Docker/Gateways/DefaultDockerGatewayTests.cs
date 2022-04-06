@@ -38,6 +38,46 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 }
             }
 
+            [Fact]
+            public void ContainerRun_WhenCalledWithLabels_ExpectContainerToHaveTheLabelsApplied()
+            {
+                // Arrange
+                var imageName = "alpine:3.15";
+                var gateway = new DefaultDockerGateway();
+
+                // Act
+                var containerId = gateway.ContainerRun(
+                        imageName,
+                        string.Empty,
+                        new Dictionary<string, string>
+                        {
+                            { "first", "second" },
+                            { "third", "fourth" }
+                        }
+                    );
+
+                _containerIds.Add(containerId);
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Labels}}}}\"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+                Assert.True(actualLabels.ContainsKey("first"));
+                Assert.True(actualLabels.ContainsKey("third"));
+                Assert.Equal("second", actualLabels["first"]);
+                Assert.Equal("fourth", actualLabels["third"]);
+            }
+
             [Theory]
             [InlineData("alpine:3.15")]
             [InlineData("alpine:3.14")]
@@ -47,7 +87,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = gateway.ContainerRun(imageName, string.Empty);
+                var containerId = gateway.ContainerRun(imageName, string.Empty, new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -78,7 +118,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
+                var containerId = gateway.ContainerRun("alpine:3.15", string.Empty, new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -109,7 +149,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = gateway.ContainerRun("alpine:3.15", "/bin/bash");
+                var containerId = gateway.ContainerRun("alpine:3.15", "/bin/bash", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -150,7 +190,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("alpine:3.15", string.Empty);
+                var containerId = gateway.ContainerRun("alpine:3.15", string.Empty, new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Act
@@ -177,7 +217,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Act
@@ -213,7 +253,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Act
@@ -249,7 +289,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Act
@@ -285,7 +325,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 // Act
@@ -321,7 +361,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
@@ -487,7 +527,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest");
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
                 _networkNames.Add(uniqueName);

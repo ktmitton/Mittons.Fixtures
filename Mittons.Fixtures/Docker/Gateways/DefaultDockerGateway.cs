@@ -7,12 +7,14 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public string ContainerRun(string imageName, string command)
+        public string ContainerRun(string imageName, string command, Dictionary<string, string> labels)
         {
+            var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
+
             using (var proc = new Process())
             {
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"run -d {imageName} {command}";
+                proc.StartInfo.Arguments = $"run -d {string.Join(" ", labelStrings)} {imageName} {command}";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 

@@ -8,6 +8,7 @@ using System.Net;
 using System.IO;
 using System.Text.Json;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -393,6 +394,18 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
+
+                for (var i = 0; i < 10; ++i)
+                {
+                    var health = gateway.ContainerExecuteCommand(containerId, "ps aux | grep -v grep | grep sshd || exit 1");
+
+                    if (health.Any())
+                    {
+                        break;
+                    }
+
+                    Task.Delay(1000).GetAwaiter().GetResult();
+                }
 
                 // Act
                 var results = gateway.ContainerExecuteCommand(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub");

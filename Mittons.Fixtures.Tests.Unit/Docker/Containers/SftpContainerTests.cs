@@ -20,6 +20,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
+                .Returns(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
@@ -33,6 +35,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
+                .Returns(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
@@ -49,6 +53,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
+                .Returns(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(
@@ -68,6 +74,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
+                .Returns(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(

@@ -14,7 +14,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             using (var proc = new Process())
             {
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"run -d {string.Join(" ", labelStrings)} {imageName} {command}";
+                proc.StartInfo.Arguments = $"run -P -d {string.Join(" ", labelStrings)} {imageName} {command}";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 
@@ -116,6 +116,46 @@ namespace Mittons.Fixtures.Docker.Gateways
 
                 proc.Start();
                 proc.WaitForExit();
+            }
+        }
+
+        public IEnumerable<string> ContainerExecuteCommand(string containerId, string command)
+        {
+            using (var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} {command}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var lines = new List<string>();
+
+                while (!proc.StandardOutput.EndOfStream) {
+                    lines.Add(proc.StandardOutput.ReadLine());
+                }
+
+                return lines;
+            }
+        }
+
+        public int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort)
+        {
+            using(var proc = new Process())
+            {
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"port {containerId} {containerPort}/{protocol}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var port);
+
+                return port;
             }
         }
 

@@ -15,6 +15,10 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         void ContainerRemoveFile(string containerId, string containerFilename);
 
+        IEnumerable<string> ContainerExecuteCommand(string containerId, string command);
+
+        int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort);
+
         void NetworkCreate(string networkName, Dictionary<string, string> labels);
 
         void NetworkRemove(string networkName);

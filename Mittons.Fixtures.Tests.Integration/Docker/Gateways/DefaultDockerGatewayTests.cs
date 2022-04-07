@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -382,6 +383,88 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var output = proc.StandardOutput.ReadToEnd();
 
                 Assert.Empty(output);
+            }
+
+            [Fact]
+            public void ContainerExecuteCommand_WhenCalled_ExpectResultsToBeReturned()
+            {
+                // Arrange
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
+                _containerIds.Add(containerId);
+
+                // Act
+                var results = gateway.ContainerExecuteCommand(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub");
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadLine();
+
+                Assert.Single(results);
+                Assert.Equal(output, results.First());
+            }
+
+            [Fact]
+            public void ContainerGetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
+            {
+                // Arrange
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>());
+                _containerIds.Add(containerId);
+
+                // Act
+                var actualPort = gateway.ContainerGetHostPortMapping(containerId, "tcp", 22);
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"port {containerId} 22/tcp";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
+
+                Assert.Equal(expectedPort, actualPort);
+            }
+
+            [Fact]
+            public void ContainerGetHostPortMapping_WhenCalledForRedis_ExpectHostPortToBeReturnedForContainerPort6379()
+            {
+                // Arrange
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = gateway.ContainerRun("redis:alpine", string.Empty, new Dictionary<string, string>());
+                _containerIds.Add(containerId);
+
+                // Act
+                var actualPort = gateway.ContainerGetHostPortMapping(containerId, "tcp", 6379);
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"port {containerId} 6379/tcp";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
+
+                Assert.Equal(expectedPort, actualPort);
             }
         }
 

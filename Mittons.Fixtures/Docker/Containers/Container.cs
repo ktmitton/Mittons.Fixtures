@@ -67,10 +67,8 @@ namespace Mittons.Fixtures.Docker.Containers
             _dockerGateway.ContainerAddFile(Id, hostFilename, containerFilename, owner, permissions);
         }
 
-        public void RemoveFile(string containerFilename)
-        {
-            _dockerGateway.ContainerRemoveFile(Id, containerFilename);
-        }
+        public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
+            => _dockerGateway.ContainerRemoveFileAsync(Id, containerFilename, cancellationToken);
 
         public virtual async Task<string> StartAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {

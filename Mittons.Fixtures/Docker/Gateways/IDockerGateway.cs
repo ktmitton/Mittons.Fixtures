@@ -15,7 +15,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         void ContainerAddFile(string containerId, string hostFilename, string containerFilename, string owner = null, string permissions = null);
 
-        void ContainerRemoveFile(string containerId, string containerFilename);
+        Task ContainerRemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken);
 
         IEnumerable<string> ContainerExecuteCommand(string containerId, string command);
 

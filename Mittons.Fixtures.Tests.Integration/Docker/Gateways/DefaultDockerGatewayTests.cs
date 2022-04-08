@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -478,6 +479,110 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
 
                 Assert.Equal(expectedPort, actualPort);
+            }
+
+            public class GetHealthStatusAsync : IDisposable
+            {
+                private List<string> _containerIds = new List<string>();
+
+                private List<string> _filenames = new List<string>();
+
+                public void Dispose()
+                {
+                    foreach(var containerId in _containerIds)
+                    {
+                        using var proc = new Process();
+                        proc.StartInfo.FileName = "docker";
+                        proc.StartInfo.Arguments = $"rm --force {containerId}";
+                        proc.StartInfo.UseShellExecute = false;
+                        proc.StartInfo.RedirectStandardOutput = true;
+
+                        proc.Start();
+                        proc.WaitForExit();
+                    }
+                }
+
+                [Fact]
+                public async Task GetHealthStatusAsync_WhenContainerIsRunning_ExpectRunningHealthStatus()
+                {
+                    // Arrange
+                    var gateway = new DefaultDockerGateway();
+
+                    var containerId = gateway.ContainerRun("redis:alpine", string.Empty, new Dictionary<string, string>());
+                    _containerIds.Add(containerId);
+
+                    // Act
+                    var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
+
+                    // Assert
+                    Assert.Equal(HealthStatus.Running, healthStatus);
+                }
+
+                [Fact]
+                public async Task GetHealthStatusAsync_WhenContainerIsHealthy_ExpectHealthyHealthStatus()
+                {
+                    // Arrange
+                    var gateway = new DefaultDockerGateway();
+
+                    var containerId = gateway.ContainerRun("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, new Dictionary<string, string>());
+                    _containerIds.Add(containerId);
+
+                    // Act
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
+
+                    // Assert
+                    Assert.Equal(HealthStatus.Healthy, healthStatus);
+                }
+
+                [Fact]
+                public async Task GetHealthStatusAsync_WhenContainerIsUnhealthy_ExpectUnhealthyHealthStatus()
+                {
+                    // Arrange
+                    var gateway = new DefaultDockerGateway();
+
+                    var containerId = gateway.ContainerRun("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, new Dictionary<string, string>());
+                    _containerIds.Add(containerId);
+
+                    // Act
+                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
+
+                    // Assert
+                    Assert.Equal(HealthStatus.Unhealthy, healthStatus);
+                }
+
+                [Fact]
+                public async Task GetHealthStatusAsync_WhenContainerIsStarting_ExpectUnknownHealthStatus()
+                {
+                    // Arrange
+                    var gateway = new DefaultDockerGateway();
+
+                    var containerId = gateway.ContainerRun("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, new Dictionary<string, string>());
+                    _containerIds.Add(containerId);
+
+                    // Act
+                    var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
+
+                    // Assert
+                    Assert.Equal(HealthStatus.Unknown, healthStatus);
+                }
+
+                [Fact]
+                public async Task GetHealthStatusAsync_WhenContainerIsExited_ExpectUnknownHealthStatus()
+                {
+                    // Arrange
+                    var gateway = new DefaultDockerGateway();
+
+                    var containerId = gateway.ContainerRun("alpine", string.Empty, new Dictionary<string, string>());
+                    _containerIds.Add(containerId);
+
+                    // Act
+                    var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
+
+                    // Assert
+                    Assert.Equal(HealthStatus.Unknown, healthStatus);
+                }
             }
         }
 

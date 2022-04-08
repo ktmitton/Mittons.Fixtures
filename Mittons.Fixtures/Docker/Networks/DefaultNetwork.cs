@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Networks
@@ -20,7 +21,7 @@ namespace Mittons.Fixtures.Docker.Networks
 
         public void Dispose()
         {
-            _dockerGateway.NetworkRemove(_name);
+            _dockerGateway.NetworkRemoveAsync(_name, CancellationToken.None).GetAwaiter().GetResult();
         }
     }
 }

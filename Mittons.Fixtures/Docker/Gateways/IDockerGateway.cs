@@ -25,7 +25,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         void NetworkCreate(string networkName, Dictionary<string, string> labels);
 
-        void NetworkRemove(string networkName);
+        Task NetworkRemoveAsync(string networkName, CancellationToken cancellationToken);
 
         void NetworkConnect(string networkName, string containerId, string alias);
     }

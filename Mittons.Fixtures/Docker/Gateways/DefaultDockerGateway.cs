@@ -171,17 +171,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void NetworkRemove(string networkName)
+        public async Task NetworkRemoveAsync(string networkName, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"network rm {networkName}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"network rm {networkName}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(1)));
             }
         }
 

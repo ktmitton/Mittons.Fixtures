@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
@@ -18,6 +20,8 @@ namespace Mittons.Fixtures.Docker.Gateways
         IEnumerable<string> ContainerExecuteCommand(string containerId, string command);
 
         int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort);
+
+        Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken);
 
         void NetworkCreate(string networkName, Dictionary<string, string> labels);
 

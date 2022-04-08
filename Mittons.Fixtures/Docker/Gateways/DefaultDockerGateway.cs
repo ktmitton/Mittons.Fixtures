@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
@@ -23,7 +26,8 @@ namespace Mittons.Fixtures.Docker.Gateways
 
                 var containerId = default(string);
 
-                while (!proc.StandardOutput.EndOfStream) {
+                while (!proc.StandardOutput.EndOfStream)
+                {
                     containerId = proc.StandardOutput.ReadLine();
                 }
 
@@ -133,7 +137,8 @@ namespace Mittons.Fixtures.Docker.Gateways
 
                 var lines = new List<string>();
 
-                while (!proc.StandardOutput.EndOfStream) {
+                while (!proc.StandardOutput.EndOfStream)
+                {
                     lines.Add(proc.StandardOutput.ReadLine());
                 }
 
@@ -143,7 +148,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort)
         {
-            using(var proc = new Process())
+            using (var proc = new Process())
             {
                 proc.StartInfo.FileName = "docker";
                 proc.StartInfo.Arguments = $"port {containerId} {containerPort}/{protocol}";
@@ -156,6 +161,26 @@ namespace Mittons.Fixtures.Docker.Gateways
                 int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var port);
 
                 return port;
+            }
+        }
+
+        public async Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = CreateDockerProcess($"inspect {containerId} -f \"{{{{if .State.Health}}}}{{{{.State.Health.Status}}}}{{{{else}}}}{{{{.State.Status}}}}{{{{end}}}}\""))
+            {
+                await RunProcessAsync(process);
+
+                switch (await process.StandardOutput.ReadLineAsync())
+                {
+                    case "running":
+                        return HealthStatus.Running;
+                    case "healthy":
+                        return HealthStatus.Healthy;
+                    case "unhealthy":
+                        return HealthStatus.Unhealthy;
+                    default:
+                        return HealthStatus.Unknown;
+                }
             }
         }
 
@@ -201,6 +226,37 @@ namespace Mittons.Fixtures.Docker.Gateways
                 proc.Start();
                 proc.WaitForExit();
             }
+        }
+
+        private static Process CreateDockerProcess(string arguments)
+        {
+            var process = new Process();
+
+            process.StartInfo.FileName = "docker";
+            process.StartInfo.Arguments = arguments;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.EnableRaisingEvents = true;
+
+            return process;
+        }
+
+        private Task<int> RunProcessAsync(Process process)
+        {
+            var taskCompletionSource = new TaskCompletionSource<int>();
+
+            process.Exited += (s, a) =>
+            {
+                taskCompletionSource.SetResult(process.ExitCode);
+            };
+
+            process.Start();
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(5));
+            cancellationTokenSource.Token.Register(() => taskCompletionSource.TrySetCanceled(cancellationTokenSource.Token));
+
+            return taskCompletionSource.Task;
         }
     }
 }

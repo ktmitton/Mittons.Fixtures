@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
-    public class Container : IDisposable
+    public class Container : IDisposable, IServiceLifetime
     {
         public string Id { get; }
 
@@ -68,6 +70,35 @@ namespace Mittons.Fixtures.Docker.Containers
         public void RemoveFile(string containerFilename)
         {
             _dockerGateway.ContainerRemoveFile(Id, containerFilename);
+        }
+
+        public virtual async Task<string> StartAsync(TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            var timeoutCancellationTokenSource = new CancellationTokenSource();
+            timeoutCancellationTokenSource.CancelAfter(timeout);
+
+            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token).Token;
+
+            while (!linkedToken.IsCancellationRequested)
+            {
+                var healthStatus = await _dockerGateway.ContainerGetHealthStatusAsync(Id, linkedToken);
+
+                if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
+                {
+                    break;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(50));
+            }
+
+            linkedToken.ThrowIfCancellationRequested();
+
+            return Id;
+        }
+
+        public virtual Task<HealthStatus> GetHealthStatusAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -689,7 +689,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void NetworkRemove_WhenCalled_ExpectNetworkToBeRemoved()
+            public async Task NetworkRemove_WhenCalled_ExpectNetworkToBeRemoved()
             {
                 // Arrange
                 var networkName = "test";
@@ -702,7 +702,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
-                gateway.NetworkRemove(uniqueName);
+                await gateway.NetworkRemoveAsync(uniqueName, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

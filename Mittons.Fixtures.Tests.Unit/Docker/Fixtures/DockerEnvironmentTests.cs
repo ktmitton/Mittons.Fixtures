@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
@@ -411,8 +412,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 fixture.Dispose();
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkRemove($"network1-{fixture.InstanceId}"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkRemove($"network2-{fixture.InstanceId}"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkRemoveAsync($"network1-{fixture.InstanceId}", It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkRemoveAsync($"network2-{fixture.InstanceId}", It.IsAny<CancellationToken>()), Times.Once);
             }
         }
     }

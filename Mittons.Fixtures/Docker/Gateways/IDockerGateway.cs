@@ -13,7 +13,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         IPAddress ContainerGetDefaultNetworkIpAddress(string containerId);
 
-        void ContainerAddFile(string containerId, string hostFilename, string containerFilename, string owner = null, string permissions = null);
+        Task ContainerAddFileAsync(string containerId, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken);
 
         Task ContainerRemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken);
 

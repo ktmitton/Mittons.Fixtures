@@ -68,53 +68,36 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void ContainerAddFile(string containerId, string hostFilename, string containerFilename, string owner = null, string permissions = null)
+        public async Task ContainerAddFileAsync(string containerId, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"cp \"{hostFilename}\" \"{containerId}:{containerFilename}\""))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"cp \"{hostFilename}\" \"{containerId}:{containerFilename}\"";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(10)));
             }
 
             if (!string.IsNullOrWhiteSpace(owner))
             {
-                using (var proc = new Process())
+                using (var process = CreateDockerProcess($"exec {containerId} chown {owner} \"{containerFilename}\""))
                 {
-                    proc.StartInfo.FileName = "docker";
-                    proc.StartInfo.Arguments = $"exec {containerId} chown {owner} \"{containerFilename}\"";
-                    proc.StartInfo.UseShellExecute = false;
-                    proc.StartInfo.RedirectStandardOutput = true;
-
-                    proc.Start();
-                    proc.WaitForExit();
+                    await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(1)));
                 }
             }
 
             if (!string.IsNullOrWhiteSpace(permissions))
             {
-                using (var proc = new Process())
+                using (var process = CreateDockerProcess($"exec {containerId} chmod {permissions} \"{containerFilename}\""))
                 {
-                    proc.StartInfo.FileName = "docker";
-                    proc.StartInfo.Arguments = $"exec {containerId} chmod {permissions} \"{containerFilename}\"";
-                    proc.StartInfo.UseShellExecute = false;
-                    proc.StartInfo.RedirectStandardOutput = true;
-
-                    proc.Start();
-                    proc.WaitForExit();
+                    await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(1)));
                 }
             }
         }
 
         public async Task ContainerRemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken)
         {
-            var process = CreateDockerProcess($"exec {containerId} rm \"{containerFilename}\"");
-
-            await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+            using (var process = CreateDockerProcess($"exec {containerId} rm \"{containerFilename}\""))
+            {
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+            }
         }
 
         public IEnumerable<string> ContainerExecuteCommand(string containerId, string command)

@@ -118,18 +118,20 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("file/one", "destination/one", "testowner", "testpermissions")]
         [InlineData("two", "two", "owner", "permissions")]
-        public void AddFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string hostFilename, string containerFilename, string owner, string permissions)
+        public async Task AddFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string hostFilename, string containerFilename, string owner, string permissions)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
+            var cancellationToken = new CancellationToken();
+
             // Act
-            container.AddFile(hostFilename, containerFilename, owner, permissions);
+            await container.AddFileAsync(hostFilename, containerFilename, owner, permissions, cancellationToken);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerAddFile(container.Id, hostFilename, containerFilename, owner, permissions), Times.Once);
+            gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, containerFilename, owner, permissions, cancellationToken), Times.Once);
         }
 
         [Theory]
@@ -152,7 +154,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("destination/one", "testowner", "testpermissions")]
         [InlineData("two", "owner", "permissions")]
-        public void CreateFile_WhenCalledWithAString_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
+        public async Task CreateFile_WhenCalledWithAString_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
         {
             // Arrange
             var fileContents = Guid.NewGuid().ToString();
@@ -164,15 +166,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFile(container.Id, It.IsAny<string>(), containerFilename, owner, permissions))
-                .Callback<string, string, string, string, string>((_, hostFilename, _, _, _) =>
+            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;
                     actualContents = File.ReadAllText(hostFilename);
                 });
 
             // Act
-            container.CreateFile(fileContents, containerFilename, owner, permissions);
+            await container.CreateFileAsync(fileContents, containerFilename, owner, permissions, CancellationToken.None);
 
             // Assert
             Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));
@@ -183,7 +185,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("destination/one", "testowner", "testpermissions")]
         [InlineData("two", "owner", "permissions")]
-        public void CreateFile_WhenCalledWithAStream_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
+        public async Task CreateFile_WhenCalledWithAStream_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)
         {
             // Arrange
             var fileContents = Guid.NewGuid().ToString();
@@ -196,15 +198,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFile(container.Id, It.IsAny<string>(), containerFilename, owner, permissions))
-                .Callback<string, string, string, string, string>((_, hostFilename, _, _, _) =>
+            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;
                     actualContents = File.ReadAllText(hostFilename);
                 });
 
             // Act
-            container.CreateFile(stream, containerFilename, owner, permissions);
+            await container.CreateFileAsync(stream, containerFilename, owner, permissions, CancellationToken.None);
 
             // Assert
             Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));

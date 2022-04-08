@@ -245,7 +245,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             [InlineData("test", "/tmp/test.txt")]
             [InlineData("test\nfile", "/tmp/test2.txt")]
             [InlineData("file\ntest", "/test.txt")]
-            public void ContainerAddFile_WhenCalled_ExpectFileToBeCopiedToTheContainer(string fileContents, string containerFilename)
+            public async Task ContainerAddFile_WhenCalled_ExpectFileToBeCopiedToTheContainer(string fileContents, string containerFilename)
             {
                 // Arrange
                 var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -260,7 +260,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
+                await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();
@@ -281,7 +281,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             [InlineData("777", "/tmp/test.txt")]
             [InlineData("757", "/tmp/test2.txt")]
             [InlineData("557", "/test.txt")]
-            public void ContainerAddFile_WhenCalledWithPermissions_ExpectThePermissionsToBeSet(string permissions, string containerFilename)
+            public async Task ContainerAddFile_WhenCalledWithPermissions_ExpectThePermissionsToBeSet(string permissions, string containerFilename)
             {
                 // Arrange
                 var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -296,7 +296,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), permissions);
+                await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, default(string), permissions, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();
@@ -317,7 +317,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             [InlineData("guest", "/tmp/test.txt")]
             [InlineData("tester", "/tmp/test2.txt")]
             [InlineData("root", "/test.txt")]
-            public void ContainerAddFile_WhenCalledWithAnOwner_ExpectThePermissionsToBeSet(string owner, string containerFilename)
+            public async Task ContainerAddFile_WhenCalledWithAnOwner_ExpectThePermissionsToBeSet(string owner, string containerFilename)
             {
                 // Arrange
                 var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -332,7 +332,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, owner, default(string));
+                await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, owner, default(string), CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();
@@ -367,7 +367,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var containerId = gateway.ContainerRun("atmoz/sftp:alpine", "guest:guest tester:tester", new Dictionary<string, string>());
                 _containerIds.Add(containerId);
 
-                gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
+                await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
 
                 // Act
                 await gateway.ContainerRemoveFileAsync(containerId, containerFilename, CancellationToken.None);

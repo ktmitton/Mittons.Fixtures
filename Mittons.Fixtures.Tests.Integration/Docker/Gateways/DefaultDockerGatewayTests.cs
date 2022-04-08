@@ -720,7 +720,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void NetworkConnect_WhenCalled_ExpectContainerToBeConnectedToNetwork()
+            public async Task NetworkConnect_WhenCalled_ExpectContainerToBeConnectedToNetwork()
             {
                 // Arrange
                 var networkName = "test";
@@ -736,7 +736,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
 
                 // Act
-                gateway.NetworkConnect(uniqueName, containerId, "test.example.com");
+                await gateway.NetworkConnectAsync(uniqueName, containerId, "test.example.com", CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

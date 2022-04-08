@@ -123,19 +123,13 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort)
+        public async Task<int> ContainerGetHostPortMappingAsync(string containerId, string protocol, int containerPort, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"port {containerId} {containerPort}/{protocol}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"port {containerId} {containerPort}/{protocol}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(1)));
 
-                proc.Start();
-                proc.WaitForExit();
-
-                int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var port);
+                int.TryParse((await process.StandardOutput.ReadLineAsync()).Split(':').Last(), out var port);
 
                 return port;
             }

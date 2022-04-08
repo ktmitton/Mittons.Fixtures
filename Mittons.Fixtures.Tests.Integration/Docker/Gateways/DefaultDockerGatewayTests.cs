@@ -428,7 +428,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void ContainerGetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
+            public async Task ContainerGetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
@@ -437,7 +437,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                var actualPort = gateway.ContainerGetHostPortMapping(containerId, "tcp", 22);
+                var actualPort = await gateway.ContainerGetHostPortMappingAsync(containerId, "tcp", 22, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();
@@ -455,7 +455,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void ContainerGetHostPortMapping_WhenCalledForRedis_ExpectHostPortToBeReturnedForContainerPort6379()
+            public async Task ContainerGetHostPortMapping_WhenCalledForRedis_ExpectHostPortToBeReturnedForContainerPort6379()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
@@ -464,7 +464,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                var actualPort = gateway.ContainerGetHostPortMapping(containerId, "tcp", 6379);
+                var actualPort = await gateway.ContainerGetHostPortMappingAsync(containerId, "tcp", 6379, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Models;
@@ -20,7 +21,7 @@ namespace Mittons.Fixtures.Docker.Containers
             var accounts = ExtractSftpUserAccounts(attributes);
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
-            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? dockerGateway.ContainerGetHostPortMapping(Id, "tcp", 22) : 22;
+            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None).GetAwaiter().GetResult() : 22;
             var rsaFingerprint = new Fingerprint { Md5 = GetFingerprint(dockerGateway, "rsa", "md5"), Sha256 = GetFingerprint(dockerGateway, "rsa", "sha256") };
             var ed25519Fingerprint = new Fingerprint { Md5 = GetFingerprint(dockerGateway, "ed25519", "md5"), Sha256 = GetFingerprint(dockerGateway, "ed25519", "sha256") };
 

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
@@ -157,6 +159,11 @@ namespace Mittons.Fixtures.Docker.Gateways
 
                 return port;
             }
+        }
+
+        public Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void NetworkCreate(string networkName, Dictionary<string, string> labels)

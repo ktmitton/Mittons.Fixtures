@@ -8,6 +8,7 @@ using Mittons.Fixtures.Docker.Attributes;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Net;
+using System.Threading;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -109,7 +110,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse("192.168.0.1"));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMapping(It.IsAny<string>(), "tcp", 22)).Returns(49621);
+            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(49621);
 
             gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
                 .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
@@ -165,7 +166,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse(containerIpAddress));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMapping(It.IsAny<string>(), "tcp", 22)).Returns(hostPort);
+            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
             gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
                 .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
@@ -225,7 +226,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse(containerIpAddress));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMapping(It.IsAny<string>(), "tcp", 22)).Returns(hostPort);
+            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
             gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
                 .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });

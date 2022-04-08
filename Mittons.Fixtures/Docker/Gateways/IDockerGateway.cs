@@ -19,7 +19,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         IEnumerable<string> ContainerExecuteCommand(string containerId, string command);
 
-        int ContainerGetHostPortMapping(string containerId, string protocol, int containerPort);
+        Task<int> ContainerGetHostPortMappingAsync(string containerId, string protocol, int containerPort, CancellationToken cancellationToken);
 
         Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken);
 

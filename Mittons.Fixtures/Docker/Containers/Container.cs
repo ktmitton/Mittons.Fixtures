@@ -37,18 +37,18 @@ namespace Mittons.Fixtures.Docker.Containers
             _dockerGateway.ContainerRemove(Id);
         }
 
-        public void CreateFile(string fileContents, string containerFilename, string owner, string permissions)
+        public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
             var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
             File.WriteAllText(temporaryFilename, fileContents);
 
-            AddFile(temporaryFilename, containerFilename, owner, permissions);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
 
             File.Delete(temporaryFilename);
         }
 
-        public void CreateFile(Stream fileContents, string containerFilename, string owner, string permissions)
+        public async Task CreateFileAsync(Stream fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
             var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
@@ -57,15 +57,13 @@ namespace Mittons.Fixtures.Docker.Containers
                 fileContents.CopyTo(fileStream);
             }
 
-            AddFile(temporaryFilename, containerFilename, owner, permissions);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
 
             File.Delete(temporaryFilename);
         }
 
-        public void AddFile(string hostFilename, string containerFilename, string owner, string permissions)
-        {
-            _dockerGateway.ContainerAddFile(Id, hostFilename, containerFilename, owner, permissions);
-        }
+        public Task AddFileAsync(string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
+            => _dockerGateway.ContainerAddFileAsync(Id, hostFilename, containerFilename, owner, permissions, cancellationToken);
 
         public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
             => _dockerGateway.ContainerRemoveFileAsync(Id, containerFilename, cancellationToken);

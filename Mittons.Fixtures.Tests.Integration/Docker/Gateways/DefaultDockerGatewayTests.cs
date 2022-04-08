@@ -353,7 +353,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             [InlineData("/tmp/test.txt")]
             [InlineData("/tmp/test2.txt")]
             [InlineData("/test.txt")]
-            public void ContainerRemoveFile_WhenCalled_ExpectFileToBeRemoved(string containerFilename)
+            public async Task ContainerRemoveFile_WhenCalled_ExpectFileToBeRemoved(string containerFilename)
             {
                 // Arrange
                 var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -370,7 +370,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 gateway.ContainerAddFile(containerId, temporaryFilename, containerFilename, default(string), default(string));
 
                 // Act
-                gateway.ContainerRemoveFile(containerId, containerFilename);
+                await gateway.ContainerRemoveFileAsync(containerId, containerFilename, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

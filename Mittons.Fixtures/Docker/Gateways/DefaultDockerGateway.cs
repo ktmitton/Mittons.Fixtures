@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Extensions;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
@@ -109,18 +110,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void ContainerRemoveFile(string containerId, string containerFilename)
+        public async Task ContainerRemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
-            {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"exec {containerId} rm \"{containerFilename}\"";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+            var process = CreateDockerProcess($"exec {containerId} rm \"{containerFilename}\"");
 
-                proc.Start();
-                proc.WaitForExit();
-            }
+            await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
         }
 
         public IEnumerable<string> ContainerExecuteCommand(string containerId, string command)
@@ -168,7 +162,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = CreateDockerProcess($"inspect {containerId} -f \"{{{{if .State.Health}}}}{{{{.State.Health.Status}}}}{{{{else}}}}{{{{.State.Status}}}}{{{{end}}}}\""))
             {
-                await RunProcessAsync(process);
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 switch (await process.StandardOutput.ReadLineAsync())
                 {
@@ -241,7 +235,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             return process;
         }
 
-        private Task<int> RunProcessAsync(Process process)
+        private Task<int> RunProcessAsync(Process process, CancellationToken cancellationToken)
         {
             var taskCompletionSource = new TaskCompletionSource<int>();
 
@@ -252,9 +246,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
             process.Start();
 
-            var cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(5));
-            cancellationTokenSource.Token.Register(() => taskCompletionSource.TrySetCanceled(cancellationTokenSource.Token));
+            cancellationToken.Register(() => taskCompletionSource.TrySetCanceled(cancellationToken));
 
             return taskCompletionSource.Task;
         }

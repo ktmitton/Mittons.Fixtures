@@ -135,7 +135,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("destination/one")]
         [InlineData("two")]
-        public void RemoveFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string containerFilename)
+        public async Task RemoveFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string containerFilename)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
@@ -143,10 +143,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
-            container.RemoveFile(containerFilename);
+            await container.RemoveFileAsync(containerFilename, CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemoveFile(container.Id, containerFilename), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, containerFilename, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]

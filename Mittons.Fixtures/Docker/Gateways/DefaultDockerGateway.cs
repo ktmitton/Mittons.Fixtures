@@ -144,19 +144,13 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void NetworkCreate(string networkName, Dictionary<string, string> labels)
+        public async Task NetworkCreateAsync(string networkName, Dictionary<string, string> labels, CancellationToken cancellationToken)
         {
             var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
 
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"network create {string.Join(" ", labelStrings)} {networkName}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"network create {string.Join(" ", labelStrings)} {networkName}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
             }
         }
 

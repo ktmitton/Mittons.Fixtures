@@ -23,7 +23,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken);
 
-        void NetworkCreate(string networkName, Dictionary<string, string> labels);
+        Task NetworkCreateAsync(string networkName, Dictionary<string, string> labels, CancellationToken cancellationToken);
 
         Task NetworkRemoveAsync(string networkName, CancellationToken cancellationToken);
 

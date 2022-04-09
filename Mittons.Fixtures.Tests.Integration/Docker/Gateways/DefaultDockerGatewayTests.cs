@@ -621,7 +621,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void NetworkCreate_WhenCalled_ExpectNetworkToBeCreatedWithTheProvidedName()
+            public async Task NetworkCreate_WhenCalled_ExpectNetworkToBeCreatedWithTheProvidedName()
             {
                 // Arrange
                 var networkName = "test";
@@ -632,7 +632,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
+                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Assert
                 using var proc = new Process();
@@ -650,7 +650,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void NetworkCreate_WhenCalledWithLabels_ExpectLabelsToBeAttachedToTheNetwork()
+            public async Task NetworkCreate_WhenCalledWithLabels_ExpectLabelsToBeAttachedToTheNetwork()
             {
                 // Arrange
                 var networkName = "test";
@@ -667,7 +667,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                gateway.NetworkCreate(uniqueName, expectedLabels);
+                await gateway.NetworkCreateAsync(uniqueName, expectedLabels, (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Assert
                 using var proc = new Process();
@@ -700,7 +700,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
+                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Act
                 await gateway.NetworkRemoveAsync(uniqueName, CancellationToken.None);
@@ -734,7 +734,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                gateway.NetworkCreate(uniqueName, new Dictionary<string, string>());
+                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Act
                 await gateway.NetworkConnectAsync(uniqueName, containerId, "test.example.com", CancellationToken.None);

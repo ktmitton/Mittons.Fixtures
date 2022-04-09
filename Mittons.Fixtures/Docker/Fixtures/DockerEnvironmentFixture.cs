@@ -60,7 +60,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
         {
             foreach (var container in _containers)
             {
-                container.Dispose();
+                container.DisposeAsync().GetAwaiter().GetResult();
             }
 
             foreach (var network in _networks)

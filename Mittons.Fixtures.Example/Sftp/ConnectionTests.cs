@@ -45,9 +45,9 @@ namespace Mittons.Fixtures.Example.Sftp
         public async Task DownloadFile_WhenTheFileExists_ExpectTheFileToBeDownloaded(string filename, string sftpFilename, string fileContents)
         {
             // Arrange
-            await _reportingEnvironment.SftpContainer.CreateFileAsync(fileContents, filename, default, default, CancellationToken.None);
-
             var connectionSettings = _reportingEnvironment.SftpContainer.SftpConnectionSettings.Single(x => x.Key == "admin").Value;
+
+            await _reportingEnvironment.SftpContainer.CreateFileAsync(fileContents, connectionSettings.Username, filename, default, default, CancellationToken.None);
 
             var connectionInfo = new ConnectionInfo(
                     connectionSettings.Host,

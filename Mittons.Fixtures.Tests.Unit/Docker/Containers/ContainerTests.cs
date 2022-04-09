@@ -34,7 +34,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(imageName), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -52,7 +52,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(command) });
             _containers.Add(container);
 
             // Act
@@ -75,7 +75,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(parsed);
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -92,7 +92,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             var run = new Run();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
             _containers.Add(container);
 
             // Act
@@ -108,7 +108,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -128,11 +128,11 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("disposingid");
 
-            var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
+            var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             _containers.Add(runningContainer);
             await runningContainer.InitializeAsync();
 
-            var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
+            var disposingContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
             _containers.Add(disposingContainer);
             await disposingContainer.InitializeAsync();
 
@@ -152,7 +152,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -172,7 +172,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -192,7 +192,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             var actualFilename = default(string);
@@ -225,7 +225,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             var actualFilename = default(string);
@@ -259,7 +259,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -281,7 +281,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(HealthStatus.Unknown)
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             var stopwatch = new Stopwatch();
@@ -310,7 +310,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             // Act
@@ -329,7 +329,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Unknown);
 
-            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
 
             var stopwatch = new Stopwatch();

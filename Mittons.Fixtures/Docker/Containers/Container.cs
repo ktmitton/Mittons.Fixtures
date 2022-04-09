@@ -23,23 +23,36 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly string _command;
 
+        private readonly Guid _instanceId;
+
         private readonly Dictionary<string, string> _labels;
 
-        public Container(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
+        private readonly IEnumerable<NetworkAlias> _networks;
+
+        public Container(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
         {
             _dockerGateway = dockerGateway;
+
+            _instanceId = instanceId;
 
             _imageName = attributes.OfType<Image>().Single().Name;
 
             _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
 
             _labels = (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels;
+
+            _networks = attributes.OfType<NetworkAlias>();
         }
 
         public virtual async Task InitializeAsync()
         {
             Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _labels, CancellationToken.None);
             IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
+
+            foreach (var networkAlias in _networks)
+            {
+                await _dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, CancellationToken.None);
+            }
         }
 
         public virtual async Task DisposeAsync()

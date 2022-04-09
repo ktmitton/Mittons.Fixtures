@@ -14,15 +14,15 @@ using System.Diagnostics;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
-    public class ContainerTests : IDisposable
+    public class ContainerTests : IAsyncDisposable
     {
         private readonly List<Container> _containers = new List<Container>();
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             foreach(var container in _containers)
             {
-                container.DisposeAsync().GetAwaiter().GetResult();
+                await container.DisposeAsync();
             }
         }
 

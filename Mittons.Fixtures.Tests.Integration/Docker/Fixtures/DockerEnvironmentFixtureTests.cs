@@ -13,9 +13,9 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
     [Network("network2")]
     public class ExampleDockerEnvironmentFixture : DockerEnvironmentFixture
     {
-        [Image("alpine:3.15")]
+        [Image("redis:alpine")]
         [NetworkAlias("network1", "alpine.example.com")]
-        public Container? AlpineContainer { get; set; }
+        public Container? RedisContainer { get; set; }
 
         [NetworkAlias("network1", "sftp.example.com")]
         [NetworkAlias("network2", "sftp-other.example.com")]
@@ -72,15 +72,15 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
         }
 
         [Fact]
-        public void ExpectAlpineContainerToBeCreated()
+        public void ExpectRedisContainerToBeCreated()
         {
-            Assert.NotNull(_dockerEnvironmentFixture.AlpineContainer);
+            Assert.NotNull(_dockerEnvironmentFixture.RedisContainer);
 
-            if (_dockerEnvironmentFixture.AlpineContainer is not null)
+            if (_dockerEnvironmentFixture.RedisContainer is not null)
             {
                 using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"ps -a --filter id={_dockerEnvironmentFixture.AlpineContainer.Id} --format '{{{{.ID}}}}'";
+                proc.StartInfo.Arguments = $"ps -a --filter id={_dockerEnvironmentFixture.RedisContainer.Id} --format '{{{{.ID}}}}'";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 
@@ -92,15 +92,15 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
         }
 
         [Fact]
-        public void ExpectAlpineContainerToBeConnectedToNetwork1()
+        public void ExpectRedisContainerToBeConnectedToNetwork1()
         {
-            Assert.NotNull(_dockerEnvironmentFixture.AlpineContainer);
+            Assert.NotNull(_dockerEnvironmentFixture.RedisContainer);
 
-            if (_dockerEnvironmentFixture.AlpineContainer is not null)
+            if (_dockerEnvironmentFixture.RedisContainer is not null)
             {
                 using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.AlpineContainer.Id} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
+                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.RedisContainer.Id} --format \"{{{{range $k, $v := .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" $k}}}}{{{{end}}}}\"";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 
@@ -124,15 +124,15 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures
         }
 
         [Fact]
-        public void ExpectAlpineContainerToHaveRunLabel()
+        public void ExpectRedisContainerToHaveRunLabel()
         {
-            Assert.NotNull(_dockerEnvironmentFixture.AlpineContainer);
+            Assert.NotNull(_dockerEnvironmentFixture.RedisContainer);
 
-            if (_dockerEnvironmentFixture.AlpineContainer is not null)
+            if (_dockerEnvironmentFixture.RedisContainer is not null)
             {
                 using var proc = new Process();
                 proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.AlpineContainer.Id} --format \"{{{{json .Config.Labels}}}}\"";
+                proc.StartInfo.Arguments = $"inspect {_dockerEnvironmentFixture.RedisContainer.Id} --format \"{{{{json .Config.Labels}}}}\"";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
 

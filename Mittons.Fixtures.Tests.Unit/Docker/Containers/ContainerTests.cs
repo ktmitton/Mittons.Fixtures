@@ -33,6 +33,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(imageName), new Command(string.Empty) });
             _containers.Add(container);
@@ -51,6 +53,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(command) });
             _containers.Add(container);
@@ -74,6 +78,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(parsed);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -90,6 +96,11 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
             var run = new Run();
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
@@ -107,6 +118,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -127,6 +140,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync("runningid");
             gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("disposingid");
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             _containers.Add(runningContainer);
@@ -151,6 +166,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -171,6 +188,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -191,6 +210,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var fileContents = Guid.NewGuid().ToString();
 
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -224,6 +245,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents));
 
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
             _containers.Add(container);
@@ -250,11 +273,9 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData(HealthStatus.Healthy)]
         [InlineData(HealthStatus.Running)]
-        public async Task StartAsync_WhenContainerHealthIsPassing_ExpectContainerIdToBeReturned(HealthStatus status)
+        public async Task InitializeAsync_WhenContainerHealthIsPassing_ExpectInitializationToComplete(HealthStatus status)
         {
             // Arrange
-            var cancellationToken = new CancellationToken();
-
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
@@ -263,18 +284,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             _containers.Add(container);
 
             // Act
-            var containerId = await container.StartAsync(TimeSpan.FromMilliseconds(10), cancellationToken);
-
             // Assert
-            Assert.Equal(container.Id, containerId);
+            await container.InitializeAsync();
         }
 
         [Fact]
-        public async Task StartAsync_WhenContainerBecomesHealthy_ExpectContainerIdToBeReturned()
+        public async Task InitializeAsync_WhenContainerBecomesHealthy_ExpectContainerIdToBeReturned()
         {
             // Arrange
-            var cancellationToken = new CancellationToken();
-
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.SetupSequence(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Unknown)
@@ -289,23 +306,20 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Act
             stopwatch.Start();
 
-            var containerId = await container.StartAsync(TimeSpan.FromMilliseconds(250), cancellationToken);
+            await container.InitializeAsync();
 
             stopwatch.Stop();
 
             // Assert
             Assert.True(stopwatch.Elapsed > TimeSpan.FromMilliseconds(50));
-            Assert.Equal(container.Id, containerId);
         }
 
         [Theory]
         [InlineData(HealthStatus.Unknown)]
         [InlineData(HealthStatus.Unhealthy)]
-        public async Task StartAsync_WhenContainerHealthNeverPassesBeforeProvidedTimeout_ExpectExceptionToBeThrown(HealthStatus status)
+        public async Task InitializeAsync_WhenContainerHealthNeverPassesBeforeProvidedTimeout_ExpectExceptionToBeThrown(HealthStatus status)
         {
             // Arrange
-            var cancellationToken = new CancellationToken();
-
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
@@ -315,40 +329,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             // Act
             // Assert
-            await Assert.ThrowsAsync<OperationCanceledException>(() => container.StartAsync(TimeSpan.FromMilliseconds(10), cancellationToken));
-        }
-
-        [Fact]
-        public async Task StartAsync_WhenContainerHealthNeverPassesBeforeRequestCancellation_ExpectExceptionToBeThrown()
-        {
-            // Arrange
-            var cancellationTokenSource = new CancellationTokenSource();
-            var cancellationToken = cancellationTokenSource.Token;
-
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(HealthStatus.Unknown);
-
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
-            _containers.Add(container);
-
-            var stopwatch = new Stopwatch();
-
-            // Act
-            stopwatch.Start();
-
-            var startTask = container.StartAsync(TimeSpan.FromSeconds(10), cancellationToken);
-
-            Assert.False(startTask.IsCompleted);
-
-            cancellationTokenSource.Cancel();
-
-            await Assert.ThrowsAsync<OperationCanceledException>(() => startTask);
-
-            stopwatch.Stop();
-
-            // Assert
-            Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10));
+            await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync());
         }
     }
 }

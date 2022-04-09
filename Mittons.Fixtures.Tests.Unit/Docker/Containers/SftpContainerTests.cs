@@ -34,6 +34,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
@@ -52,6 +54,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
@@ -73,6 +77,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(
                     gatewayMock.Object,
@@ -98,6 +104,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(
                     gatewayMock.Object,
@@ -134,6 +142,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var expectedEd25519ShaFingerprint = "tSsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw";
 
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));
@@ -194,6 +204,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : 22;
 
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));
@@ -258,6 +270,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : 22;
 
             var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
 
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));

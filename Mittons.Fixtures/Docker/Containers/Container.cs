@@ -25,7 +25,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly Guid _instanceId;
 
-        private readonly KeyValuePair<string, string>[] _options;
+        private readonly IEnumerable<KeyValuePair<string, string>> _options;
 
         private readonly IEnumerable<NetworkAlias> _networks;
 
@@ -39,7 +39,9 @@ namespace Mittons.Fixtures.Docker.Containers
 
             _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
 
-            _options = (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Options;
+            var attributesWithRun = attributes.OfType<Run>().Any() ? attributes : attributes.Concat(new[] { new Run() });
+
+            _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
             _networks = attributes.OfType<NetworkAlias>();
         }

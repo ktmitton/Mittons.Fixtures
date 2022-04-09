@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
-    public class SftpContainerTests
+    public class SftpContainerTests : IDisposable
     {
         private readonly string sftpImageName = "atmoz/sftp:alpine";
 

@@ -16,7 +16,7 @@ namespace Mittons.Fixtures.Docker.Networks
             _dockerGateway = dockerGateway;
             _name = name;
 
-            _dockerGateway.NetworkCreate(_name, labels);
+            _dockerGateway.NetworkCreateAsync(_name, labels, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void Dispose()

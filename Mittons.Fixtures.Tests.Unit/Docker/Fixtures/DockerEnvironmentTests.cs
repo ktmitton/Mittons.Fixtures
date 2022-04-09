@@ -107,8 +107,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new BuildEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
             }
@@ -125,8 +125,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new ReleaseEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
             }
@@ -143,8 +143,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new UnsetEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
             }
@@ -161,8 +161,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new MissingEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
                 gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
             }
@@ -338,8 +338,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -368,10 +368,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture2 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network1-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
-                gatewayMock.Verify(x => x.NetworkCreate($"network2-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture2.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]

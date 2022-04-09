@@ -568,7 +568,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     _containerIds.Add(containerId);
 
                     // Act
-                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    await Task.Delay(TimeSpan.FromSeconds(5));
                     var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
 
                     // Assert

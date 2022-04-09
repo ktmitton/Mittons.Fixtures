@@ -407,7 +407,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                         break;
                     }
 
-                    Task.Delay(1000).GetAwaiter().GetResult();
+                    await Task.Delay(1000);
                 }
 
                 // Act

@@ -30,7 +30,7 @@ namespace Mittons.Fixtures.Docker.Containers
             await base.InitializeAsync();
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
-            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None).GetAwaiter().GetResult() : 22;
+            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None) : 22;
             var rsaFingerprint = new Fingerprint
                 {
                     Md5 = await GetFingerprintAsync(_dockerGateway, "rsa", "md5", CancellationToken.None),

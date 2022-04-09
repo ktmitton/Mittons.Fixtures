@@ -28,7 +28,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(imageName, string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -43,7 +43,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(string.Empty, command, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -77,7 +77,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(string.Empty, string.Empty, It.Is<Dictionary<string, string>>(x => x.ContainsKey("mittons.fixtures.run.id") && x["mittons.fixtures.run.id"] == run.Id)));
+            gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, string.Empty, It.Is<Dictionary<string, string>>(x => x.ContainsKey("mittons.fixtures.run.id") && x["mittons.fixtures.run.id"] == run.Id), It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -100,10 +100,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerRun("runningimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))))
-                .Returns("runningid");
-            gatewayMock.Setup(x => x.ContainerRun("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))))
-                .Returns("disposingid");
+            gatewayMock.Setup(x => x.ContainerRunAsync("runningimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("runningid");
+            gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("disposingid");
 
             using var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             using var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });

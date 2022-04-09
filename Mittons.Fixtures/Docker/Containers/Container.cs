@@ -24,11 +24,12 @@ namespace Mittons.Fixtures.Docker.Containers
 
             var run = attributes.OfType<Run>().SingleOrDefault() ?? new Run();
 
-            Id = _dockerGateway.ContainerRun(
+            Id = _dockerGateway.ContainerRunAsync(
                     attributes.OfType<Image>().Single().Name,
                     attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty,
-                    (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels
-                );
+                    (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels,
+                    CancellationToken.None
+                ).GetAwaiter().GetResult();
             IpAddress = _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None).GetAwaiter().GetResult();
         }
 

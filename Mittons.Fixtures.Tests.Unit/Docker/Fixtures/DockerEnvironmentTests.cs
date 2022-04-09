@@ -109,8 +109,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -127,8 +127,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -145,8 +145,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -163,8 +163,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network2-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId)), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("redis:alpine", "", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -196,8 +196,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.ContainerRun("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRun("redis:alpine", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRunAsync("redis:alpine", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -208,8 +208,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
-                gatewayMock.Setup(x => x.ContainerRun("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")))).Returns("runningid");
-                gatewayMock.Setup(x => x.ContainerRun("redis:alpine", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")))).Returns("disposingid");
+                gatewayMock.Setup(x => x.ContainerRunAsync("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("runningid");
+                gatewayMock.Setup(x => x.ContainerRunAsync("redis:alpine", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("disposingid");
 
                 using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
 
@@ -258,7 +258,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 
                 // Assert
-                gatewayMock.Verify(x => x.ContainerRun("atmoz/sftp:alpine", It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Exactly(2));
+                gatewayMock.Verify(x => x.ContainerRunAsync("atmoz/sftp:alpine", It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Exactly(2));
             }
 
             [Fact]
@@ -269,8 +269,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
-                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp:alpine", "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")))).Returns("guest");
-                gatewayMock.Setup(x => x.ContainerRun("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")))).Returns("account");
+                gatewayMock.Setup(x => x.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("guest");
+                gatewayMock.Setup(x => x.ContainerRunAsync("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("account");
 
                 using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
 

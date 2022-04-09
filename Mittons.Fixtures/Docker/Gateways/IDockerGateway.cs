@@ -7,7 +7,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public interface IDockerGateway
     {
-        string ContainerRun(string imageName, string command, Dictionary<string, string> labels);
+        Task<string> ContainerRunAsync(string imageName, string command, Dictionary<string, string> labels, CancellationToken cancellationToken);
 
         Task ContainerRemoveAsync(string containerId, CancellationToken cancellationToken);
 

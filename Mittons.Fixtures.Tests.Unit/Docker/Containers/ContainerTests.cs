@@ -202,6 +202,279 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     // Assert
                     await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync());
                 }
+
+                [Fact]
+                public async Task InitializeAsync_WhenHealthChecksAreDisabled_ExpectTheDisabledFlagToBeApplied()
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { Disabled = true }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--no-healthcheck" && y.Value == string.Empty)),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Fact]
+                public async Task InitializeAsync_WhenHealthChecksAreDisabledAndOtherFieldsAreSet_ExpectOnlyNoHealthCheckToBeApplied()
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck
+                            {
+                                Disabled = true,
+                                Command = "test",
+                                Interval = TimeSpan.FromSeconds(1),
+                                Timeout = TimeSpan.FromSeconds(1),
+                                StartPeriod = TimeSpan.FromSeconds(1),
+                                Retries = 1
+                            }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
+                                    x.Any(y => y.Key == "--no-healthcheck") &&
+                                    !x.Any(y => y.Key == "--health-cmd") &&
+                                    !x.Any(y => y.Key == "--health-interval") &&
+                                    !x.Any(y => y.Key == "--health-timeout") &&
+                                    !x.Any(y => y.Key == "--health-start-period") &&
+                                    !x.Any(y => y.Key == "--health-retries")
+                                ),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Theory]
+                [InlineData("ps aux || exit 1")]
+                [InlineData("echo hello")]
+                public async Task InitializeAsync_WhenHealthCheckCommandIsSet_ExpectHealthCmdToBeApplied(string command)
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { Command = command }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-cmd" && y.Value == command)),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Theory]
+                [InlineData(250, 1)]
+                [InlineData(500, 1)]
+                [InlineData(750, 1)]
+                [InlineData(1000, 1)]
+                [InlineData(7500, 8)]
+                public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int milliseconds, int seconds)
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { Interval = TimeSpan.FromMilliseconds(milliseconds) }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-interval" && y.Value == $"{seconds}s")),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Theory]
+                [InlineData(250, 1)]
+                [InlineData(500, 1)]
+                [InlineData(750, 1)]
+                [InlineData(1000, 1)]
+                [InlineData(7500, 8)]
+                public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int milliseconds, int seconds)
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { Timeout = TimeSpan.FromMilliseconds(milliseconds) }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-timeout" && y.Value == $"{seconds}s")),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Theory]
+                [InlineData(250, 1)]
+                [InlineData(500, 1)]
+                [InlineData(750, 1)]
+                [InlineData(1000, 1)]
+                [InlineData(7500, 8)]
+                public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int milliseconds, int seconds)
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { StartPeriod = TimeSpan.FromMilliseconds(milliseconds) }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-start-period" && y.Value == $"{seconds}s")),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
+
+                [Theory]
+                [InlineData(1)]
+                [InlineData(2)]
+                [InlineData(20)]
+                public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(int retries)
+                {
+                    // Arrange
+                    var gatewayMock = new Mock<IDockerGateway>();
+                    gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(HealthStatus.Running);
+
+                    var container = new Container(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new Image(string.Empty),
+                            new Command(string.Empty),
+                            new HealthCheck { Retries = retries }
+                        });
+                    _containers.Add(container);
+
+                    // Act
+                    await container.InitializeAsync();
+
+                    // Assert
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-retries" && y.Value == retries.ToString())),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
+                }
             }
         }
 

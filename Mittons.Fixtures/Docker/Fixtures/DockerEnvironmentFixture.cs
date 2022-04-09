@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
@@ -54,28 +53,16 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         public async Task InitializeAsync()
         {
-            foreach (var network in _networks)
-            {
-                await network.InitializeAsync();
-            }
+            await Task.WhenAll(_networks.Select(x => x.InitializeAsync()));
 
-            foreach (var container in _containers)
-            {
-                await container.InitializeAsync();
-            }
+            await Task.WhenAll(_containers.Select(x => x.InitializeAsync()));
         }
 
         public async Task DisposeAsync()
         {
-            foreach (var container in _containers)
-            {
-                await container.DisposeAsync();
-            }
+            await Task.WhenAll(_containers.Select(x => x.DisposeAsync()));
 
-            foreach (var network in _networks)
-            {
-                await network.DisposeAsync();
-            }
+            await Task.WhenAll(_networks.Select(x => x.DisposeAsync()));
         }
     }
 }

@@ -38,6 +38,11 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
             _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", run.Labels)).ToArray();
 
+            foreach (var network in _networks)
+            {
+                network.InitializeAsync().GetAwaiter().GetResult();
+            }
+
             _containers = new List<Container>();
 
             foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(Container).IsAssignableFrom(x.PropertyType)))
@@ -65,7 +70,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
             foreach (var network in _networks)
             {
-                network.Dispose();
+                network.DisposeAsync().GetAwaiter().GetResult();
             }
         }
     }

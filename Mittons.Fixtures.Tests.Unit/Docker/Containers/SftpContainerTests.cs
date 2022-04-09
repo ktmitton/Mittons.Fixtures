@@ -13,17 +13,17 @@ using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
-    public class SftpContainerTests : IDisposable
+    public class SftpContainerTests : IAsyncDisposable
     {
         private readonly string sftpImageName = "atmoz/sftp:alpine";
 
         private readonly List<Container> _containers = new List<Container>();
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             foreach(var container in _containers)
             {
-                container.DisposeAsync().GetAwaiter().GetResult();
+                await container.DisposeAsync();
             }
         }
 

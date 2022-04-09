@@ -11,25 +11,19 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class DefaultDockerGateway : IDockerGateway
     {
-        public string ContainerRun(string imageName, string command, Dictionary<string, string> labels)
+        public async Task<string> ContainerRunAsync(string imageName, string command, Dictionary<string, string> labels, CancellationToken cancellationToken)
         {
             var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
 
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"run -P -d {string.Join(" ", labelStrings)} {imageName} {command}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"run -P -d {string.Join(" ", labelStrings)} {imageName} {command}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(10)));
 
                 var containerId = default(string);
 
-                while (!proc.StandardOutput.EndOfStream)
+                while (!process.StandardOutput.EndOfStream)
                 {
-                    containerId = proc.StandardOutput.ReadLine();
+                    containerId = process.StandardOutput.ReadLine();
                 }
 
                 return containerId ?? string.Empty;

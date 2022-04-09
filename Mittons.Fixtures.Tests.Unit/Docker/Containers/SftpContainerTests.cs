@@ -28,7 +28,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -67,7 +67,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 );
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, $"{username}:{password}", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"{username}:{password}", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 );
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRun(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id"))), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

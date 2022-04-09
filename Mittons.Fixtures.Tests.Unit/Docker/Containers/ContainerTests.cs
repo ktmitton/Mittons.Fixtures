@@ -91,7 +91,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             container.Dispose();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemove(container.Id), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRemoveAsync(container.Id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -111,8 +111,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             disposingContainer.Dispose();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemove(disposingContainer.Id), Times.Once);
-            gatewayMock.Verify(x => x.ContainerRemove(runningContainer.Id), Times.Never);
+            gatewayMock.Verify(x => x.ContainerRemoveAsync(disposingContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRemoveAsync(runningContainer.Id, It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Theory]

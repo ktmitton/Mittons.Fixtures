@@ -225,8 +225,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                     return;
                 }
 
-                gatewayMock.Verify(x => x.ContainerRemove(fixture.AlpineContainer.Id), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRemove(fixture.RedisContainer.Id), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRemoveAsync(fixture.AlpineContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRemoveAsync(fixture.RedisContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -286,8 +286,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                     return;
                 }
 
-                gatewayMock.Verify(x => x.ContainerRemove(fixture.GuestContainer.Id), Times.Once);
-                gatewayMock.Verify(x => x.ContainerRemove(fixture.AccountsContainer.Id), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRemoveAsync(fixture.GuestContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.ContainerRemoveAsync(fixture.AccountsContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 

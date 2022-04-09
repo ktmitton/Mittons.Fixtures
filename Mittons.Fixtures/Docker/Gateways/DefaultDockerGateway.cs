@@ -36,17 +36,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void ContainerRemove(string containerId)
+        public async Task ContainerRemoveAsync(string containerId, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"rm --force {containerId}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"rm --force {containerId}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(10)));
             }
         }
 

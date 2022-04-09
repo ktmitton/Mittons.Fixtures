@@ -45,6 +45,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
                 var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, attributes });
+                container.InitializeAsync().GetAwaiter().GetResult();
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
 

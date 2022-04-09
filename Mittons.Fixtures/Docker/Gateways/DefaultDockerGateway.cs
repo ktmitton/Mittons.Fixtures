@@ -13,11 +13,11 @@ namespace Mittons.Fixtures.Docker.Gateways
     {
         private static TimeSpan _defaultTimeout = TimeSpan.FromSeconds(10);
 
-        public async Task<string> ContainerRunAsync(string imageName, string command, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        public async Task<string> ContainerRunAsync(string imageName, string command, IEnumerable<KeyValuePair<string, string>> options, CancellationToken cancellationToken)
         {
-            var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
+            var formattedOptions = options.Select(x => $"{x.Key} \"{x.Value}\"");
 
-            using (var process = CreateDockerProcess($"run -P -d {string.Join(" ", labelStrings)} {imageName} {command}"))
+            using (var process = CreateDockerProcess($"run -P -d {string.Join(" ", formattedOptions)} {imageName} {command}"))
             {
                 await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
 
@@ -134,11 +134,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public async Task NetworkCreateAsync(string networkName, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        public async Task NetworkCreateAsync(string networkName, IEnumerable<KeyValuePair<string, string>> options, CancellationToken cancellationToken)
         {
-            var labelStrings = labels.Select(x => $"--label \"{x.Key}={x.Value}\"");
+            var formattedOptions = options.Select(x => $"{x.Key} \"{x.Value}\"");
 
-            using (var process = CreateDockerProcess($"network create {string.Join(" ", labelStrings)} {networkName}"))
+            using (var process = CreateDockerProcess($"network create {string.Join(" ", formattedOptions)} {networkName}"))
             {
                 await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
             }

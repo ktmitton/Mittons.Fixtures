@@ -1,15 +1,15 @@
-using Xunit;
-using Moq;
-using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.Docker.Containers;
-using System.Linq;
 using System;
-using Mittons.Fixtures.Docker.Attributes;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Attributes;
+using Mittons.Fixtures.Docker.Containers;
+using Mittons.Fixtures.Docker.Gateways;
+using Moq;
+using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -21,7 +21,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
         public async ValueTask DisposeAsync()
         {
-            foreach(var container in _containers)
+            foreach (var container in _containers)
             {
                 await container.DisposeAsync();
             }
@@ -44,7 +44,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             await container.InitializeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             await container.InitializeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -94,7 +94,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             await container.InitializeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"{username}:{password}", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"{username}:{password}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -123,7 +123,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             await container.InitializeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Assert
             Assert.Equal(accounts.Length, container.SftpConnectionSettings.Count);
 
-            foreach(var account in accounts)
+            foreach (var account in accounts)
             {
                 Assert.True(container.SftpConnectionSettings.ContainsKey(account.Username));
 

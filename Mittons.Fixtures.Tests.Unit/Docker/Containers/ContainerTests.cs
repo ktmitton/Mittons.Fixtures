@@ -1,16 +1,17 @@
-using Xunit;
-using Moq;
-using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.Docker.Containers;
 using System;
-using Mittons.Fixtures.Docker.Attributes;
-using System.Net;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Attributes;
+using Mittons.Fixtures.Docker.Containers;
+using Mittons.Fixtures.Docker.Gateways;
+using Moq;
+using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -20,7 +21,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
         public async ValueTask DisposeAsync()
         {
-            foreach(var container in _containers)
+            foreach (var container in _containers)
             {
                 await container.DisposeAsync();
             }
@@ -50,7 +51,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     await container.InitializeAsync();
 
                     // Assert
-                    gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                    gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
                 }
             }
 
@@ -73,7 +74,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     await container.InitializeAsync();
 
                     // Assert
-                    gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+                    gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
                 }
             }
 
@@ -126,7 +127,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     await container.InitializeAsync();
 
                     // Assert
-                    gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, string.Empty, It.Is<Dictionary<string, string>>(x => x.ContainsKey("mittons.fixtures.run.id") && x["mittons.fixtures.run.id"] == run.Id), It.IsAny<CancellationToken>()));
+                    gatewayMock.Verify(
+                            x =>
+                            x.ContainerRunAsync(
+                                string.Empty,
+                                string.Empty,
+                                It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--label" && y.Value == $"mittons.fixtures.run.id={run.Id}")),
+                                It.IsAny<CancellationToken>()
+                            )
+                        );
                 }
             }
 
@@ -221,9 +230,9 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerRunAsync("runningimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
+                gatewayMock.Setup(x => x.ContainerRunAsync("runningimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync("runningid");
-                gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
+                gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync("disposingid");
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);

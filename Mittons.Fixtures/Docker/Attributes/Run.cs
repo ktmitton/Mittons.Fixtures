@@ -10,9 +10,9 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public string Id { get; }
 
-        public Dictionary<string, string> Labels => new Dictionary<string, string>
+        public KeyValuePair<string, string>[] Options => new[]
         {
-            { "mittons.fixtures.run.id", Id }
+            new KeyValuePair<string, string>("--label", $"mittons.fixtures.run.id={Id}")
         };
 
         public Run()

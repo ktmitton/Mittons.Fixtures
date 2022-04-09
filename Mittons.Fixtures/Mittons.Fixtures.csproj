@@ -12,6 +12,7 @@
     <RespositoryType>git</RespositoryType>
     <PackageTags>testing;test;integration;system;end-to-end;environment;docker</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

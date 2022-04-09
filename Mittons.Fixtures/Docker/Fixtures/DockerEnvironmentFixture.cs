@@ -14,9 +14,9 @@ namespace Mittons.Fixtures.Docker.Fixtures
     {
         public Guid InstanceId { get; } = Guid.NewGuid();
 
-        private List<Container> _containers;
+        private readonly List<Container> _containers;
 
-        private DefaultNetwork[] _networks;
+        private readonly DefaultNetwork[] _networks;
 
         public DockerEnvironmentFixture()
             : this(new DefaultDockerGateway())

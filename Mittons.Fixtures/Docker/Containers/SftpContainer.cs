@@ -19,7 +19,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public Dictionary<string, SftpConnectionSettings> SftpConnectionSettings { get; private set; }
 
-        private IEnumerable<SftpUserAccount> _accounts;
+        private readonly IEnumerable<SftpUserAccount> _accounts;
 
         public SftpContainer(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
             : base(dockerGateway, instanceId, GetAttributesWithDefaults(attributes))

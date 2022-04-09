@@ -29,4 +29,4 @@ jobs:
       - name: Setup .NET Core SDK 6.0.x
         uses: actions/setup-dotnet@v2
       - name: Test
-        run: dotnet test ./Mittons.Fixtures.Tests.Example/Mittons.Fixtures.Tests.Example.csproj --verbosity normal
+        run: dotnet test ./Mittons.Fixtures.Example/Mittons.Fixtures.Example.csproj --verbosity normal

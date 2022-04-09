@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
@@ -405,6 +407,126 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
                     Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
                 }
+            }
+        }
+
+        public class FileTests : BaseContainerTests
+        {
+            [Theory]
+            [InlineData("file/one", "admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
+            [InlineData("two", "tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
+            public async Task AddUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string hostFilename, string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+                _containers.Add(container);
+
+                var cancellationToken = new CancellationToken();
+
+                // Act
+                await container.AddUserFileAsync(user, hostFilename, containerFilename, owner, permissions, cancellationToken);
+
+                // Assert
+                gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+            }
+
+            [Theory]
+            [InlineData("admin", "destination/one", "/home/admin/destination/one")]
+            [InlineData("tswift", "/two.txt", "/home/tswift/two.txt")]
+            public async Task RemoveUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string expectedContainerFilename)
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+                _containers.Add(container);
+
+                var cancellationToken = new CancellationToken();
+
+                // Act
+                await container.RemoveUserFileAsync(user, containerFilename, CancellationToken.None);
+
+                // Assert
+                gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, expectedContainerFilename, cancellationToken), Times.Once);
+            }
+
+            [Theory]
+            [InlineData("admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
+            [InlineData("tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
+            public async Task CreateUserFileAsync_WhenCalledWithAString_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            {
+                // Arrange
+                var fileContents = Guid.NewGuid().ToString();
+
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+                _containers.Add(container);
+
+                var actualFilename = default(string);
+                var actualContents = default(string);
+
+                gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+                    .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
+                    {
+                        actualFilename = hostFilename;
+                        actualContents = File.ReadAllText(hostFilename);
+                    });
+
+                var cancellationToken = new CancellationToken();
+
+                // Act
+                await container.CreateUserFileAsync(user, fileContents, containerFilename, owner, permissions, CancellationToken.None);
+
+                // Assert
+                gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+                Assert.False(File.Exists(actualFilename));
+                Assert.Equal(fileContents, actualContents);
+            }
+
+            [Theory]
+            [InlineData("admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
+            [InlineData("tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
+            public async Task CreateUserFileAsync_WhenCalledWithAStream_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            {
+                // Arrange
+                var fileContents = Guid.NewGuid().ToString();
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents));
+
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+                _containers.Add(container);
+
+                var actualFilename = default(string);
+                var actualContents = default(string);
+
+                gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+                    .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
+                    {
+                        actualFilename = hostFilename;
+                        actualContents = File.ReadAllText(hostFilename);
+                    });
+
+                var cancellationToken = new CancellationToken();
+
+                // Act
+                await container.CreateUserFileAsync(user, stream, containerFilename, owner, permissions, CancellationToken.None);
+
+                // Assert
+                gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+                Assert.False(File.Exists(actualFilename));
+                Assert.Equal(fileContents, actualContents);
             }
         }
     }

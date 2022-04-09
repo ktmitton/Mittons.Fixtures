@@ -245,6 +245,43 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Theory]
+            [InlineData("/tmp2/test.txt")]
+            [InlineData("/tmp3/temp4/test2.txt")]
+            public async Task ContainerAddFile_WhenCalledForMissingDirectory_ExpectDirectoryToBeCreated(string containerFilename)
+            {
+                // Arrange
+                var fileContents = "hello, world";
+
+                var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+                _filenames.Add(temporaryFilename);
+
+                File.WriteAllText(temporaryFilename, fileContents);
+
+                var gateway = new DefaultDockerGateway();
+
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+                _containerIds.Add(containerId);
+
+                // Act
+                await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
+
+                // Assert
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"exec {containerId} cat {containerFilename}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+
+                var output = proc.StandardOutput.ReadToEnd();
+
+                Assert.Equal(fileContents, output);
+            }
+
+            [Theory]
             [InlineData("test", "/tmp/test.txt")]
             [InlineData("test\nfile", "/tmp/test2.txt")]
             [InlineData("file\ntest", "/test.txt")]
@@ -531,7 +568,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     _containerIds.Add(containerId);
 
                     // Act
-                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    await Task.Delay(TimeSpan.FromSeconds(5));
                     var healthStatus = await gateway.ContainerGetHealthStatusAsync(containerId, CancellationToken.None);
 
                     // Assert

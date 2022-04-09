@@ -54,6 +54,13 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public async Task ContainerAddFileAsync(string containerId, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
+            var directory = System.IO.Path.GetDirectoryName(containerFilename).Replace("\\", "/");
+
+            using (var process = CreateDockerProcess($"exec {containerId} mkdir -p \"{directory}\" >/dev/null 2>&1"))
+            {
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
+            }
+
             using (var process = CreateDockerProcess($"cp \"{hostFilename}\" \"{containerId}:{containerFilename}\""))
             {
                 await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));

@@ -29,7 +29,7 @@ namespace Mittons.Fixtures.Docker.Containers
                     attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty,
                     (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels
                 );
-            IpAddress = _dockerGateway.ContainerGetDefaultNetworkIpAddress(Id);
+            IpAddress = _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public void Dispose()

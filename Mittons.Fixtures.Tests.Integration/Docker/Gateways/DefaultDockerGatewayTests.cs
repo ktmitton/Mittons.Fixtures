@@ -216,7 +216,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void ContainerGetDefaultNetworkIpAddress_WhenTheContainerIsOnOneNetwork_ReturnsTheIpAddressForTheNetwork()
+            public async Task ContainerGetDefaultNetworkIpAddress_WhenTheContainerIsOnOneNetwork_ReturnsTheIpAddressForTheNetwork()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
@@ -225,7 +225,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                var ipAddress = gateway.ContainerGetDefaultNetworkIpAddress(containerId);
+                var ipAddress = await gateway.ContainerGetDefaultNetworkIpAddressAsync(containerId, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

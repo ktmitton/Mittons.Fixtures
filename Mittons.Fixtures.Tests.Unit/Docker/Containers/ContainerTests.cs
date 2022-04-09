@@ -56,7 +56,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             var parsed = IPAddress.Parse(ipAddress);
 
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(parsed);
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(parsed);
 
             // Act
             using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });

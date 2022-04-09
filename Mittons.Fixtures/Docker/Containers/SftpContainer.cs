@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Containers
@@ -22,8 +24,16 @@ namespace Mittons.Fixtures.Docker.Containers
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
             var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None).GetAwaiter().GetResult() : 22;
-            var rsaFingerprint = new Fingerprint { Md5 = GetFingerprint(dockerGateway, "rsa", "md5"), Sha256 = GetFingerprint(dockerGateway, "rsa", "sha256") };
-            var ed25519Fingerprint = new Fingerprint { Md5 = GetFingerprint(dockerGateway, "ed25519", "md5"), Sha256 = GetFingerprint(dockerGateway, "ed25519", "sha256") };
+            var rsaFingerprint = new Fingerprint
+                {
+                    Md5 = GetFingerprintAsync(dockerGateway, "rsa", "md5", CancellationToken.None).GetAwaiter().GetResult(),
+                    Sha256 = GetFingerprintAsync(dockerGateway, "rsa", "sha256", CancellationToken.None).GetAwaiter().GetResult()
+                };
+            var ed25519Fingerprint = new Fingerprint
+                {
+                    Md5 = GetFingerprintAsync(dockerGateway, "ed25519", "md5", CancellationToken.None).GetAwaiter().GetResult(),
+                    Sha256 = GetFingerprintAsync(dockerGateway, "ed25519", "sha256", CancellationToken.None).GetAwaiter().GetResult()
+                };
 
             SftpConnectionSettings = accounts.Select(
                     x =>
@@ -42,9 +52,9 @@ namespace Mittons.Fixtures.Docker.Containers
                 ).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        private string GetFingerprint(IDockerGateway dockerGateway, string algorithm, string hash)
+        private async Task<string> GetFingerprintAsync(IDockerGateway dockerGateway, string algorithm, string hash, CancellationToken cancellationToken)
         {
-            var execResults = dockerGateway.ContainerExecuteCommand(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub").ToArray();
+            var execResults = (await dockerGateway.ContainerExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)))).ToArray();
 
             if (execResults.Length != 1)
             {

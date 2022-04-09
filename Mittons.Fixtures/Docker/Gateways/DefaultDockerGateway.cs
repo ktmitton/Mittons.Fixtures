@@ -94,23 +94,18 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public IEnumerable<string> ContainerExecuteCommand(string containerId, string command)
+        public async Task<IEnumerable<string>> ContainerExecuteCommandAsync(string containerId, string command, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"exec {containerId} {command}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"exec {containerId} {command}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken);
 
                 var lines = new List<string>();
 
-                while (!proc.StandardOutput.EndOfStream)
+                while (!process.StandardOutput.EndOfStream)
                 {
-                    lines.Add(proc.StandardOutput.ReadLine());
+                    var line = await process.StandardOutput.ReadLineAsync();
+                    lines.Add(line);
                 }
 
                 return lines;

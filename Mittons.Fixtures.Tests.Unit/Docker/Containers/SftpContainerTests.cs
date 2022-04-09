@@ -112,14 +112,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(49621);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[0]);
@@ -168,14 +168,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[] { new SftpUserAccount(username, password) });
@@ -228,14 +228,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub"))
-                .Returns(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommand(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub"))
-                .Returns(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
+            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, accounts);

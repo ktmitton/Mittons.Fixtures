@@ -1,5 +1,6 @@
 using Xunit;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Extensions;
 using System.Diagnostics;
 using System.Text;
 using System;
@@ -388,7 +389,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void ContainerExecuteCommand_WhenCalled_ExpectResultsToBeReturned()
+            public async Task ContainerExecuteCommand_WhenCalled_ExpectResultsToBeReturned()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
@@ -398,7 +399,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 for (var i = 0; i < 10; ++i)
                 {
-                    var health = gateway.ContainerExecuteCommand(containerId, "ps aux | grep -v grep | grep sshd || exit 1");
+                    var health = await gateway.ContainerExecuteCommandAsync(containerId, "ps aux | grep -v grep | grep sshd || exit 1", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                     if (health.Any())
                     {
@@ -409,7 +410,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 }
 
                 // Act
-                var results = gateway.ContainerExecuteCommand(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub");
+                var results = await gateway.ContainerExecuteCommandAsync(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Assert
                 using var proc = new Process();

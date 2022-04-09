@@ -17,7 +17,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task ContainerRemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken);
 
-        IEnumerable<string> ContainerExecuteCommand(string containerId, string command);
+        Task<IEnumerable<string>> ContainerExecuteCommandAsync(string containerId, string command, CancellationToken cancellationToken);
 
         Task<int> ContainerGetHostPortMappingAsync(string containerId, string protocol, int containerPort, CancellationToken cancellationToken);
 

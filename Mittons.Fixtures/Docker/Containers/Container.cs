@@ -25,7 +25,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly Guid _instanceId;
 
-        private readonly Dictionary<string, string> _labels;
+        private readonly KeyValuePair<string, string>[] _options;
 
         private readonly IEnumerable<NetworkAlias> _networks;
 
@@ -39,14 +39,14 @@ namespace Mittons.Fixtures.Docker.Containers
 
             _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
 
-            _labels = (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels;
+            _options = (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Options;
 
             _networks = attributes.OfType<NetworkAlias>();
         }
 
         public virtual async Task InitializeAsync()
         {
-            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _labels, CancellationToken.None);
+            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, CancellationToken.None);
             IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
 
             await EnsureHealthyAsync(TimeSpan.FromSeconds(5));

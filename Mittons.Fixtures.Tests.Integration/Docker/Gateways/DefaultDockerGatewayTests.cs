@@ -1,16 +1,16 @@
-using Xunit;
-using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.Extensions;
-using System.Diagnostics;
-using System.Text;
 using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Extensions;
+using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 {
@@ -24,7 +24,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
             public void Dispose()
             {
-                foreach(var containerId in _containerIds)
+                foreach (var containerId in _containerIds)
                 {
                     using var proc = new Process();
                     proc.StartInfo.FileName = "docker";
@@ -36,7 +36,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     proc.WaitForExit();
                 }
 
-                foreach(var filename in _filenames)
+                foreach (var filename in _filenames)
                 {
                     File.Delete(filename);
                 }
@@ -53,10 +53,10 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var containerId = await gateway.ContainerRunAsync(
                         imageName,
                         string.Empty,
-                        new Dictionary<string, string>
+                        new List<KeyValuePair<string, string>>
                         {
-                            { "first", "second" },
-                            { "third", "fourth" }
+                            new KeyValuePair<string, string>("--label", "first=second"),
+                            new KeyValuePair<string, string>("--label", "third=fourth")
                         },
                         CancellationToken.None
                     );
@@ -77,10 +77,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
-                Assert.True(actualLabels.ContainsKey("first"));
-                Assert.True(actualLabels.ContainsKey("third"));
-                Assert.Equal("second", actualLabels["first"]);
-                Assert.Equal("fourth", actualLabels["third"]);
+                Assert.Contains(actualLabels, x => x.Key == "first" && x.Value == "second");
+                Assert.Contains(actualLabels, x => x.Key == "third" && x.Value == "fourth");
             }
 
             [Theory]
@@ -92,7 +90,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = await gateway.ContainerRunAsync(imageName, string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync(imageName, string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -107,7 +105,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var outputBuilder = new StringBuilder();
 
-                while (!proc.StandardOutput.EndOfStream) {
+                while (!proc.StandardOutput.EndOfStream)
+                {
                     outputBuilder.Append(proc.StandardOutput.ReadLine());
                 }
 
@@ -123,7 +122,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = await gateway.ContainerRunAsync("alpine:3.15", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("alpine:3.15", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -138,7 +137,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var outputBuilder = new StringBuilder();
 
-                while (!proc.StandardOutput.EndOfStream) {
+                while (!proc.StandardOutput.EndOfStream)
+                {
                     outputBuilder.Append(proc.StandardOutput.ReadLine());
                 }
 
@@ -154,7 +154,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var gateway = new DefaultDockerGateway();
 
                 // Act
-                var containerId = await gateway.ContainerRunAsync("alpine:3.15", "/bin/bash", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Assert
@@ -169,7 +169,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var outputBuilder = new StringBuilder();
 
-                while (!proc.StandardOutput.EndOfStream) {
+                while (!proc.StandardOutput.EndOfStream)
+                {
                     outputBuilder.Append(proc.StandardOutput.ReadLine());
                 }
 
@@ -195,7 +196,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("alpine:3.15", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("alpine:3.15", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -222,7 +223,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -258,7 +259,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -294,7 +295,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -330,7 +331,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -366,7 +367,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 await gateway.ContainerAddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
@@ -395,7 +396,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 for (var i = 0; i < 10; ++i)
@@ -435,7 +436,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -462,7 +463,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("redis:alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 // Act
@@ -491,7 +492,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 public void Dispose()
                 {
-                    foreach(var containerId in _containerIds)
+                    foreach (var containerId in _containerIds)
                     {
                         using var proc = new Process();
                         proc.StartInfo.FileName = "docker";
@@ -510,7 +511,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     // Arrange
                     var gateway = new DefaultDockerGateway();
 
-                    var containerId = await gateway.ContainerRunAsync("redis:alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                    var containerId = await gateway.ContainerRunAsync("redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                     _containerIds.Add(containerId);
 
                     // Act
@@ -526,7 +527,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     // Arrange
                     var gateway = new DefaultDockerGateway();
 
-                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                     _containerIds.Add(containerId);
 
                     // Act
@@ -543,7 +544,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     // Arrange
                     var gateway = new DefaultDockerGateway();
 
-                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                     _containerIds.Add(containerId);
 
                     // Act
@@ -560,7 +561,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     // Arrange
                     var gateway = new DefaultDockerGateway();
 
-                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                    var containerId = await gateway.ContainerRunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                     _containerIds.Add(containerId);
 
                     // Act
@@ -576,7 +577,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     // Arrange
                     var gateway = new DefaultDockerGateway();
 
-                    var containerId = await gateway.ContainerRunAsync("alpine", string.Empty, new Dictionary<string, string>(), CancellationToken.None);
+                    var containerId = await gateway.ContainerRunAsync("alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                     _containerIds.Add(containerId);
 
                     // Act
@@ -596,7 +597,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
             public void Dispose()
             {
-                foreach(var containerId in _containerIds)
+                foreach (var containerId in _containerIds)
                 {
                     using var proc = new Process();
                     proc.StartInfo.FileName = "docker";
@@ -608,7 +609,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                     proc.WaitForExit();
                 }
 
-                foreach(var networkName in _networkNames)
+                foreach (var networkName in _networkNames)
                 {
                     using var proc = new Process();
                     proc.StartInfo.FileName = "docker";
@@ -633,7 +634,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+                await gateway.NetworkCreateAsync(uniqueName, Enumerable.Empty<KeyValuePair<string, string>>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Assert
                 using var proc = new Process();
@@ -657,10 +658,10 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 var networkName = "test";
                 var uniqueName = $"{networkName}-{Guid.NewGuid()}";
 
-                var expectedLabels = new Dictionary<string, string>
+                var expectedOptions = new KeyValuePair<string, string>[]
                 {
-                    { "first", "second" },
-                    { "third", "fourth" }
+                    new KeyValuePair<string, string>("--label", "first=second"),
+                    new KeyValuePair<string, string>("--label", "third=fourth")
                 };
 
                 var gateway = new DefaultDockerGateway();
@@ -668,7 +669,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _networkNames.Add(uniqueName);
 
                 // Act
-                await gateway.NetworkCreateAsync(uniqueName, expectedLabels, (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+                await gateway.NetworkCreateAsync(uniqueName, expectedOptions, (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Assert
                 using var proc = new Process();
@@ -684,10 +685,8 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
-                Assert.True(actualLabels.ContainsKey("first"));
-                Assert.True(actualLabels.ContainsKey("third"));
-                Assert.Equal(expectedLabels["first"], actualLabels["first"]);
-                Assert.Equal(expectedLabels["third"], actualLabels["third"]);
+                Assert.Contains(actualLabels, x => x.Key == "first" && x.Value == "second");
+                Assert.Contains(actualLabels, x => x.Key == "third" && x.Value == "fourth");
             }
 
             [Fact]
@@ -701,7 +700,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 _networkNames.Add(uniqueName);
 
-                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+                await gateway.NetworkCreateAsync(uniqueName, Enumerable.Empty<KeyValuePair<string, string>>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Act
                 await gateway.NetworkRemoveAsync(uniqueName, CancellationToken.None);
@@ -730,12 +729,12 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
 
                 var gateway = new DefaultDockerGateway();
 
-                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", new Dictionary<string, string>(), CancellationToken.None);
+                var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
                 _containerIds.Add(containerId);
 
                 _networkNames.Add(uniqueName);
 
-                await gateway.NetworkCreateAsync(uniqueName, new Dictionary<string, string>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+                await gateway.NetworkCreateAsync(uniqueName, Enumerable.Empty<KeyValuePair<string, string>>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
                 // Act
                 await gateway.NetworkConnectAsync(uniqueName, containerId, "test.example.com", CancellationToken.None);

@@ -7,7 +7,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public interface IDockerGateway
     {
-        Task<string> ContainerRunAsync(string imageName, string command, Dictionary<string, string> labels, CancellationToken cancellationToken);
+        Task<string> ContainerRunAsync(string imageName, string command, IEnumerable<KeyValuePair<string, string>> options, CancellationToken cancellationToken);
 
         Task ContainerRemoveAsync(string containerId, CancellationToken cancellationToken);
 
@@ -23,7 +23,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task<HealthStatus> ContainerGetHealthStatusAsync(string containerId, CancellationToken cancellationToken);
 
-        Task NetworkCreateAsync(string networkName, Dictionary<string, string> labels, CancellationToken cancellationToken);
+        Task NetworkCreateAsync(string networkName, IEnumerable<KeyValuePair<string, string>> labels, CancellationToken cancellationToken);
 
         Task NetworkRemoveAsync(string networkName, CancellationToken cancellationToken);
 

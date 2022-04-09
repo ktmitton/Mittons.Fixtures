@@ -61,16 +61,16 @@ namespace Mittons.Fixtures.Docker.Containers
                 ).ToDictionary(x => x.Key, x => x.Value);
         }
 
-        public Task CreateFileAsync(Stream fileContents, string user, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
+        public Task CreateUserFileAsync(string user, Stream fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
             => CreateFileAsync(fileContents, Path.Combine($"/home/{user}", Regex.Replace(containerFilename, "^/", "")).Replace("\\", "/"), owner, permissions, cancellationToken);
 
-        public Task CreateFileAsync(string fileContents, string user, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
+        public Task CreateUserFileAsync(string user, string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
             => CreateFileAsync(fileContents, Path.Combine($"/home/{user}", Regex.Replace(containerFilename, "^/", "")).Replace("\\", "/"), owner, permissions, cancellationToken);
 
-        public Task AddFileAsync(string hostFilename, string user, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
+        public Task AddUserFileAsync(string user, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
             => AddFileAsync(hostFilename, Path.Combine($"/home/{user}", Regex.Replace(containerFilename, "^/", "")).Replace("\\", "/"), owner, permissions, cancellationToken);
 
-        public Task RemoveFileAsync(string user, string containerFilename, CancellationToken cancellationToken)
+        public Task RemoveUserFileAsync(string user, string containerFilename, CancellationToken cancellationToken)
             => RemoveFileAsync(Path.Combine($"/home/{user}", Regex.Replace(containerFilename, "^/", "")).Replace("\\", "/"), cancellationToken);
 
         private async Task<string> GetFingerprintAsync(IDockerGateway dockerGateway, string algorithm, string hash, CancellationToken cancellationToken)

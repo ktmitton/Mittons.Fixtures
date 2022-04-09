@@ -415,7 +415,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             [Theory]
             [InlineData("file/one", "admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
             [InlineData("two", "tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
-            public async Task AddFile_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string hostFilename, string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            public async Task AddUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string hostFilename, string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
@@ -428,7 +428,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 var cancellationToken = new CancellationToken();
 
                 // Act
-                await container.AddFileAsync(hostFilename, user, containerFilename, owner, permissions, cancellationToken);
+                await container.AddUserFileAsync(user, hostFilename, containerFilename, owner, permissions, cancellationToken);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
@@ -437,7 +437,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             [Theory]
             [InlineData("admin", "destination/one", "/home/admin/destination/one")]
             [InlineData("tswift", "/two.txt", "/home/tswift/two.txt")]
-            public async Task RemoveFile_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string expectedContainerFilename)
+            public async Task RemoveUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string expectedContainerFilename)
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
@@ -450,7 +450,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 var cancellationToken = new CancellationToken();
 
                 // Act
-                await container.RemoveFileAsync(user, containerFilename, CancellationToken.None);
+                await container.RemoveUserFileAsync(user, containerFilename, CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, expectedContainerFilename, cancellationToken), Times.Once);
@@ -459,7 +459,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             [Theory]
             [InlineData("admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
             [InlineData("tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
-            public async Task CreateFile_WhenCalledWithAString_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            public async Task CreateUserFileAsync_WhenCalledWithAString_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
             {
                 // Arrange
                 var fileContents = Guid.NewGuid().ToString();
@@ -484,7 +484,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 var cancellationToken = new CancellationToken();
 
                 // Act
-                await container.CreateFileAsync(fileContents, user, containerFilename, owner, permissions, CancellationToken.None);
+                await container.CreateUserFileAsync(user, fileContents, containerFilename, owner, permissions, CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
@@ -495,7 +495,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             [Theory]
             [InlineData("admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
             [InlineData("tswift", "/two.txt", "owner", "permissions", "/home/tswift/two.txt")]
-            public async Task CreateFile_WhenCalledWithAStream_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
+            public async Task CreateUserFileAsync_WhenCalledWithAStream_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
             {
                 // Arrange
                 var fileContents = Guid.NewGuid().ToString();
@@ -521,7 +521,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 var cancellationToken = new CancellationToken();
 
                 // Act
-                await container.CreateFileAsync(stream, user, containerFilename, owner, permissions, CancellationToken.None);
+                await container.CreateUserFileAsync(user, stream, containerFilename, owner, permissions, CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);

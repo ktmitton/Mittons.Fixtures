@@ -47,7 +47,7 @@ namespace Mittons.Fixtures.Example.Sftp
             // Arrange
             var connectionSettings = _reportingEnvironment.SftpContainer.SftpConnectionSettings.Single(x => x.Key == "admin").Value;
 
-            await _reportingEnvironment.SftpContainer.CreateFileAsync(fileContents, connectionSettings.Username, filename, default, default, CancellationToken.None);
+            await _reportingEnvironment.SftpContainer.CreateUserFileAsync(connectionSettings.Username, fileContents, filename, default, default, CancellationToken.None);
 
             var connectionInfo = new ConnectionInfo(
                     connectionSettings.Host,

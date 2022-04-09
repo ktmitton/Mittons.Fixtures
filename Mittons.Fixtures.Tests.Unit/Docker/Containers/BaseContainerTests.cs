@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Containers;
 
-namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
-{
-    public abstract class BaseContainerTests : IAsyncDisposable
-    {
-        protected readonly List<Container> _containers = new List<Container>();
+namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-        public async ValueTask DisposeAsync()
+public abstract class BaseContainerTests : IAsyncDisposable
+{
+    protected readonly List<Container> _containers = new List<Container>();
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var container in _containers)
         {
-            foreach (var container in _containers)
-            {
-                await container.DisposeAsync();
-            }
+            await container.DisposeAsync();
         }
     }
 }

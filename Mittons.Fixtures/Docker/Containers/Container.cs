@@ -42,14 +42,9 @@ namespace Mittons.Fixtures.Docker.Containers
             IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
         }
 
-        public Task DisposeAsync()
+        public virtual async Task DisposeAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None).GetAwaiter().GetResult();
+            await _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None);
         }
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)

@@ -17,6 +17,16 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
     {
         private readonly string sftpImageName = "atmoz/sftp:alpine";
 
+        private readonly List<Container> _containers = new List<Container>();
+
+        public void Dispose()
+        {
+            foreach(var container in _containers)
+            {
+                container.DisposeAsync().GetAwaiter().GetResult();
+            }
+        }
+
         [Fact]
         public async Task InitializeAsync_WhenCalled_ExpectTheContainerToUseTheAtmozImage()
         {
@@ -26,14 +36,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(IPAddress.Any);
 
             var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
-
-            container.Dispose();
         }
 
         [Fact]
@@ -45,14 +54,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(IPAddress.Any);
 
             var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
-
-            container.Dispose();
         }
 
         [Theory]
@@ -73,14 +81,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                         new SftpUserAccount { Username = username, Password = password }
                     }
                 );
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"{username}:{password}", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
-
-            container.Dispose();
         }
 
         [Fact]
@@ -100,14 +107,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                         new SftpUserAccount { Username = "guest", Password = "guest" }
                     }
                 );
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
-
-            container.Dispose();
         }
 
         [Fact]
@@ -142,6 +148,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[0]);
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -164,8 +171,6 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
             Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
-
-            container.Dispose();
         }
 
         [Theory]
@@ -203,6 +208,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[] { new SftpUserAccount(username, password) });
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -225,8 +231,6 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
             Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
-
-            container.Dispose();
         }
 
         [Theory]
@@ -268,6 +272,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, accounts);
+            _containers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -294,8 +299,6 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
                 Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
             }
-
-            container.Dispose();
         }
     }
 }

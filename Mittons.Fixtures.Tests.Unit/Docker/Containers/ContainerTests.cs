@@ -19,38 +19,46 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         [Theory]
         [InlineData("myimage")]
         [InlineData("otherimage")]
-        public void Ctor_WhenInitializedWithAnImageName_ExpectTheImageNameToBePassedToTheDockerRunCommand(string imageName)
+        public async Task Ctor_WhenInitializedWithAnImageName_ExpectTheImageNameToBePassedToTheDockerRunCommand(string imageName)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
+
             // Act
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(imageName), new Command(string.Empty) });
+            await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Theory]
         [InlineData("mycommand")]
         [InlineData("othercommand")]
-        public void Ctor_WhenInitializedWithACommand_ExpectTheCommandToBePassedToTheDockerRunCommand(string command)
+        public async Task Ctor_WhenInitializedWithACommand_ExpectTheCommandToBePassedToTheDockerRunCommand(string command)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
+
             // Act
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(command) });
+            await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Theory]
         [InlineData("192.168.0.0")]
         [InlineData("192.168.0.1")]
         [InlineData("127.0.0.1")]
-        public void Ctor_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
+        public async Task Ctor_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
         {
             // Arrange
             var parsed = IPAddress.Parse(ipAddress);
@@ -59,25 +67,33 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(parsed);
 
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+
             // Act
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            await container.InitializeAsync();
 
             // Assert
             Assert.Equal(parsed, container.IpAddress);
+
+            container.Dispose();
         }
 
         [Fact]
-        public void Ctor_WhenCreatedWithARun_ExpectLabelsToBePassedToTheGateway()
+        public async Task Ctor_WhenCreatedWithARun_ExpectLabelsToBePassedToTheGateway()
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             var run = new Run();
 
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
+
             // Act
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty), run });
+            await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, string.Empty, It.Is<Dictionary<string, string>>(x => x.ContainsKey("mittons.fixtures.run.id") && x["mittons.fixtures.run.id"] == run.Id), It.IsAny<CancellationToken>()));
+
+            container.Dispose();
         }
 
         [Fact]
@@ -86,7 +102,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
             container.Dispose();
@@ -96,7 +112,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         }
 
         [Fact]
-        public void Dispose_WhenCalledWhileAnotherContainerIsRunning_ExpectOnlyTheCalledContainerToBeRemoved()
+        public async Task Dispose_WhenCalledWhileAnotherContainerIsRunning_ExpectOnlyTheCalledContainerToBeRemoved()
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
@@ -105,8 +121,11 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("disposingid");
 
-            using var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
-            using var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
+            var runningContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
+            await runningContainer.InitializeAsync();
+
+            var disposingContainer = new Container(gatewayMock.Object, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
+            await disposingContainer.InitializeAsync();
 
             // Act
             disposingContainer.Dispose();
@@ -114,6 +133,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Assert
             gatewayMock.Verify(x => x.ContainerRemoveAsync(disposingContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
             gatewayMock.Verify(x => x.ContainerRemoveAsync(runningContainer.Id, It.IsAny<CancellationToken>()), Times.Never);
+
+            runningContainer.Dispose();
         }
 
         [Theory]
@@ -124,7 +145,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             var cancellationToken = new CancellationToken();
 
@@ -133,6 +154,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             // Assert
             gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, containerFilename, owner, permissions, cancellationToken), Times.Once);
+
+            container.Dispose();
         }
 
         [Theory]
@@ -143,13 +166,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
             await container.RemoveFileAsync(containerFilename, CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, containerFilename, It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Theory]
@@ -162,7 +187,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             var actualFilename = default(string);
             var actualContents = default(string);
@@ -181,6 +206,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));
             Assert.False(File.Exists(actualFilename));
             Assert.Equal(fileContents, actualContents);
+
+            container.Dispose();
         }
 
         [Theory]
@@ -194,7 +221,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             var actualFilename = default(string);
             var actualContents = default(string);
@@ -213,6 +240,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             Assert.Equal(Path.GetDirectoryName(Path.GetTempPath()), Path.GetDirectoryName(actualFilename));
             Assert.False(File.Exists(actualFilename));
             Assert.Equal(fileContents, actualContents);
+
+            container.Dispose();
         }
 
         [Theory]
@@ -227,13 +256,15 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
             var containerId = await container.StartAsync(TimeSpan.FromMilliseconds(10), cancellationToken);
 
             // Assert
             Assert.Equal(container.Id, containerId);
+
+            container.Dispose();
         }
 
         [Fact]
@@ -248,7 +279,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 .ReturnsAsync(HealthStatus.Unknown)
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             var stopwatch = new Stopwatch();
 
@@ -262,6 +293,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             // Assert
             Assert.True(stopwatch.Elapsed > TimeSpan.FromMilliseconds(50));
             Assert.Equal(container.Id, containerId);
+
+            container.Dispose();
         }
 
         [Theory]
@@ -276,11 +309,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(status);
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             // Act
             // Assert
             await Assert.ThrowsAsync<OperationCanceledException>(() => container.StartAsync(TimeSpan.FromMilliseconds(10), cancellationToken));
+
+            container.Dispose();
         }
 
         [Fact]
@@ -294,7 +329,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Unknown);
 
-            using var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
 
             var stopwatch = new Stopwatch();
 
@@ -313,6 +348,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             // Assert
             Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10));
+
+            container.Dispose();
         }
     }
 }

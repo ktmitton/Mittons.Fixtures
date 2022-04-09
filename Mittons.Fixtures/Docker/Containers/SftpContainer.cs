@@ -15,27 +15,34 @@ namespace Mittons.Fixtures.Docker.Containers
     {
         private const string ImageName = "atmoz/sftp:alpine";
 
-        public Dictionary<string, SftpConnectionSettings> SftpConnectionSettings { get; }
+        public Dictionary<string, SftpConnectionSettings> SftpConnectionSettings { get; private set; }
+
+        private IEnumerable<SftpUserAccount> _accounts;
 
         public SftpContainer(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
             : base(dockerGateway, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(ExtractSftpUserAccounts(attributes))) }))
         {
-            var accounts = ExtractSftpUserAccounts(attributes);
+            _accounts = ExtractSftpUserAccounts(attributes);
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
-            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None).GetAwaiter().GetResult() : 22;
+            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None).GetAwaiter().GetResult() : 22;
             var rsaFingerprint = new Fingerprint
                 {
-                    Md5 = GetFingerprintAsync(dockerGateway, "rsa", "md5", CancellationToken.None).GetAwaiter().GetResult(),
-                    Sha256 = GetFingerprintAsync(dockerGateway, "rsa", "sha256", CancellationToken.None).GetAwaiter().GetResult()
+                    Md5 = await GetFingerprintAsync(_dockerGateway, "rsa", "md5", CancellationToken.None),
+                    Sha256 = await GetFingerprintAsync(_dockerGateway, "rsa", "sha256", CancellationToken.None)
                 };
             var ed25519Fingerprint = new Fingerprint
                 {
-                    Md5 = GetFingerprintAsync(dockerGateway, "ed25519", "md5", CancellationToken.None).GetAwaiter().GetResult(),
-                    Sha256 = GetFingerprintAsync(dockerGateway, "ed25519", "sha256", CancellationToken.None).GetAwaiter().GetResult()
+                    Md5 = await GetFingerprintAsync(_dockerGateway, "ed25519", "md5", CancellationToken.None),
+                    Sha256 = await GetFingerprintAsync(_dockerGateway, "ed25519", "sha256", CancellationToken.None)
                 };
 
-            SftpConnectionSettings = accounts.Select(
+            SftpConnectionSettings = _accounts.Select(
                     x =>
                     new KeyValuePair<string, SftpConnectionSettings>(
                         x.Username,

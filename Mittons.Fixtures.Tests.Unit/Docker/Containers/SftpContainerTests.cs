@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
@@ -17,48 +18,55 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         private readonly string sftpImageName = "atmoz/sftp:alpine";
 
         [Fact]
-        public void Ctor_WhenCalled_ExpectTheContainerToUseTheAtmozImage()
+        public async Task InitializeAsync_WhenCalled_ExpectTheContainerToUseTheAtmozImage()
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
+            var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Fact]
-        public void Ctor_InitializedWithNoCredentials_ExpectTheCommandToSetupTheGuestAccount()
+        public async Task InitializeAsync_InitializedWithNoCredentials_ExpectTheCommandToSetupTheGuestAccount()
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
+            var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            await container.InitializeAsync();
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Theory]
         [InlineData("testuser1", "testpassword1")]
         [InlineData("testuser2", "testpassword2")]
         [InlineData("guest", "guest")]
-        public void Ctor_InitializedWithOneSetOfCredentials_ExpectTheCommandToSetupTheCredentials(string username, string password)
+        public async Task InitializeAsync_InitializedWithOneSetOfCredentials_ExpectTheCommandToSetupTheCredentials(string username, string password)
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
-            // Act
-            using var container = new SftpContainer(
+            var container = new SftpContainer(
                     gatewayMock.Object,
                     new SftpUserAccount[]
                     {
@@ -66,20 +74,24 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     }
                 );
 
+            // Act
+            await container.InitializeAsync();
+
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"{username}:{password}", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Fact]
-        public void Ctor_InitializedWithMultipleSetOfCredentials_ExpectTheCommandToSetupTheCredentials()
+        public async Task InitializeAsync_InitializedWithMultipleSetOfCredentials_ExpectTheCommandToSetupTheCredentials()
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
-            // Act
-            using var container = new SftpContainer(
+            var container = new SftpContainer(
                     gatewayMock.Object,
                     new SftpUserAccount[]
                     {
@@ -89,12 +101,17 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                     }
                 );
 
+            // Act
+            await container.InitializeAsync();
+
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
+
+            container.Dispose();
         }
 
         [Fact]
-        public void Ctor_WhenIntitializedWithNoAccounts_ExpectGuestConnectionSettingsToBeSet()
+        public async Task InitializeAsync_WhenIntitializedWithNoAccounts_ExpectGuestConnectionSettingsToBeSet()
         {
             // Arrange
             var containerIpAddress = "192.168.0.1";
@@ -124,8 +141,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
+            var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[0]);
+
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[0]);
+            await container.InitializeAsync();
 
             // Assert
             Assert.Single(container.SftpConnectionSettings);
@@ -145,12 +164,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
             Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
+
+            container.Dispose();
         }
 
         [Theory]
         [InlineData("user", "password", "192.168.0.2", 48621, "23:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca", "28tGM7exiFTGOjsjWccDgj9iSH4mkbvuUHhHK0euOeE", "20:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf", "2SsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw")]
         [InlineData("other", "other", "192.168.0.3", 48321, "33:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca", "38tGM7exiFTGOjsjWccDgj9iSH4mkbvuUHhHK0euOeE", "30:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf", "3SsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw")]
-        public void Ctor_WhenIntitializedWithAnAccount_ExpectAccountConnectionSettingsToBeSet(
+        public async Task InitializeAsync_WhenIntitializedWithAnAccount_ExpectAccountConnectionSettingsToBeSet(
             string username,
             string password,
             string containerIpAddress,
@@ -181,8 +202,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
+            var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[] { new SftpUserAccount(username, password) });
+
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[] { new SftpUserAccount(username, password) });
+            await container.InitializeAsync();
 
             // Assert
             Assert.Single(container.SftpConnectionSettings);
@@ -202,12 +225,14 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
             Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
+
+            container.Dispose();
         }
 
         [Theory]
         [InlineData("192.168.0.2", 48621, "23:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca", "28tGM7exiFTGOjsjWccDgj9iSH4mkbvuUHhHK0euOeE", "20:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf", "2SsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw")]
         [InlineData("192.168.0.3", 48321, "33:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca", "38tGM7exiFTGOjsjWccDgj9iSH4mkbvuUHhHK0euOeE", "30:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf", "3SsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw")]
-        public void Ctor_WhenIntitializedWithMultipleAccounts_ExpectAllAccountConnectionSettingsToBeSet(
+        public async Task InitializeAsync_WhenIntitializedWithMultipleAccounts_ExpectAllAccountConnectionSettingsToBeSet(
             string containerIpAddress,
             int hostPort,
             string expectedRsaMd5Fingerprint,
@@ -242,8 +267,10 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
+            var container = new SftpContainer(gatewayMock.Object, accounts);
+
             // Act
-            using var container = new SftpContainer(gatewayMock.Object, accounts);
+            await container.InitializeAsync();
 
             // Assert
             Assert.Equal(accounts.Length, container.SftpConnectionSettings.Count);
@@ -267,6 +294,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
                 Assert.Equal(expectedEd25519ShaFingerprint, connectionSettings.Ed25519Fingerprint.Sha256);
                 Assert.Equal(expectedEd25519Md5Fingerprint, connectionSettings.Ed25519Fingerprint.Md5);
             }
+
+            container.Dispose();
         }
     }
 }

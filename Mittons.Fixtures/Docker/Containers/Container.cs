@@ -7,30 +7,44 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Xunit;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
-    public class Container : IDisposable, IServiceLifetime
+    public class Container : IAsyncLifetime
     {
-        public string Id { get; }
+        public string Id { get; private set; }
 
-        public IPAddress IpAddress { get; set; }
+        public IPAddress IpAddress { get; private set; }
 
-        private readonly IDockerGateway _dockerGateway;
+        protected readonly IDockerGateway _dockerGateway;
+
+        private readonly string _imageName;
+
+        private readonly string _command;
+
+        private readonly Dictionary<string, string> _labels;
 
         public Container(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
         {
             _dockerGateway = dockerGateway;
 
-            var run = attributes.OfType<Run>().SingleOrDefault() ?? new Run();
+            _imageName = attributes.OfType<Image>().Single().Name;
 
-            Id = _dockerGateway.ContainerRunAsync(
-                    attributes.OfType<Image>().Single().Name,
-                    attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty,
-                    (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels,
-                    CancellationToken.None
-                ).GetAwaiter().GetResult();
-            IpAddress = _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None).GetAwaiter().GetResult();
+            _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
+
+            _labels = (attributes.OfType<Run>().SingleOrDefault() ?? new Run()).Labels;
+        }
+
+        public virtual async Task InitializeAsync()
+        {
+            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _labels, CancellationToken.None);
+            IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
+        }
+
+        public Task DisposeAsync()
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
@@ -91,11 +105,6 @@ namespace Mittons.Fixtures.Docker.Containers
             linkedToken.ThrowIfCancellationRequested();
 
             return Id;
-        }
-
-        public virtual Task<HealthStatus> GetHealthStatusAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }

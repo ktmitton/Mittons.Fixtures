@@ -21,8 +21,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
-                .Returns(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
@@ -36,8 +36,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
-                .Returns(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
@@ -54,8 +54,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
-                .Returns(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(
@@ -75,8 +75,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         {
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>()))
-                .Returns(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
 
             // Act
             using var container = new SftpContainer(
@@ -97,7 +97,9 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
         public void Ctor_WhenIntitializedWithNoAccounts_ExpectGuestConnectionSettingsToBeSet()
         {
             // Arrange
-            var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : "192.168.0.1";
+            var containerIpAddress = "192.168.0.1";
+
+            var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
             var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 49621 : 22;
 
             var expectedRsaMd5Fingerprint = "03:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca";
@@ -108,7 +110,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse("192.168.0.1"));
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(49621);
 
@@ -164,7 +167,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse(containerIpAddress));
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
@@ -224,7 +228,8 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var gatewayMock = new Mock<IDockerGateway>();
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddress(It.IsAny<string>())).Returns(IPAddress.Parse(containerIpAddress));
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 

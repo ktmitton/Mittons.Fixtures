@@ -44,19 +44,13 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public IPAddress ContainerGetDefaultNetworkIpAddress(string containerId)
+        public async Task<IPAddress> ContainerGetDefaultNetworkIpAddressAsync(string containerId, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\""))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\"";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(1)));
 
-                proc.Start();
-                proc.WaitForExit();
-
-                IPAddress.TryParse(proc.StandardOutput.ReadLine(), out var expectedIpAddress);
+                IPAddress.TryParse(process.StandardOutput.ReadLine(), out var expectedIpAddress);
 
                 return expectedIpAddress;
             }

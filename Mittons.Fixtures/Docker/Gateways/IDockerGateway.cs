@@ -11,7 +11,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task ContainerRemoveAsync(string containerId, CancellationToken cancellationToken);
 
-        IPAddress ContainerGetDefaultNetworkIpAddress(string containerId);
+        Task<IPAddress> ContainerGetDefaultNetworkIpAddressAsync(string containerId, CancellationToken cancellationToken);
 
         Task ContainerAddFileAsync(string containerId, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken);
 

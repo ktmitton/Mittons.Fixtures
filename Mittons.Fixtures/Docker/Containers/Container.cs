@@ -34,7 +34,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public void Dispose()
         {
-            _dockerGateway.ContainerRemove(Id);
+            _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)

@@ -177,18 +177,18 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
             }
 
             [Fact]
-            public void ContainerRemove_WhenTheContainerDoesNotExist_ExpectSuccessfulReturn()
+            public async Task ContainerRemove_WhenTheContainerDoesNotExist_ExpectSuccessfulReturn()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
 
                 // Act
                 // Assert
-                gateway.ContainerRemove("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72");
+                await gateway.ContainerRemoveAsync("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72", CancellationToken.None);
             }
 
             [Fact]
-            public void ContainerRemove_WhenTheContainerExists_ExpectTheContainerToBeRemoved()
+            public async Task ContainerRemove_WhenTheContainerExists_ExpectTheContainerToBeRemoved()
             {
                 // Arrange
                 var gateway = new DefaultDockerGateway();
@@ -197,7 +197,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways
                 _containerIds.Add(containerId);
 
                 // Act
-                gateway.ContainerRemove(containerId);
+                await gateway.ContainerRemoveAsync(containerId, CancellationToken.None);
 
                 // Assert
                 using var proc = new Process();

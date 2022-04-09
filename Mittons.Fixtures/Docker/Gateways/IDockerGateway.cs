@@ -9,7 +9,7 @@ namespace Mittons.Fixtures.Docker.Gateways
     {
         string ContainerRun(string imageName, string command, Dictionary<string, string> labels);
 
-        void ContainerRemove(string containerId);
+        Task ContainerRemoveAsync(string containerId, CancellationToken cancellationToken);
 
         IPAddress ContainerGetDefaultNetworkIpAddress(string containerId);
 

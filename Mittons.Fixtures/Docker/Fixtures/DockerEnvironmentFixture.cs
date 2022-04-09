@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
@@ -49,7 +50,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
                 foreach (var networkAlias in attributes.OfType<NetworkAlias>())
                 {
-                    dockerGateway.NetworkConnect($"{networkAlias.NetworkName}-{InstanceId}", container.Id, networkAlias.Alias);
+                    dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{InstanceId}", container.Id, networkAlias.Alias, CancellationToken.None).GetAwaiter().GetResult();
                 }
             }
         }

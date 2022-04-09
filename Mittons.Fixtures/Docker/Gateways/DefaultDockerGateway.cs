@@ -179,17 +179,11 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public void NetworkConnect(string networkName, string containerId, string alias)
+        public async Task NetworkConnectAsync(string networkName, string containerId, string alias, CancellationToken cancellationToken)
         {
-            using (var proc = new Process())
+            using (var process = CreateDockerProcess($"network connect --alias {alias} {networkName} {containerId}"))
             {
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"network connect --alias {alias} {networkName} {containerId}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
-
-                proc.Start();
-                proc.WaitForExit();
+                await RunProcessAsync(process, cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(2)));
             }
         }
 

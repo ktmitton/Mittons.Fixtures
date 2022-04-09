@@ -394,9 +394,9 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                     return;
                 }
 
-                gatewayMock.Verify(x => x.NetworkConnect($"network1-{fixture.InstanceId}", fixture.AlpineContainer.Id, "alpine.example.com"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkConnect($"network1-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp.example.com"), Times.Once);
-                gatewayMock.Verify(x => x.NetworkConnect($"network2-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp-other.example.com"), Times.Once);
+                gatewayMock.Verify(x => x.NetworkConnectAsync($"network1-{fixture.InstanceId}", fixture.AlpineContainer.Id, "alpine.example.com", It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkConnectAsync($"network1-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp.example.com", It.IsAny<CancellationToken>()), Times.Once);
+                gatewayMock.Verify(x => x.NetworkConnectAsync($"network2-{fixture.InstanceId}", fixture.SftpContainer.Id, "sftp-other.example.com", It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]

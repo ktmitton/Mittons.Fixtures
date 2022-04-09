@@ -35,7 +35,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
-            var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
 
             // Act
@@ -53,7 +53,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
 
-            var container = new SftpContainer(gatewayMock.Object, Enumerable.Empty<Attribute>());
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
 
             // Act
@@ -76,6 +76,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var container = new SftpContainer(
                     gatewayMock.Object,
+                    Guid.Empty,
                     new SftpUserAccount[]
                     {
                         new SftpUserAccount { Username = username, Password = password }
@@ -100,6 +101,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 
             var container = new SftpContainer(
                     gatewayMock.Object,
+                    Guid.Empty,
                     new SftpUserAccount[]
                     {
                         new SftpUserAccount { Username = "testuser1", Password = "testpassword1" },
@@ -147,7 +149,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[0]);
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[0]);
             _containers.Add(container);
 
             // Act
@@ -207,7 +209,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, new SftpUserAccount[] { new SftpUserAccount(username, password) });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(username, password) });
             _containers.Add(container);
 
             // Act
@@ -271,7 +273,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, accounts);
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, accounts);
             _containers.Add(container);
 
             // Act

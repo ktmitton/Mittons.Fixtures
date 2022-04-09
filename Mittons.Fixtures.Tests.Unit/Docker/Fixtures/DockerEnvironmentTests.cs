@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
@@ -13,7 +14,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
 {
     public class DockerEnvironmentTests
     {
-        public class RunTests
+        public class RunTests : IAsyncDisposable
         {
             [Run("BUILD_BUILDID")]
             [Network("network1")]
@@ -86,6 +87,16 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
 
             private readonly string _releaseId;
 
+            private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+            public async ValueTask DisposeAsync()
+            {
+                foreach (var fixture in _fixtures)
+                {
+                    await fixture.DisposeAsync();
+                }
+            }
+
             public RunTests()
             {
                 _buildId = Guid.NewGuid().ToString();
@@ -96,15 +107,18 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenInitializedWithRunDetailsFromBuildId_ExpectTheRunIdToBeSet()
+            public async Task InitializeAsync_WhenInitializedWithRunDetailsFromBuildId_ExpectTheRunIdToBeSet()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new BuildEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new BuildEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _buildId), It.IsAny<CancellationToken>()), Times.Once);
@@ -114,15 +128,18 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenInitializedWithRunDetailsFromReleaseId_ExpectTheRunIdToBeSet()
+            public async Task InitializeAsync_WhenInitializedWithRunDetailsFromReleaseId_ExpectTheRunIdToBeSet()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new ReleaseEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new ReleaseEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == _releaseId), It.IsAny<CancellationToken>()), Times.Once);
@@ -132,15 +149,18 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenInitializedWithRunDetailsFromUnsetEnvironmentVariables_ExpectTheRunIdToBeDefault()
+            public async Task InitializeAsync_WhenInitializedWithRunDetailsFromUnsetEnvironmentVariables_ExpectTheRunIdToBeDefault()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new UnsetEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new UnsetEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
@@ -150,15 +170,18 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenInitializedWithoutRunDetails_ExpectTheRunIdToBeDefault()
+            public async Task InitializeAsync_WhenInitializedWithoutRunDetails_ExpectTheRunIdToBeDefault()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
-                // Act
-                using var fixture = new MissingEnvironmentFixture(gatewayMock.Object);
+                var fixture = new MissingEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
+                // Act;
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y["mittons.fixtures.run.id"] == Run.DefaultId), It.IsAny<CancellationToken>()), Times.Once);
@@ -168,7 +191,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
         }
 
-        public class ContainerTests
+        public class ContainerTests : IAsyncDisposable
         {
             private class ContainerTestEnvironmentFixture : DockerEnvironmentFixture
             {
@@ -184,16 +207,29 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 }
             }
 
+            private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+            public async ValueTask DisposeAsync()
+            {
+                foreach (var fixture in _fixtures)
+                {
+                    await fixture.DisposeAsync();
+                }
+            }
+
             [Fact]
-            public void Ctor_WhenInitializedWithContainerDefinitions_ExpectContainersToRunUsingTheDefinedImages()
+            public async Task InitializeAsync_WhenInitializedWithContainerDefinitions_ExpectContainersToRunUsingTheDefinedImages()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRunAsync("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
@@ -201,7 +237,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Dispose_WhenCalled_ExpectAllContainersToBeRemoved()
+            public async Task DisposeAsync_WhenCalled_ExpectAllContainersToBeRemoved()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
@@ -211,10 +247,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.ContainerRunAsync("alpine:3.15", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("runningid");
                 gatewayMock.Setup(x => x.ContainerRunAsync("redis:alpine", string.Empty, It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("disposingid");
 
-                using var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                var fixture = new ContainerTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
+                await fixture.InitializeAsync();
 
                 // Act
-                fixture.Dispose();
+                await fixture.DisposeAsync();
 
                 // Assert
                 Assert.NotNull(fixture.AlpineContainer);
@@ -230,7 +269,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
         }
 
-        public class SftpContainerTests
+        public class SftpContainerTests : IAsyncDisposable
         {
             private class SftpContainerTestEnvironmentFixture : DockerEnvironmentFixture
             {
@@ -246,23 +285,36 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 }
             }
 
+            private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+            public async ValueTask DisposeAsync()
+            {
+                foreach (var fixture in _fixtures)
+                {
+                    await fixture.DisposeAsync();
+                }
+            }
+
             [Fact]
-            public void Ctor_WhenInitializedWithSftpContainerDefinitions_ExpectContainersToRunUsingTheSftpImage()
+            public async Task InitializeAsync_WhenInitializedWithSftpContainerDefinitions_ExpectContainersToRunUsingTheSftpImage()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRunAsync("atmoz/sftp:alpine", It.IsAny<string>(), It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Exactly(2));
             }
 
             [Fact]
-            public void Dispose_WhenCalled_ExpectAllContainersToBeRemoved()
+            public async Task DisposeAsync_WhenCalled_ExpectAllContainersToBeRemoved()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
@@ -272,10 +324,13 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 gatewayMock.Setup(x => x.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("guest");
                 gatewayMock.Setup(x => x.ContainerRunAsync("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2", It.Is<Dictionary<string, string>>(x => x.Count == 1 && x.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>())).ReturnsAsync("account");
 
-                using var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                var fixture = new SftpContainerTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
+                await fixture.InitializeAsync();
 
                 // Act
-                fixture.Dispose();
+                await fixture.DisposeAsync();
 
                 // Assert
                 Assert.NotNull(fixture.GuestContainer);
@@ -291,7 +346,7 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
         }
 
-        public class NetworkTests
+        public class NetworkTests : IAsyncDisposable
         {
             [Network("network1")]
             [Network("network2")]
@@ -326,16 +381,29 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
                 }
             }
 
+            private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+            public async ValueTask DisposeAsync()
+            {
+                foreach (var fixture in _fixtures)
+                {
+                    await fixture.DisposeAsync();
+                }
+            }
+
             [Fact]
-            public void Ctor_WhenNetworksAreDefinedForAFixture_ExpectTheNetworksToBeCreated()
+            public async Task InitializeAsync_WhenNetworksAreDefinedForAFixture_ExpectTheNetworksToBeCreated()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
@@ -356,16 +424,21 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenDuplicateNetworksAreCreatedForDifferentFixtures_ExpectTheNetworksToBeCreatedAndScopedToTheirFixture()
+            public async Task InitializeAsync_WhenDuplicateNetworksAreCreatedForDifferentFixtures_ExpectTheNetworksToBeCreatedAndScopedToTheirFixture()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture1 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                var fixture2 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture1);
+                _fixtures.Add(fixture2);
+
                 // Act
-                using var fixture1 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
-                using var fixture2 = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                await fixture1.InitializeAsync();
+                await fixture2.InitializeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkCreateAsync($"network1-{fixture1.InstanceId}", It.Is<Dictionary<string, string>>(y => y.Count == 1 && y.ContainsKey("mittons.fixtures.run.id")), It.IsAny<CancellationToken>()), Times.Once);
@@ -375,15 +448,18 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Ctor_WhenContainersHaveDefinedNetworkAliases_ExpectTheContainersToBeConnectedToTheDefinedNetworks()
+            public async Task InitializeAsync_WhenContainersHaveDefinedNetworkAliases_ExpectTheContainersToBeConnectedToTheDefinedNetworks()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
                 // Act
-                using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                await fixture.InitializeAsync();
 
                 // Assert
                 Assert.NotNull(fixture.AlpineContainer);
@@ -400,16 +476,20 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Environments
             }
 
             [Fact]
-            public void Dispose_WhenCalled_ExpectNetworksToBeRemoved()
+            public async Task DisposeAsync_WhenCalled_ExpectNetworksToBeRemoved()
             {
                 // Arrange
                 var gatewayMock = new Mock<IDockerGateway>();
                 gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(IPAddress.Any);
 
+                var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
+                _fixtures.Add(fixture);
+
+                await fixture.InitializeAsync();
+
                 // Act
-                using var fixture = new NetworkTestEnvironmentFixture(gatewayMock.Object);
-                fixture.Dispose();
+                await fixture.DisposeAsync();
 
                 // Assert
                 gatewayMock.Verify(x => x.NetworkRemoveAsync($"network1-{fixture.InstanceId}", It.IsAny<CancellationToken>()), Times.Once);

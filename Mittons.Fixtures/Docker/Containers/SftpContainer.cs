@@ -19,8 +19,8 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private IEnumerable<SftpUserAccount> _accounts;
 
-        public SftpContainer(IDockerGateway dockerGateway, IEnumerable<Attribute> attributes)
-            : base(dockerGateway, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(ExtractSftpUserAccounts(attributes))) }))
+        public SftpContainer(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
+            : base(dockerGateway, instanceId, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(ExtractSftpUserAccounts(attributes))) }))
         {
             _accounts = ExtractSftpUserAccounts(attributes);
         }

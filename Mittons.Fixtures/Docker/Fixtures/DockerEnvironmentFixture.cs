@@ -2,14 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Docker.Networks;
+using Xunit;
 
 namespace Mittons.Fixtures.Docker.Fixtures
 {
-    public abstract class DockerEnvironmentFixture : IDisposable
+    public abstract class DockerEnvironmentFixture : IAsyncLifetime
     {
         public Guid InstanceId { get; } = Guid.NewGuid();
 
@@ -38,39 +40,41 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
             _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", run.Labels)).ToArray();
 
-            foreach (var network in _networks)
-            {
-                network.InitializeAsync().GetAwaiter().GetResult();
-            }
-
             _containers = new List<Container>();
 
             foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(Container).IsAssignableFrom(x.PropertyType)))
             {
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
-                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, attributes });
-                container.InitializeAsync().GetAwaiter().GetResult();
+                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, InstanceId, attributes });
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
-
-                foreach (var networkAlias in attributes.OfType<NetworkAlias>())
-                {
-                    dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{InstanceId}", container.Id, networkAlias.Alias, CancellationToken.None).GetAwaiter().GetResult();
-                }
             }
         }
 
-        public void Dispose()
+        public async Task InitializeAsync()
+        {
+            foreach (var network in _networks)
+            {
+                await network.InitializeAsync();
+            }
+
+            foreach (var container in _containers)
+            {
+                await container.InitializeAsync();
+            }
+        }
+
+        public async Task DisposeAsync()
         {
             foreach (var container in _containers)
             {
-                container.DisposeAsync().GetAwaiter().GetResult();
+                await container.DisposeAsync();
             }
 
             foreach (var network in _networks)
             {
-                network.DisposeAsync().GetAwaiter().GetResult();
+                await network.DisposeAsync();
             }
         }
     }

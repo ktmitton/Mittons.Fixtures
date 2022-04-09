@@ -20,7 +20,7 @@ namespace Mittons.Fixtures.Docker.Containers
         private IEnumerable<SftpUserAccount> _accounts;
 
         public SftpContainer(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
-            : base(dockerGateway, instanceId, attributes.Concat(new Attribute[] { new Image(ImageName), new Command(BuildCommand(ExtractSftpUserAccounts(attributes))) }))
+            : base(dockerGateway, instanceId, GetAttributesWithDefaults(attributes))
         {
             _accounts = ExtractSftpUserAccounts(attributes);
         }
@@ -32,15 +32,15 @@ namespace Mittons.Fixtures.Docker.Containers
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
             var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None) : 22;
             var rsaFingerprint = new Fingerprint
-                {
-                    Md5 = await GetFingerprintAsync(_dockerGateway, "rsa", "md5", CancellationToken.None),
-                    Sha256 = await GetFingerprintAsync(_dockerGateway, "rsa", "sha256", CancellationToken.None)
-                };
+            {
+                Md5 = await GetFingerprintAsync(_dockerGateway, "rsa", "md5", CancellationToken.None),
+                Sha256 = await GetFingerprintAsync(_dockerGateway, "rsa", "sha256", CancellationToken.None)
+            };
             var ed25519Fingerprint = new Fingerprint
-                {
-                    Md5 = await GetFingerprintAsync(_dockerGateway, "ed25519", "md5", CancellationToken.None),
-                    Sha256 = await GetFingerprintAsync(_dockerGateway, "ed25519", "sha256", CancellationToken.None)
-                };
+            {
+                Md5 = await GetFingerprintAsync(_dockerGateway, "ed25519", "md5", CancellationToken.None),
+                Sha256 = await GetFingerprintAsync(_dockerGateway, "ed25519", "sha256", CancellationToken.None)
+            };
 
             SftpConnectionSettings = _accounts.Select(
                     x =>
@@ -99,5 +99,33 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private static string BuildCommand(IEnumerable<SftpUserAccount> userAccounts)
             => string.Join(" ", userAccounts.Select(x => $"{x.Username}:{x.Password}"));
+
+        private static IEnumerable<Attribute> GetAttributesWithDefaults(IEnumerable<Attribute> attributes)
+        {
+            var fullAttributes = attributes.Concat(
+                    new Attribute[]
+                    {
+                        new Image(ImageName),
+                        new Command(BuildCommand(ExtractSftpUserAccounts(attributes)))
+                    }
+                );
+
+            return fullAttributes.OfType<HealthCheck>().Any() ?
+                fullAttributes :
+                fullAttributes.Concat(
+                    new Attribute[]
+                    {
+                        new HealthCheck
+                        {
+                            Disabled = false,
+                            Command = "ps aux | grep -v grep | grep sshd || exit 1",
+                            Interval = TimeSpan.FromSeconds(1),
+                            Timeout = TimeSpan.FromSeconds(1),
+                            StartPeriod = TimeSpan.FromSeconds(5),
+                            Retries = 3
+                        }
+                    }
+                );
+        }
     }
 }

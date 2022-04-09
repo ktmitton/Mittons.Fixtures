@@ -15,6 +15,98 @@ namespace Mittons.Fixtures.Tests.Unit.Docker.Containers
 {
     public class SftpContainerTests
     {
+        public class HealthCheckTests : BaseContainerTests
+        {
+            [Fact]
+            public async Task InitializeAsync_WhenNoHealthCheckIsProvided_ExpectDefaultHealthCheckToBeApplied()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(IPAddress.Any);
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        Enumerable.Empty<Attribute>()
+                    );
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync();
+
+                // Assert
+                gatewayMock.Verify(
+                        x =>
+                        x.ContainerRunAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
+                                !x.Any(y => y.Key == "--no-healthcheck") &&
+                                x.Any(y => y.Key == "--health-cmd" && y.Value == "ps aux | grep -v grep | grep sshd || exit 1") &&
+                                x.Any(y => y.Key == "--health-interval" && y.Value == "1s") &&
+                                x.Any(y => y.Key == "--health-timeout" && y.Value == "1s") &&
+                                x.Any(y => y.Key == "--health-start-period" && y.Value == "5s") &&
+                                x.Any(y => y.Key == "--health-retries" && y.Value == "3")
+                            ),
+                            It.IsAny<CancellationToken>()
+                        )
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenAHealthCheckIsProvided_ExpectProvidedHealthCheckToBeApplied()
+            {
+                // Arrange
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(IPAddress.Any);
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var container = new SftpContainer(
+                        gatewayMock.Object,
+                        Guid.Empty,
+                        new Attribute[]
+                        {
+                            new HealthCheck
+                            {
+                                Disabled = false,
+                                Command = "test",
+                                Interval = TimeSpan.FromSeconds(2),
+                                Timeout = TimeSpan.FromSeconds(2),
+                                StartPeriod = TimeSpan.FromSeconds(2),
+                                Retries = 1
+                            }
+                        }
+                    );
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync();
+
+                // Assert
+                gatewayMock.Verify(
+                        x =>
+                        x.ContainerRunAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
+                                !x.Any(y => y.Key == "--no-healthcheck") &&
+                                x.Any(y => y.Key == "--health-cmd" && y.Value == "test") &&
+                                x.Any(y => y.Key == "--health-interval" && y.Value == "2s") &&
+                                x.Any(y => y.Key == "--health-timeout" && y.Value == "2s") &&
+                                x.Any(y => y.Key == "--health-start-period" && y.Value == "2s") &&
+                                x.Any(y => y.Key == "--health-retries" && y.Value == "1")
+                            ),
+                            It.IsAny<CancellationToken>()
+                        )
+                    );
+            }
+        }
+
         public class ImageTests : BaseContainerTests
         {
             private readonly string sftpImageName = "atmoz/sftp:alpine";

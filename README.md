@@ -80,3 +80,11 @@ public class ConnectionSettingsTests : IClassFixture<ReportingEnvironmentFixture
     }
 }
 ```
+
+## Contributing
+
+### Thanks to all the people who have contributed!
+
+[![contributors](https://contrib.rocks/image?repo=ktmitton/Mittons.Fixtures)](https://github.com/ktmitton/Mittons.Fixtures/graphs/contributors)
+
+Made with [contrib.rocks](https://contrib.rocks).

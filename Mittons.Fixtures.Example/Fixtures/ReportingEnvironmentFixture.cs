@@ -9,4 +9,7 @@ public class ReportingEnvironmentFixture : DockerEnvironmentFixture
     [SftpUserAccount("admin", "securepassword")]
     [SftpUserAccount("tswift", "hatersgonnahate")]
     public SftpContainer SftpContainer { get; set; }
+
+    [Image("mendhak/http-https-echo")]
+    public HttpContainer HttpContainer { get; set; }
 }

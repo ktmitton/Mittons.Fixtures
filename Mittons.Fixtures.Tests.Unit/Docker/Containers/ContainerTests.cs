@@ -463,6 +463,47 @@ public class ContainerTests
                     );
             }
         }
+
+        public class PortTests : BaseContainerTests
+        {
+            [Fact]
+            public async Task InitializeAsync_WhenPortBindingsAreProvided_ExpectPortOptionsToBeSet()
+            {
+                // Arrange
+                var containerPort = 80;
+                var protocol = Protocol.Tcp;
+                var protocolString = protocol == Protocol.Tcp ? "tcp" : "udp";
+
+                var gatewayMock = new Mock<IDockerGateway>();
+                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var container = new Container(
+                    gatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new Image(string.Empty),
+                        new Command(string.Empty),
+                        new PortBinding { Protocol = Protocol.Tcp, Port = 80 }
+                    });
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync();
+
+                // Assert
+                gatewayMock.Verify(
+                        x =>
+                        x.ContainerRunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "-p" && y.Value == $"{containerPort}/{protocolString}")),
+                            It.IsAny<CancellationToken>()
+                        )
+                    );
+            }
+        }
     }
 
     public class DisposeTests : BaseContainerTests

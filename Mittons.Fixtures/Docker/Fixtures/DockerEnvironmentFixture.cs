@@ -49,6 +49,30 @@ namespace Mittons.Fixtures.Docker.Fixtures
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
             }
+
+            var addRangeMethod = _containers.GetType().GetMethod("AddRange");
+
+            foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IEnumerable<Container>).IsAssignableFrom(x.PropertyType)))
+            {
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+
+                var scale = attributes.OfType<Scale>().FirstOrDefault()?.Count ?? 1;
+
+                var containerCollection = Activator.CreateInstance(typeof(List<>).MakeGenericType(propertyInfo.PropertyType.GenericTypeArguments[0]));
+
+                var addMethod = containerCollection.GetType().GetMethod("Add");
+
+                for (var i = 0; i < scale; ++i)
+                {
+                    var container = Activator.CreateInstance(propertyInfo.PropertyType.GenericTypeArguments[0], new object[] { dockerGateway, InstanceId, attributes });
+
+                    addMethod.Invoke(containerCollection, new object[] { container });
+                }
+
+                propertyInfo.GetSetMethod().Invoke(this, new object[] { containerCollection });
+
+                addRangeMethod.Invoke(_containers, new object[] { containerCollection });
+            }
         }
 
         public async Task InitializeAsync()

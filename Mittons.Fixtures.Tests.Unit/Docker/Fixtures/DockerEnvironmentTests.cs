@@ -643,4 +643,160 @@ public class DockerEnvironmentTests
             gatewayMock.Verify(x => x.NetworkRemoveAsync($"network2-{fixture.InstanceId}", It.IsAny<CancellationToken>()), Times.Once);
         }
     }
+
+    public class ScaleTests : IAsyncDisposable
+    {
+        private class SclaeEnvironmentFixture : DockerEnvironmentFixture
+        {
+            [Image("alpine:3.15")]
+            public IEnumerable<Container>? UnScaledContainers { get; set; }
+
+            [Image("alpine:3.15")]
+            [Scale(2)]
+            public IEnumerable<Container>? ScaledTwoContainers { get; set; }
+
+            [Image("alpine:3.15")]
+            [Scale(5)]
+            public IEnumerable<Container>? ScaledFiveContainers { get; set; }
+
+            [SftpUserAccount("testuser1", "testpassword1")]
+            [Scale(3)]
+            public IEnumerable<SftpContainer>? SftpContainers { get; set; }
+
+            public SclaeEnvironmentFixture(IDockerGateway dockerGateway)
+                : base(dockerGateway)
+            {
+            }
+        }
+
+        private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var fixture in _fixtures)
+            {
+                await fixture.DisposeAsync();
+            }
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithAnEnumerableContainerButNoScale_ExpectOnlyOneInstanceToBeSpunUp()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new SclaeEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.UnScaledContainers);
+            Assert.Equal(1, fixture.UnScaledContainers?.Count());
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithAnEnumerableContainerWithAScaleOfTwo_ExpectTwoContainersToBeCreated()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new SclaeEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.ScaledTwoContainers);
+            Assert.Equal(2, fixture.ScaledTwoContainers?.Count());
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithAnEnumerableContainerWithAScaleOfFive_ExpectFiveContainersToBeCreated()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new SclaeEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.ScaledFiveContainers);
+            Assert.Equal(5, fixture.ScaledFiveContainers?.Count());
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithAnEnumerableContainerWithSftpContainers_ExpectSftpContainersToBeCreated()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new SclaeEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.SftpContainers);
+            Assert.Equal(3, fixture.SftpContainers?.Count());
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WhenFixtureHasScaledContainers_ExpectSclaedContainersToBeDisposed()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerRunAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Guid.NewGuid().ToString());
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new SclaeEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            await fixture.InitializeAsync();
+
+            // Act
+            await fixture.DisposeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.UnScaledContainers);
+            Assert.NotNull(fixture.ScaledTwoContainers);
+            Assert.NotNull(fixture.ScaledFiveContainers);
+
+            if (fixture.UnScaledContainers is not null && fixture.ScaledTwoContainers is not null && fixture.ScaledFiveContainers is not null)
+            {
+                gatewayMock.Verify(x => x.ContainerRemoveAsync(fixture.UnScaledContainers.First().Id, It.IsAny<CancellationToken>()), Times.Once);
+
+                foreach (var container in fixture.ScaledTwoContainers.Concat(fixture.ScaledFiveContainers))
+                {
+                    gatewayMock.Verify(x => x.ContainerRemoveAsync(container.Id, It.IsAny<CancellationToken>()), Times.Once);
+                }
+            }
+        }
+    }
 }

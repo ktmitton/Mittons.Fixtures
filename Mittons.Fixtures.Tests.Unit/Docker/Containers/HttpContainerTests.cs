@@ -35,7 +35,7 @@ public class HttpContainerTests
 
             // Assert
             container.SecureHttpClient.Timeout = TimeSpan.FromMilliseconds(1);
-            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+            var exception = await Assert.ThrowsAnyAsync<Exception>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
 
             Assert.True(exception.GetType() != typeof(ObjectDisposedException));
         }
@@ -58,7 +58,7 @@ public class HttpContainerTests
 
             // Assert
             container.SecureHttpClient.Timeout = TimeSpan.FromMilliseconds(1);
-            var exception = await Assert.ThrowsAsync<Exception>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+            var exception = await Assert.ThrowsAnyAsync<Exception>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
 
             Assert.True(exception.GetType() != typeof(ObjectDisposedException));
         }

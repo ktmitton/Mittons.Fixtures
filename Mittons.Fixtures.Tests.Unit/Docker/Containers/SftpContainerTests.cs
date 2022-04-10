@@ -555,7 +555,7 @@ public class SftpContainerTests
             await container.InitializeAsync();
 
             // Assert
-            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == hostPort);
+            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == expectedPort);
         }
 
         [Theory]
@@ -583,7 +583,7 @@ public class SftpContainerTests
             await container.InitializeAsync();
 
             // Assert
-            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == hostPort);
+            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == expectedPort);
         }
     }
 }

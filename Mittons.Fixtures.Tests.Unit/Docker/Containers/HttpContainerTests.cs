@@ -35,7 +35,9 @@ public class HttpContainerTests
 
             // Assert
             container.SecureHttpClient.Timeout = TimeSpan.FromMilliseconds(1);
-            await Assert.ThrowsAsync<TaskCanceledException>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+            var exception = await Assert.ThrowsAsync<TaskCanceledException>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+
+            Assert.True(exception.GetType() == typeof(TaskCanceledException) || exception.GetType() == typeof(HttpRequestException));
         }
 
         [Fact]
@@ -56,7 +58,9 @@ public class HttpContainerTests
 
             // Assert
             container.SecureHttpClient.Timeout = TimeSpan.FromMilliseconds(1);
-            await Assert.ThrowsAsync<TaskCanceledException>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+            var exception = await Assert.ThrowsAsync<Exception>(() => container.SecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost")));
+
+            Assert.True(exception.GetType() == typeof(TaskCanceledException) || exception.GetType() == typeof(HttpRequestException));
         }
     }
 

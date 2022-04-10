@@ -70,7 +70,7 @@ public class HttpContainerTests
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);
@@ -96,7 +96,7 @@ public class HttpContainerTests
             // Arrange
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);
@@ -124,7 +124,7 @@ public class HttpContainerTests
 
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);
@@ -152,7 +152,7 @@ public class HttpContainerTests
 
             var gatewayMock = new Mock<IDockerGateway>();
             gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
             gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);

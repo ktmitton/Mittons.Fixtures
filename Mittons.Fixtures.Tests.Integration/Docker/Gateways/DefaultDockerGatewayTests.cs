@@ -468,33 +468,6 @@ public class DefaultDockerGatewayTests
         }
 
         [Fact]
-        public async Task ContainerGetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
-        {
-            // Arrange
-            var gateway = new DefaultDockerGateway();
-
-            var containerId = await gateway.ContainerRunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
-            _containerIds.Add(containerId);
-
-            // Act
-            var actualPort = await gateway.ContainerGetHostPortMappingAsync(containerId, "tcp", 22, CancellationToken.None);
-
-            // Assert
-            using var proc = new Process();
-            proc.StartInfo.FileName = "docker";
-            proc.StartInfo.Arguments = $"port {containerId} 22/tcp";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-
-            proc.Start();
-            proc.WaitForExit();
-
-            int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
-
-            Assert.Equal(expectedPort, actualPort);
-        }
-
-        [Fact]
         public async Task ContainerGetHostPortMapping_WhenCalledForRedis_ExpectHostPortToBeReturnedForContainerPort6379()
         {
             // Arrange

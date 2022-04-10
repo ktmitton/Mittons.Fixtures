@@ -21,10 +21,16 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly IEnumerable<SftpUserAccount> _accounts;
 
+        private readonly int _port;
+
         public SftpContainer(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
             : base(dockerGateway, instanceId, GetAttributesWithDefaults(attributes))
         {
             _accounts = ExtractSftpUserAccounts(attributes);
+
+            var portBinding = attributes.OfType<PortBinding>().Where(x => x.Protocol == Protocol.Tcp && x.Scheme == "sftp");
+
+            _port = GetAttributesWithDefaults(attributes).OfType<PortBinding>().Single(x => x.Protocol == Protocol.Tcp && x.Scheme == "sftp").Port;
         }
 
         public override async Task InitializeAsync()
@@ -32,7 +38,7 @@ namespace Mittons.Fixtures.Docker.Containers
             await base.InitializeAsync();
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
-            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", 22, CancellationToken.None) : 22;
+            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _dockerGateway.ContainerGetHostPortMappingAsync(Id, "tcp", _port, CancellationToken.None) : _port;
             var rsaFingerprint = new Fingerprint
             {
                 Md5 = await GetFingerprintAsync(_dockerGateway, "rsa", "md5", CancellationToken.None),
@@ -123,6 +129,11 @@ namespace Mittons.Fixtures.Docker.Containers
                         new Command(BuildCommand(ExtractSftpUserAccounts(attributes)))
                     }
                 );
+
+            if (!fullAttributes.OfType<PortBinding>().Any(x => x.Protocol == Protocol.Tcp && x.Scheme == "sftp"))
+            {
+                fullAttributes = fullAttributes.Concat(new[] { new PortBinding { Protocol = Protocol.Tcp, Scheme = "sftp", Port = 22 } });
+            }
 
             return fullAttributes.OfType<HealthCheck>().Any() ?
                 fullAttributes :

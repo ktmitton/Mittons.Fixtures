@@ -529,4 +529,61 @@ public class SftpContainerTests
             Assert.Equal(fileContents, actualContents);
         }
     }
+
+    public class PortBindingTests : BaseContainerTests
+    {
+        [Theory]
+        [InlineData(22, 49621, "192.168.0.1")]
+        [InlineData(52, 49622, "192.168.0.2")]
+        public async Task InitializeAsync_WhenThePortIsBound_ExpectSftpConnectionSettingsSetToBinding(int containerPort, int hostPort, string containerIpAddress)
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);
+
+            var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
+            var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : containerPort;
+
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new Attribute[] { new SftpUserAccount("tswift", "password"), new PortBinding { Scheme = "sftp", Port = containerPort } });
+            _containers.Add(container);
+
+            // Act
+            await container.InitializeAsync();
+
+            // Assert
+            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == expectedPort);
+        }
+
+        [Theory]
+        [InlineData(49621, "192.168.0.1")]
+        [InlineData(49622, "192.168.0.2")]
+        public async Task InitializeAsync_WhenThePortIsNotBound_ExpectSftpConnectionSettingsSetToTheDefault(int hostPort, string containerIpAddress)
+        {
+            // Arrange
+            var containerPort = 22;
+
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Parse(containerIpAddress));
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", containerPort, CancellationToken.None)).ReturnsAsync(hostPort);
+
+            var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
+            var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : containerPort;
+
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new Attribute[] { new SftpUserAccount("tswift", "password") });
+            _containers.Add(container);
+
+            // Act
+            await container.InitializeAsync();
+
+            // Assert
+            Assert.Contains(container.SftpConnectionSettings, x => x.Key == "tswift" && x.Value.Host == expectedHost && x.Value.Port == expectedPort);
+        }
+    }
 }

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Json;
 using Mittons.Fixtures.Docker.Attributes;
-using Mittons.Fixtures.Docker.Containers;
-using Mittons.Fixtures.Docker.Fixtures;
+using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
+using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures;

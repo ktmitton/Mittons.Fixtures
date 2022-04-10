@@ -5,15 +5,15 @@ using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public abstract class BaseContainerTests : IAsyncDisposable
+public abstract class BaseSftpContainerTests : IAsyncDisposable
 {
-    protected readonly List<Container> _containers = new List<Container>();
+    protected readonly List<SftpContainer> _sftpContainers = new List<SftpContainer>();
 
     public async ValueTask DisposeAsync()
     {
-        foreach (var container in _containers)
+        foreach(var sftpContainer in _sftpContainers)
         {
-            await container.DisposeAsync();
+            await sftpContainer.DisposeAsync();
         }
     }
 }

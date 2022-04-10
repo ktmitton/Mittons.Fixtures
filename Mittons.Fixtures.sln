@@ -1,23 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures", "Mittons.Fixtures\Mittons.Fixtures.csproj", "{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mittons.Fixtures", "Mittons.Fixtures\Mittons.Fixtures.csproj", "{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Tests.Unit", "Mittons.Fixtures.Tests.Unit\Mittons.Fixtures.Tests.Unit.csproj", "{BC58AC80-60CC-4CA3-863F-3CF545544FAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mittons.Fixtures.Tests.Unit", "Mittons.Fixtures.Tests.Unit\Mittons.Fixtures.Tests.Unit.csproj", "{BC58AC80-60CC-4CA3-863F-3CF545544FAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Tests.Integration", "Mittons.Fixtures.Tests.Integration\Mittons.Fixtures.Tests.Integration.csproj", "{04A8EEFE-9F6B-4899-BC6E-B21A51454355}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mittons.Fixtures.Tests.Integration", "Mittons.Fixtures.Tests.Integration\Mittons.Fixtures.Tests.Integration.csproj", "{04A8EEFE-9F6B-4899-BC6E-B21A51454355}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Example", "Mittons.Fixtures.Example\Mittons.Fixtures.Example.csproj", "{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mittons.Fixtures.Example", "Mittons.Fixtures.Example\Mittons.Fixtures.Example.csproj", "{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.FrameworkExtensions.Xunit", "Mittons.Fixtures.FrameworkExtensions.Xunit\Mittons.Fixtures.FrameworkExtensions.Xunit.csproj", "{A102F8D2-D400-441D-8A25-D5112DF6CE59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F7B401EA-79FB-4731-9FD1-720F16ADBEFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -36,5 +35,15 @@ Global
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A102F8D2-D400-441D-8A25-D5112DF6CE59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A102F8D2-D400-441D-8A25-D5112DF6CE59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A102F8D2-D400-441D-8A25-D5112DF6CE59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A102F8D2-D400-441D-8A25-D5112DF6CE59}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {313EC9E0-EB17-4747-8B3C-BC8794E12E87}
 	EndGlobalSection
 EndGlobal

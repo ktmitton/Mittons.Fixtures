@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
-using Xunit;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
@@ -39,13 +38,17 @@ namespace Mittons.Fixtures.Docker.Containers
 
             _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
 
-            var attributesWithRun = attributes.OfType<Run>().Any() ? attributes : attributes.Concat(new[] { new Run() });
+            _ = attributes.OfType<Run>().Any() ? attributes : attributes.Concat(new[] { new Run() });
 
             _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
             _networks = attributes.OfType<NetworkAlias>();
         }
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked after an instance of <see cref="Container"/> is created, before it is used.
+        /// </remarks>
         public virtual async Task InitializeAsync()
         {
             Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, CancellationToken.None);
@@ -59,6 +62,10 @@ namespace Mittons.Fixtures.Docker.Containers
             }
         }
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked when an instance of <see cref="Container"/> is no longer used.
+        /// </remarks>
         public virtual async Task DisposeAsync()
         {
             await _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None);

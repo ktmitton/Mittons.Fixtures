@@ -8,16 +8,16 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
-using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
 using Moq;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public class SftpContainerTests
+public class SftpContainerTests : BaseSftpContainerTests
 {
-    public class HealthCheckTests : BaseContainerTests
+    public class HealthCheckTests : BaseSftpContainerTests
     {
         [Fact]
         public async Task InitializeAsync_WhenNoHealthCheckIsProvided_ExpectDefaultHealthCheckToBeApplied()
@@ -34,7 +34,7 @@ public class SftpContainerTests
                     Guid.Empty,
                     Enumerable.Empty<Attribute>()
                 );
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -84,7 +84,7 @@ public class SftpContainerTests
                         }
                     }
                 );
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -109,7 +109,7 @@ public class SftpContainerTests
         }
     }
 
-    public class ImageTests : BaseContainerTests
+    public class ImageTests : BaseSftpContainerTests
     {
         private readonly string sftpImageName = "atmoz/sftp:alpine";
 
@@ -124,7 +124,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -134,7 +134,7 @@ public class SftpContainerTests
         }
     }
 
-    public class CredentialsTests : BaseContainerTests
+    public class CredentialsTests : BaseSftpContainerTests
     {
         [Fact]
         public async Task InitializeAsync_InitializedWithNoCredentials_ExpectTheCommandToSetupTheGuestAccount()
@@ -147,7 +147,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -177,7 +177,7 @@ public class SftpContainerTests
                         new SftpUserAccount { Username = username, Password = password }
                     }
                 );
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -206,7 +206,7 @@ public class SftpContainerTests
                         new SftpUserAccount { Username = "guest", Password = "guest" }
                     }
                 );
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -249,7 +249,7 @@ public class SftpContainerTests
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[0]);
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -275,7 +275,7 @@ public class SftpContainerTests
         }
     }
 
-    public class ConnectionSettingsTests : BaseContainerTests
+    public class ConnectionSettingsTests : BaseSftpContainerTests
     {
         [Theory]
         [InlineData("user", "password", "192.168.0.2", 48621, "23:1e:ae:d2:78:33:8e:e2:3d:93:6c:73:95:b5:c3:ca", "28tGM7exiFTGOjsjWccDgj9iSH4mkbvuUHhHK0euOeE", "20:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf", "2SsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw")]
@@ -314,7 +314,7 @@ public class SftpContainerTests
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(username, password) });
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -380,7 +380,7 @@ public class SftpContainerTests
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, accounts);
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             // Act
             await container.InitializeAsync();
@@ -410,7 +410,7 @@ public class SftpContainerTests
         }
     }
 
-    public class FileTests : BaseContainerTests
+    public class FileTests : BaseSftpContainerTests
     {
         [Theory]
         [InlineData("file/one", "admin", "destination/one", "testowner", "testpermissions", "/home/admin/destination/one")]
@@ -423,7 +423,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             var cancellationToken = new CancellationToken();
 
@@ -445,7 +445,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             var cancellationToken = new CancellationToken();
 
@@ -469,7 +469,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);
@@ -506,7 +506,7 @@ public class SftpContainerTests
                 .ReturnsAsync(HealthStatus.Healthy);
 
             var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
-            _containers.Add(container);
+            _sftpContainers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);

@@ -8,14 +8,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
-using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
 using Moq;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public class ContainerTests
+public class ContainerTests : BaseContainerTests
 {
     public class InitializeTests
     {

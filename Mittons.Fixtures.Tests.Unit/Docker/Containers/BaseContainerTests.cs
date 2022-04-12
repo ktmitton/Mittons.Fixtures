@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
+using Mittons.Fixtures.Docker.Containers;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 

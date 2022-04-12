@@ -38,8 +38,6 @@ namespace Mittons.Fixtures.Docker.Containers
 
             _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
 
-            _ = attributes.OfType<Run>().Any() ? attributes : attributes.Concat(new[] { new Run() });
-
             _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
             _networks = attributes.OfType<NetworkAlias>();
@@ -49,16 +47,16 @@ namespace Mittons.Fixtures.Docker.Containers
         /// <remarks>
         /// This must be invoked after an instance of <see cref="Container"/> is created, before it is used.
         /// </remarks>
-        public virtual async Task InitializeAsync()
+        public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, CancellationToken.None);
-            IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
+            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, cancellationToken);
+            IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, cancellationToken);
 
             await EnsureHealthyAsync(TimeSpan.FromSeconds(5));
 
             foreach (var networkAlias in _networks)
             {
-                await _dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, CancellationToken.None);
+                await _dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken);
             }
         }
 

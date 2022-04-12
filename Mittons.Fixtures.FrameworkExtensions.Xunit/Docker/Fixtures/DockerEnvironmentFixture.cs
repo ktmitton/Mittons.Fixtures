@@ -1,4 +1,6 @@
-﻿using Mittons.Fixtures.Docker.Gateways;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Gateways;
 using XunitIAsyncLifetime = Xunit.IAsyncLifetime;
 
 namespace Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures
@@ -19,6 +21,11 @@ namespace Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures
             : base(dockerGateway)
         {
 
+        }
+
+        public async Task InitializeAsync()
+        {
+            await InitializeAsync(CancellationToken.None);
         }
     }
 }

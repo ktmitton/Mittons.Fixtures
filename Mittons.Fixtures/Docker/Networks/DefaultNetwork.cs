@@ -31,7 +31,7 @@ namespace Mittons.Fixtures.Docker.Networks
         /// <remarks>
         /// This must be invoked after an instance of <see cref="DefaultNetwork"/> is created, before it is used.
         /// </remarks>
-        public Task InitializeAsync()
-            => _dockerGateway.NetworkCreateAsync(_name, _options, CancellationToken.None);
+        public Task InitializeAsync(CancellationToken cancellationToken)
+            => _dockerGateway.NetworkCreateAsync(_name, _options, cancellationToken);
     }
 }

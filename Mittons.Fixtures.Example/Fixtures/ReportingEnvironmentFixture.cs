@@ -1,5 +1,5 @@
 using Mittons.Fixtures.Docker.Attributes;
-using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Containers;
+using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures;
 
 namespace Mittons.Fixtures.Example.Fixtures;

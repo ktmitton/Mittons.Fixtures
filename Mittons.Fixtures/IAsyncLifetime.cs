@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures
 {
@@ -13,7 +14,8 @@ namespace Mittons.Fixtures
 		/// <summary>
 		/// Called immediately after the class has been created, before it is used.
 		/// </summary>
-		Task InitializeAsync();
+		/// <param name="cancellationToken"></param>
+		Task InitializeAsync(CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Called when an object is no longer needed. Called just before <see cref="System.IDisposable.Dispose"/> 

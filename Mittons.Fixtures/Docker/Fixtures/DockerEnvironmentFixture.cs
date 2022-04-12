@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
@@ -54,11 +55,11 @@ namespace Mittons.Fixtures.Docker.Fixtures
         /// <remarks>
         /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
         /// </remarks>
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(_networks.Select(x => x.InitializeAsync()));
+            await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken)));
 
-            await Task.WhenAll(_containers.Select(x => x.InitializeAsync()));
+            await Task.WhenAll(_containers.Select(x => x.InitializeAsync(cancellationToken)));
         }
 
         /// <inheritdoc/>

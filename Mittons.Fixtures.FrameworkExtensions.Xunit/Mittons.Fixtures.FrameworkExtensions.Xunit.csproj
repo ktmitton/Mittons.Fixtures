@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>$(AssemblyName), Owen Shartle</Authors>
+    <Authors>Mittons.Fixtures Authors</Authors>
     <PackageProjectUrl>https://github.com/ktmitton/Mittons.Fixtures</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ktmitton/Mittons.Fixtures</RepositoryUrl>
     <PackageTags>xunit;testing;test;integration;system;end-to-end;environment;docker</PackageTags>

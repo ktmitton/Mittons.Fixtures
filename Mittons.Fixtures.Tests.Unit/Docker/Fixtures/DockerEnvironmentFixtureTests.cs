@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
+using Mittons.Fixtures.Docker.Fixtures;
 using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures;
 using Moq;
 using Xunit;
 

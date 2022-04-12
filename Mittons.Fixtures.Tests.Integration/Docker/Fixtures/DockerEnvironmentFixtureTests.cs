@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
-using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures;
+using Mittons.Fixtures.Docker.Fixtures;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures;
@@ -11,7 +11,7 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures;
 [Run("BUILD_BUILDID")]
 [Network("network1")]
 [Network("network2")]
-public class ExampleDockerEnvironmentFixture : DockerEnvironmentFixture
+public class ExampleDockerEnvironmentFixture : DockerEnvironmentFixture, Xunit.IAsyncLifetime
 {
     [Image("redis:alpine")]
     [NetworkAlias("network1", "alpine.example.com")]

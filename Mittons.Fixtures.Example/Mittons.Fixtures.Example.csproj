@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mittons.Fixtures.FrameworkExtensions.Xunit\Mittons.Fixtures.FrameworkExtensions.Xunit.csproj" />
     <ProjectReference Include="..\Mittons.Fixtures\Mittons.Fixtures.csproj" />
   </ItemGroup>
 

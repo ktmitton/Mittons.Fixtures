@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Environments;
 
-public class DockerEnvironmentTests
+public class DockerEnvironmentFixtureTests
 {
     public class RunTests : IAsyncDisposable
     {

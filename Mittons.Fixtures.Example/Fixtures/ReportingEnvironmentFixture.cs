@@ -4,7 +4,7 @@ using Mittons.Fixtures.Docker.Fixtures;
 
 namespace Mittons.Fixtures.Example.Fixtures;
 
-public class ReportingEnvironmentFixture : DockerEnvironmentFixture
+public class ReportingEnvironmentFixture : DockerEnvironmentFixture, Xunit.IAsyncLifetime
 {
     [SftpUserAccount("admin", "securepassword")]
     [SftpUserAccount("tswift", "hatersgonnahate")]

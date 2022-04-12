@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public class ContainerTests
+public class ContainerTests : BaseContainerTests
 {
     public class InitializeTests
     {
@@ -35,7 +35,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -58,7 +58,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -86,7 +86,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 Assert.Equal(parsed, container.IpAddress);
@@ -111,7 +111,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -143,7 +143,7 @@ public class ContainerTests
 
                 // Act
                 // Assert
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
             }
 
             [Fact]
@@ -164,7 +164,7 @@ public class ContainerTests
                 // Act
                 stopwatch.Start();
 
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 stopwatch.Stop();
 
@@ -187,7 +187,7 @@ public class ContainerTests
 
                 // Act
                 // Assert
-                await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync());
+                await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync(CancellationToken.None));
             }
 
             [Fact]
@@ -210,7 +210,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -252,7 +252,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -295,7 +295,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -334,7 +334,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -373,7 +373,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -412,7 +412,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -449,7 +449,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 // Act
-                await container.InitializeAsync();
+                await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
                 gatewayMock.Verify(
@@ -499,11 +499,11 @@ public class ContainerTests
 
             var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
             _containers.Add(runningContainer);
-            await runningContainer.InitializeAsync();
+            await runningContainer.InitializeAsync(CancellationToken.None);
 
             var disposingContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
             _containers.Add(disposingContainer);
-            await disposingContainer.InitializeAsync();
+            await disposingContainer.InitializeAsync(CancellationToken.None);
 
             // Act
             await disposingContainer.DisposeAsync();

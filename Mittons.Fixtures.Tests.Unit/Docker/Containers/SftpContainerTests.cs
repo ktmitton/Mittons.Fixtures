@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public class SftpContainerTests
+public class SftpContainerTests : BaseContainerTests
 {
     public class HealthCheckTests : BaseContainerTests
     {
@@ -37,7 +37,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(
@@ -87,7 +87,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(
@@ -127,7 +127,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -150,7 +150,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -180,7 +180,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), $"{username}:{password}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -209,7 +209,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -252,7 +252,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             Assert.Single(container.SftpConnectionSettings);
@@ -317,7 +317,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             Assert.Single(container.SftpConnectionSettings);
@@ -383,7 +383,7 @@ public class SftpContainerTests
             _containers.Add(container);
 
             // Act
-            await container.InitializeAsync();
+            await container.InitializeAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(accounts.Length, container.SftpConnectionSettings.Count);

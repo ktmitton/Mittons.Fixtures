@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Gateways;
-using Xunit;
 
 namespace Mittons.Fixtures.Docker.Networks
 {
@@ -22,10 +20,18 @@ namespace Mittons.Fixtures.Docker.Networks
             _options = options;
         }
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked when an instance of <see cref="DefaultNetwork"/> is no longer used.
+        /// </remarks>
         public Task DisposeAsync()
             => _dockerGateway.NetworkRemoveAsync(_name, CancellationToken.None);
 
-        public Task InitializeAsync()
-            => _dockerGateway.NetworkCreateAsync(_name, _options, CancellationToken.None);
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked after an instance of <see cref="DefaultNetwork"/> is created, before it is used.
+        /// </remarks>
+        public Task InitializeAsync(CancellationToken cancellationToken)
+            => _dockerGateway.NetworkCreateAsync(_name, _options, cancellationToken);
     }
 }

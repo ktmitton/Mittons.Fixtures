@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Docker.Networks;
-using Xunit;
 
 namespace Mittons.Fixtures.Docker.Fixtures
 {
@@ -51,13 +51,28 @@ namespace Mittons.Fixtures.Docker.Fixtures
             }
         }
 
-        public async Task InitializeAsync()
-        {
-            await Task.WhenAll(_networks.Select(x => x.InitializeAsync()));
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
+        /// </remarks>
+        public Task InitializeAsync()
+            => InitializeAsync(CancellationToken.None);
 
-            await Task.WhenAll(_containers.Select(x => x.InitializeAsync()));
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
+        /// </remarks>
+        public async Task InitializeAsync(CancellationToken cancellationToken)
+        {
+            await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken)));
+
+            await Task.WhenAll(_containers.Select(x => x.InitializeAsync(cancellationToken)));
         }
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked when an instance of <see cref="DockerEnvironmentFixture"/> is no longer used.
+        /// </remarks>
         public async Task DisposeAsync()
         {
             await Task.WhenAll(_containers.Select(x => x.DisposeAsync()));

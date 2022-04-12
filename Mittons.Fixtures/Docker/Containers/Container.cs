@@ -29,6 +29,10 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly IEnumerable<NetworkAlias> _networks;
 
+        private readonly Build _build;
+
+        private bool _shouldBuildImage;
+
         public Container(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
         {
             _dockerGateway = dockerGateway;
@@ -44,10 +48,22 @@ namespace Mittons.Fixtures.Docker.Containers
             _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
             _networks = attributes.OfType<NetworkAlias>();
+
+            _build = attributes.OfType<Build>().SingleOrDefault();
         }
 
         public virtual async Task InitializeAsync()
         {
+            if (!(_build is null))
+            {
+                _shouldBuildImage = !(await _dockerGateway.DoesImageExistLocallyAsync(_imageName, CancellationToken.None)) && !(await _dockerGateway.TryPullImageAsync(_imageName, CancellationToken.None));
+
+                if (_shouldBuildImage)
+                {
+                    await _dockerGateway.ImageBuildAsync(_imageName, _build.Dockerfile, _build.Context, CancellationToken.None);
+                }
+            }
+
             Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, CancellationToken.None);
             IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, CancellationToken.None);
 
@@ -61,6 +77,11 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public virtual async Task DisposeAsync()
         {
+            if (_shouldBuildImage)
+            {
+                await _dockerGateway.ImageRemoveAsync(_imageName, CancellationToken.None);
+            }
+
             await _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None);
         }
 

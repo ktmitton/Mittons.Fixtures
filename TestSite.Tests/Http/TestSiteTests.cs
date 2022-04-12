@@ -28,7 +28,6 @@ public class TestSiteTests : IClassFixture<TestEnvironmentFixture>
     {
         var result = await _testEnvironment.TestSiteContainer.UnsecureHttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "/WeatherForecast/exception"));
 
-        var a = 1;
         Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
     }
 }

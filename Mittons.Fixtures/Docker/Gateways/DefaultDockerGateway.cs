@@ -180,10 +180,37 @@ namespace Mittons.Fixtures.Docker.Gateways
             return process;
         }
 
-        public async Task ContainerBuild(string dockerfilePath, string tag, string context)
+        public async Task<bool> DoesImageExistLocallyAsync(string image, CancellationToken cancellationToken)
         {
-            var temp = System.IO.Directory.GetCurrentDirectory();
-            using (var process = CreateDockerProcess($"build -f \"{dockerfilePath}\" -t {tag} {context}"))
+            using (var process = CreateDockerProcess($"image ls {image} --format \"{{{{.ID}}}}\""))
+            {
+                await RunProcessAsync(process, cancellationToken);
+
+                return !process.StandardOutput.EndOfStream;
+            }
+        }
+
+        public async Task<bool> TryPullImageAsync(string image, CancellationToken cancellationToken)
+        {
+            using (var process = CreateDockerProcess($"pull {image}"))
+            {
+                await RunProcessAsync(process, cancellationToken);
+
+                return process.ExitCode == 0;
+            }
+        }
+
+        public async Task ImageBuildAsync(string image, string dockerfilePath, string context, CancellationToken cancellationToken)
+        {
+            using (var process = CreateDockerProcess($"build -f \"{dockerfilePath}\" -t {image} {context}"))
+            {
+                await RunProcessAsync(process, CancellationToken.None);
+            }
+        }
+
+        public async Task ImageRemoveAsync(string image, CancellationToken cancellationToken)
+        {
+            using (var process = CreateDockerProcess($"image rm {image}"))
             {
                 await RunProcessAsync(process, CancellationToken.None);
             }

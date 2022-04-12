@@ -29,6 +29,12 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task NetworkConnectAsync(string networkName, string containerId, string alias, CancellationToken cancellationToken);
 
-        Task ContainerBuild(string dockerfilePath, string tag, string context);
+        Task<bool> DoesImageExistLocallyAsync(string image, CancellationToken cancellationToken);
+
+        Task<bool> TryPullImageAsync(string image, CancellationToken cancellationToken);
+
+        Task ImageBuildAsync(string image, string dockerfilePath, string context, CancellationToken cancellationToken);
+
+        Task ImageRemoveAsync(string image, CancellationToken cancellationToken);
     }
 }

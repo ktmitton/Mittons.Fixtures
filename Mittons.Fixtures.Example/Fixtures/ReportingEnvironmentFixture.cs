@@ -1,10 +1,10 @@
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
-using Mittons.Fixtures.FrameworkExtensions.Xunit.Docker.Fixtures;
+using Mittons.Fixtures.Docker.Fixtures;
 
 namespace Mittons.Fixtures.Example.Fixtures;
 
-public class ReportingEnvironmentFixture : DockerEnvironmentFixture
+public class ReportingEnvironmentFixture : DockerEnvironmentFixture, Xunit.IAsyncLifetime
 {
     [SftpUserAccount("admin", "securepassword")]
     [SftpUserAccount("tswift", "hatersgonnahate")]

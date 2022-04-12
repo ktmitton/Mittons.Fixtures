@@ -55,6 +55,13 @@ namespace Mittons.Fixtures.Docker.Fixtures
         /// <remarks>
         /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
         /// </remarks>
+        public Task InitializeAsync()
+            => InitializeAsync(CancellationToken.None);
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
+        /// </remarks>
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken)));

@@ -28,5 +28,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         Task NetworkRemoveAsync(string networkName, CancellationToken cancellationToken);
 
         Task NetworkConnectAsync(string networkName, string containerId, string alias, CancellationToken cancellationToken);
+
+        Task ContainerBuild(string dockerfilePath, string tag, string context);
     }
 }

@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Tests.Inte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mittons.Fixtures.Example", "Mittons.Fixtures.Example\Mittons.Fixtures.Example.csproj", "{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSite", "TestSite\TestSite.csproj", "{F70C0DFB-E371-4E06-86C9-FD58257008FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSite.Tests", "TestSite.Tests\TestSite.Tests.csproj", "{EF2732A3-A80A-41C2-9ADD-F72EDF0268BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA2F7DDA-0EC3-4E56-80EC-235C53B9D031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F70C0DFB-E371-4E06-86C9-FD58257008FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F70C0DFB-E371-4E06-86C9-FD58257008FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F70C0DFB-E371-4E06-86C9-FD58257008FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F70C0DFB-E371-4E06-86C9-FD58257008FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF2732A3-A80A-41C2-9ADD-F72EDF0268BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF2732A3-A80A-41C2-9ADD-F72EDF0268BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF2732A3-A80A-41C2-9ADD-F72EDF0268BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF2732A3-A80A-41C2-9ADD-F72EDF0268BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

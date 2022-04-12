@@ -180,6 +180,15 @@ namespace Mittons.Fixtures.Docker.Gateways
             return process;
         }
 
+        public async Task ContainerBuild(string dockerfilePath, string tag, string context)
+        {
+            var temp = System.IO.Directory.GetCurrentDirectory();
+            using (var process = CreateDockerProcess($"build -f \"{dockerfilePath}\" -t {tag} {context}"))
+            {
+                await RunProcessAsync(process, CancellationToken.None);
+            }
+        }
+
         private Task<int> RunProcessAsync(Process process, CancellationToken cancellationToken)
         {
             var taskCompletionSource = new TaskCompletionSource<int>();

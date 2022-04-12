@@ -1,0 +1,10 @@
+Mittons.Fixtures/*
+Mittons.Fixtures.Example/*
+Mittons.Fixtures.Tests.Integration/*
+Mittons.Fixtures.Tests.Unit/*
+TestSite.Tests/*
+.github/*
+.vscode/*
+LICENSE
+Mittons.Fixtures.sln
+README.md

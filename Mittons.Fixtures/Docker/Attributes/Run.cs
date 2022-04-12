@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Mittons.Fixtures.Extensions;
 
 namespace Mittons.Fixtures.Docker.Attributes
 {
@@ -10,21 +11,34 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public string Id { get; }
 
+        public bool TeardownOnComplete { get; }
+
         public IEnumerable<KeyValuePair<string, string>> Options => new[]
         {
             new KeyValuePair<string, string>("--label", $"mittons.fixtures.run.id={Id}")
         };
 
         public Run()
+            : this(DefaultId)
         {
-            Id = DefaultId;
         }
 
-        public Run(string idEnvironmentVariableName)
+        public Run(bool teardownOnComplete)
+            : this(DefaultId, teardownOnComplete)
         {
-            var id = Environment.GetEnvironmentVariable(idEnvironmentVariableName);
+        }
 
-            Id = string.IsNullOrWhiteSpace(id) ? DefaultId : id;
+        public Run(string id)
+            : this(id, true)
+        {
+        }
+
+        public Run(string id, bool teardownOnComplete)
+        {
+            var replacedId = id.ReplaceEnvironmentVariables();
+
+            Id = string.IsNullOrWhiteSpace(replacedId) ? DefaultId : replacedId;
+            TeardownOnComplete = teardownOnComplete;
         }
     }
 }

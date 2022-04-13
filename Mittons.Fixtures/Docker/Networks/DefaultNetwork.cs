@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Networks
@@ -13,11 +16,17 @@ namespace Mittons.Fixtures.Docker.Networks
 
         private readonly IEnumerable<KeyValuePair<string, string>> _options;
 
-        public DefaultNetwork(IDockerGateway dockerGateway, string name, IEnumerable<KeyValuePair<string, string>> options)
+        private readonly bool _teardownOnComplete;
+
+        public DefaultNetwork(IDockerGateway dockerGateway, string name, IEnumerable<Attribute> attributes)
         {
             _dockerGateway = dockerGateway;
             _name = name;
-            _options = options;
+
+            var run = attributes.OfType<Run>().Single();
+
+            _options = run.Options;
+            _teardownOnComplete = run.TeardownOnComplete;
         }
 
         /// <inheritdoc/>
@@ -25,7 +34,7 @@ namespace Mittons.Fixtures.Docker.Networks
         /// This must be invoked when an instance of <see cref="DefaultNetwork"/> is no longer used.
         /// </remarks>
         public Task DisposeAsync()
-            => _dockerGateway.NetworkRemoveAsync(_name, CancellationToken.None);
+            => _teardownOnComplete ? _dockerGateway.NetworkRemoveAsync(_name, CancellationToken.None) : Task.CompletedTask;
 
         /// <inheritdoc/>
         /// <remarks>

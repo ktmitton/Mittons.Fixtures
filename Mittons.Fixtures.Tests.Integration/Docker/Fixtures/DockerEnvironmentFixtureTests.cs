@@ -8,7 +8,6 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Fixtures;
 
-[Run("BUILD_BUILDID")]
 [Network("network1")]
 [Network("network2")]
 public class ExampleDockerEnvironmentFixture : DockerEnvironmentFixture, Xunit.IAsyncLifetime

@@ -31,7 +31,7 @@ public class ContainerTests : BaseContainerTests
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(imageName), new Command(string.Empty) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(imageName), new Command(string.Empty), new Run() });
                 _containers.Add(container);
 
                 // Act
@@ -54,7 +54,7 @@ public class ContainerTests : BaseContainerTests
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(command) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(command), new Run() });
                 _containers.Add(container);
 
                 // Act
@@ -82,7 +82,7 @@ public class ContainerTests : BaseContainerTests
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
                 _containers.Add(container);
 
                 // Act
@@ -138,7 +138,7 @@ public class ContainerTests : BaseContainerTests
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(status);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
                 _containers.Add(container);
 
                 // Act
@@ -156,7 +156,7 @@ public class ContainerTests : BaseContainerTests
                     .ReturnsAsync(HealthStatus.Unknown)
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
                 _containers.Add(container);
 
                 var stopwatch = new Stopwatch();
@@ -182,7 +182,7 @@ public class ContainerTests : BaseContainerTests
                 gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(status);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
                 _containers.Add(container);
 
                 // Act
@@ -205,7 +205,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { Disabled = true }
+                        new HealthCheck { Disabled = true },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -247,7 +248,8 @@ public class ContainerTests : BaseContainerTests
                             Timeout = TimeSpan.FromSeconds(1),
                             StartPeriod = TimeSpan.FromSeconds(1),
                             Retries = 1
-                        }
+                        },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -290,7 +292,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { Command = command }
+                        new HealthCheck { Command = command },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -329,7 +332,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { Interval = TimeSpan.FromMilliseconds(milliseconds) }
+                        new HealthCheck { Interval = TimeSpan.FromMilliseconds(milliseconds) },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -368,7 +372,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { Timeout = TimeSpan.FromMilliseconds(milliseconds) }
+                        new HealthCheck { Timeout = TimeSpan.FromMilliseconds(milliseconds) },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -407,7 +412,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { StartPeriod = TimeSpan.FromMilliseconds(milliseconds) }
+                        new HealthCheck { StartPeriod = TimeSpan.FromMilliseconds(milliseconds) },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -444,7 +450,8 @@ public class ContainerTests : BaseContainerTests
                     {
                         new Image(string.Empty),
                         new Command(string.Empty),
-                        new HealthCheck { Retries = retries }
+                        new HealthCheck { Retries = retries },
+                        new Run()
                     });
                 _containers.Add(container);
 
@@ -475,7 +482,7 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
             _containers.Add(container);
 
             // Act
@@ -497,11 +504,11 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("runningimage"), new Command(string.Empty) });
+            var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("runningimage"), new Command(string.Empty), new Run() });
             _containers.Add(runningContainer);
             await runningContainer.InitializeAsync(CancellationToken.None);
 
-            var disposingContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("disposingimage"), new Command(string.Empty) });
+            var disposingContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image("disposingimage"), new Command(string.Empty), new Run() });
             _containers.Add(disposingContainer);
             await disposingContainer.InitializeAsync(CancellationToken.None);
 
@@ -526,7 +533,7 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -548,7 +555,7 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
             _containers.Add(container);
 
             // Act
@@ -570,7 +577,7 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
             _containers.Add(container);
 
             var actualFilename = default(string);
@@ -605,7 +612,7 @@ public class ContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty) });
+            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new Image(string.Empty), new Command(string.Empty), new Run() });
             _containers.Add(container);
 
             var actualFilename = default(string);

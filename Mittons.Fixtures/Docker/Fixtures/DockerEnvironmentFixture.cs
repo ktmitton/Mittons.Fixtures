@@ -27,7 +27,13 @@ namespace Mittons.Fixtures.Docker.Fixtures
         {
             var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
 
-            var run = environmentAttributes.OfType<Run>().SingleOrDefault() ?? new Run();
+            var run = environmentAttributes.OfType<Run>().SingleOrDefault();
+
+            if (run is null)
+            {
+                run = new Run();
+                environmentAttributes = environmentAttributes.Concat(new[] { run }).ToArray();
+            }
 
             var networks = environmentAttributes.OfType<Network>();
             var duplicateNetworks = networks.GroupBy(x => x.Name).Where(x => x.Count() > 1);
@@ -37,7 +43,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
                 throw new NotSupportedException($"Networks with the same name cannot be created for the same environment. The following networks were duplicated: [{string.Join(", ", duplicateNetworks.Select(x => x.Key))}]");
             }
 
-            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", run.Options)).ToArray();
+            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", environmentAttributes)).ToArray();
 
             _containers = new List<Container>();
 

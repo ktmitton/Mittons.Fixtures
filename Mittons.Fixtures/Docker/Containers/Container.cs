@@ -26,7 +26,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly IEnumerable<KeyValuePair<string, string>> _options;
 
-        private readonly IEnumerable<NetworkAlias> _networks;
+        private readonly IEnumerable<NetworkAliasAttribute> _networks;
 
         private readonly bool _teardownOnComplete;
 
@@ -36,15 +36,15 @@ namespace Mittons.Fixtures.Docker.Containers
 
             _instanceId = instanceId;
 
-            _imageName = attributes.OfType<Image>().Single().Name;
+            _imageName = attributes.OfType<ImageAttribute>().Single().Name;
 
-            _command = attributes.OfType<Command>().SingleOrDefault()?.Value ?? string.Empty;
+            _command = attributes.OfType<CommandAttribute>().SingleOrDefault()?.Value ?? string.Empty;
 
             _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
-            _networks = attributes.OfType<NetworkAlias>();
+            _networks = attributes.OfType<NetworkAliasAttribute>();
 
-            _teardownOnComplete = attributes.OfType<Run>().SingleOrDefault()?.TeardownOnComplete ?? true;
+            _teardownOnComplete = attributes.OfType<RunAttribute>().SingleOrDefault()?.TeardownOnComplete ?? true;
         }
 
         /// <inheritdoc/>

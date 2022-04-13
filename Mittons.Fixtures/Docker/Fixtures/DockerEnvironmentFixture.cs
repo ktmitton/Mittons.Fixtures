@@ -27,15 +27,15 @@ namespace Mittons.Fixtures.Docker.Fixtures
         {
             var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
 
-            var run = environmentAttributes.OfType<Run>().SingleOrDefault();
+            var run = environmentAttributes.OfType<RunAttribute>().SingleOrDefault();
 
             if (run is null)
             {
-                run = new Run();
+                run = new RunAttribute();
                 environmentAttributes = environmentAttributes.Concat(new[] { run }).ToArray();
             }
 
-            var networks = environmentAttributes.OfType<Network>();
+            var networks = environmentAttributes.OfType<NetworkAttribute>();
             var duplicateNetworks = networks.GroupBy(x => x.Name).Where(x => x.Count() > 1);
 
             if (duplicateNetworks.Any())

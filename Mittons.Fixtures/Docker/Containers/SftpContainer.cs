@@ -19,7 +19,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public Dictionary<string, SftpConnectionSettings> SftpConnectionSettings { get; private set; }
 
-        private readonly IEnumerable<SftpUserAccount> _accounts;
+        private readonly IEnumerable<SftpUserAccountAttribute> _accounts;
 
         public SftpContainer(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
             : base(dockerGateway, instanceId, GetAttributesWithDefaults(attributes))
@@ -99,19 +99,19 @@ namespace Mittons.Fixtures.Docker.Containers
             return fingerprint[1];
         }
 
-        private static IEnumerable<SftpUserAccount> ExtractSftpUserAccounts(IEnumerable<Attribute> attributes)
+        private static IEnumerable<SftpUserAccountAttribute> ExtractSftpUserAccounts(IEnumerable<Attribute> attributes)
         {
-            var accounts = attributes.OfType<SftpUserAccount>();
+            var accounts = attributes.OfType<SftpUserAccountAttribute>();
 
             if (accounts.Any())
             {
                 return accounts;
             }
 
-            return new[] { new SftpUserAccount("guest", "guest") };
+            return new[] { new SftpUserAccountAttribute("guest", "guest") };
         }
 
-        private static string BuildCommand(IEnumerable<SftpUserAccount> userAccounts)
+        private static string BuildCommand(IEnumerable<SftpUserAccountAttribute> userAccounts)
             => string.Join(" ", userAccounts.Select(x => $"{x.Username}:{x.Password}"));
 
         private static IEnumerable<Attribute> GetAttributesWithDefaults(IEnumerable<Attribute> attributes)
@@ -119,17 +119,17 @@ namespace Mittons.Fixtures.Docker.Containers
             var fullAttributes = attributes.Concat(
                     new Attribute[]
                     {
-                        new Image(ImageName),
-                        new Command(BuildCommand(ExtractSftpUserAccounts(attributes)))
+                        new ImageAttribute(ImageName),
+                        new CommandAttribute(BuildCommand(ExtractSftpUserAccounts(attributes)))
                     }
                 );
 
-            return fullAttributes.OfType<HealthCheck>().Any() ?
+            return fullAttributes.OfType<HealthCheckAttribute>().Any() ?
                 fullAttributes :
                 fullAttributes.Concat(
                     new Attribute[]
                     {
-                        new HealthCheck
+                        new HealthCheckAttribute
                         {
                             Disabled = false,
                             Command = "ps aux | grep -v grep | grep sshd || exit 1",

@@ -3,17 +3,17 @@ using System;
 namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true)]
-    public class SftpUserAccount : Attribute
+    public class SftpUserAccountAttribute : Attribute
     {
         public string Username { get; set; }
 
         public string Password { get; set; }
 
-        public SftpUserAccount()
+        public SftpUserAccountAttribute()
         {
         }
 
-        public SftpUserAccount(string username, string password)
+        public SftpUserAccountAttribute(string username, string password)
         {
             Username = username;
             Password = password;

@@ -23,14 +23,17 @@ public class SftpContainerTests : BaseContainerTests
         public async Task InitializeAsync_WhenNoHealthCheckIsProvided_ExpectDefaultHealthCheckToBeApplied()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
             var container = new SftpContainer(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     Enumerable.Empty<Attribute>()
                 );
@@ -40,9 +43,9 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(
+            containerGatewayMock.Verify(
                     x =>
-                    x.ContainerRunAsync(
+                    x.RunAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
@@ -62,14 +65,17 @@ public class SftpContainerTests : BaseContainerTests
         public async Task InitializeAsync_WhenAHealthCheckIsProvided_ExpectProvidedHealthCheckToBeApplied()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
             var container = new SftpContainer(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -90,9 +96,9 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(
+            containerGatewayMock.Verify(
                     x =>
-                    x.ContainerRunAsync(
+                    x.RunAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
@@ -117,20 +123,22 @@ public class SftpContainerTests : BaseContainerTests
         public async Task InitializeAsync_WhenCalled_ExpectTheContainerToUseTheAtmozImage()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
 
             // Act
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 
@@ -140,20 +148,22 @@ public class SftpContainerTests : BaseContainerTests
         public async Task InitializeAsync_InitializedWithNoCredentials_ExpectTheCommandToSetupTheGuestAccount()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, Enumerable.Empty<Attribute>());
             _containers.Add(container);
 
             // Act
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -163,14 +173,17 @@ public class SftpContainerTests : BaseContainerTests
         public async Task InitializeAsync_InitializedWithOneSetOfCredentials_ExpectTheCommandToSetupTheCredentials(string username, string password)
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
             var container = new SftpContainer(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new[]
                     {
@@ -183,21 +196,24 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), $"{username}:{password}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"{username}:{password}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task InitializeAsync_InitializedWithMultipleSetOfCredentials_ExpectTheCommandToSetupTheCredentials()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Any);
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
             var container = new SftpContainer(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new[]
                     {
@@ -212,7 +228,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRunAsync(It.IsAny<string>(), $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -230,25 +246,27 @@ public class SftpContainerTests : BaseContainerTests
             var expectedEd25519Md5Fingerprint = "80:b4:c0:dc:dd:e8:4b:5c:2a:01:f5:ec:32:b1:e7:bf";
             var expectedEd25519ShaFingerprint = "tSsvcVKxzqMNPFBrwraCuKCDQy6ADagQz77eOekTfTw";
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(49621);
+            containerGatewayMock.Setup(x => x.GetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(49621);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccountAttribute[0]);
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new SftpUserAccountAttribute[0]);
             _containers.Add(container);
 
             // Act
@@ -295,25 +313,27 @@ public class SftpContainerTests : BaseContainerTests
             var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
             var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : 22;
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
+            containerGatewayMock.Setup(x => x.GetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(username, password) });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(username, password) });
             _containers.Add(container);
 
             // Act
@@ -361,25 +381,27 @@ public class SftpContainerTests : BaseContainerTests
             var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
             var expectedPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPort : 22;
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(IPAddress.Parse(containerIpAddress));
 
-            gatewayMock.Setup(x => x.ContainerGetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
+            containerGatewayMock.Setup(x => x.GetHostPortMappingAsync(It.IsAny<string>(), "tcp", 22, CancellationToken.None)).ReturnsAsync(hostPort);
 
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 MD5:{expectedRsaMd5Fingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_rsa_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"4096 SHA256:{expectedRsaShaFingerprint} root@fec96a1bc7dc (RSA)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 MD5:{expectedEd25519Md5Fingerprint} root@fec96a1bc7dc (ED25519)" });
-            gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.ExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, accounts);
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, accounts);
             _containers.Add(container);
 
             // Act
@@ -418,11 +440,13 @@ public class SftpContainerTests : BaseContainerTests
         public async Task AddUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string hostFilename, string user, string containerFilename, string owner, string permissions, string expectedContainerFilename)
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -431,7 +455,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.AddUserFileAsync(user, hostFilename, containerFilename, owner, permissions, cancellationToken);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+            containerGatewayMock.Verify(x => x.AddFileAsync(container.Id, hostFilename, expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
         }
 
         [Theory]
@@ -440,11 +464,13 @@ public class SftpContainerTests : BaseContainerTests
         public async Task RemoveUserFileAsync_WhenCalled_ExpectToBeForwardedToTheGatewayWithTheFullPath(string user, string containerFilename, string expectedContainerFilename)
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -453,7 +479,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.RemoveUserFileAsync(user, containerFilename, CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, expectedContainerFilename, cancellationToken), Times.Once);
+            containerGatewayMock.Verify(x => x.RemoveFileAsync(container.Id, expectedContainerFilename, cancellationToken), Times.Once);
         }
 
         [Theory]
@@ -464,17 +490,19 @@ public class SftpContainerTests : BaseContainerTests
             // Arrange
             var fileContents = Guid.NewGuid().ToString();
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.AddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
                 .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;
@@ -487,7 +515,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.CreateUserFileAsync(user, fileContents, containerFilename, owner, permissions, CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+            containerGatewayMock.Verify(x => x.AddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
             Assert.False(File.Exists(actualFilename));
             Assert.Equal(fileContents, actualContents);
         }
@@ -501,17 +529,19 @@ public class SftpContainerTests : BaseContainerTests
             var fileContents = Guid.NewGuid().ToString();
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents));
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.AddFileAsync(container.Id, It.IsAny<string>(), expectedContainerFilename, owner, permissions, It.IsAny<CancellationToken>()))
                 .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;
@@ -524,7 +554,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.CreateUserFileAsync(user, stream, containerFilename, owner, permissions, CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
+            containerGatewayMock.Verify(x => x.AddFileAsync(container.Id, It.Is<string>(x => x.StartsWith(Path.GetTempPath())), expectedContainerFilename, owner, permissions, cancellationToken), Times.Once);
             Assert.False(File.Exists(actualFilename));
             Assert.Equal(fileContents, actualContents);
         }

@@ -16,7 +16,9 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public IPAddress IpAddress { get; private set; }
 
-        protected readonly IDockerGateway _dockerGateway;
+        protected readonly IContainerGateway _containerGateway;
+
+        protected readonly INetworkGateway _networkGateway;
 
         private readonly string _imageName;
 
@@ -30,9 +32,11 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly bool _teardownOnComplete;
 
-        public Container(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
+        public Container(IContainerGateway containerGateway, INetworkGateway networkGateway, Guid instanceId, IEnumerable<Attribute> attributes)
         {
-            _dockerGateway = dockerGateway;
+            _containerGateway = containerGateway;
+
+            _networkGateway = networkGateway;
 
             _instanceId = instanceId;
 
@@ -53,14 +57,14 @@ namespace Mittons.Fixtures.Docker.Containers
         /// </remarks>
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            Id = await _dockerGateway.ContainerRunAsync(_imageName, _command, _options, cancellationToken);
-            IpAddress = await _dockerGateway.ContainerGetDefaultNetworkIpAddressAsync(Id, cancellationToken);
+            Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken);
+            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken);
 
             await EnsureHealthyAsync(TimeSpan.FromSeconds(5));
 
             foreach (var networkAlias in _networks)
             {
-                await _dockerGateway.NetworkConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken);
+                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken);
             }
         }
 
@@ -69,7 +73,7 @@ namespace Mittons.Fixtures.Docker.Containers
         /// This must be invoked when an instance of <see cref="Container"/> is no longer used.
         /// </remarks>
         public virtual Task DisposeAsync()
-            => _teardownOnComplete ? _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None) : Task.CompletedTask;
+            => _teardownOnComplete ? _containerGateway.RemoveAsync(Id, CancellationToken.None) : Task.CompletedTask;
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
@@ -97,10 +101,10 @@ namespace Mittons.Fixtures.Docker.Containers
         }
 
         public Task AddFileAsync(string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
-            => _dockerGateway.ContainerAddFileAsync(Id, hostFilename, containerFilename, owner, permissions, cancellationToken);
+            => _containerGateway.AddFileAsync(Id, hostFilename, containerFilename, owner, permissions, cancellationToken);
 
         public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
-            => _dockerGateway.ContainerRemoveFileAsync(Id, containerFilename, cancellationToken);
+            => _containerGateway.RemoveFileAsync(Id, containerFilename, cancellationToken);
 
         private async Task<string> EnsureHealthyAsync(TimeSpan timeout)
         {
@@ -109,7 +113,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
             while (!timeoutCancellationTokenSource.Token.IsCancellationRequested)
             {
-                var healthStatus = await _dockerGateway.ContainerGetHealthStatusAsync(Id, timeoutCancellationTokenSource.Token);
+                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutCancellationTokenSource.Token);
 
                 if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
                 {

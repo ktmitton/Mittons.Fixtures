@@ -27,18 +27,20 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenInitializedWithAnImageName_ExpectTheImageNameToBePassedToTheDockerRunCommand(string imageName)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(imageName), new CommandAttribute(string.Empty), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(imageName), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
                 // Act
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(x => x.ContainerRunAsync(imageName, string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+                containerGatewayMock.Verify(x => x.RunAsync(imageName, string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -50,18 +52,20 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenInitializedWithACommand_ExpectTheCommandToBePassedToTheDockerRunCommand(string command)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(command), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(command), new RunAttribute() });
                 _containers.Add(container);
 
                 // Act
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(x => x.ContainerRunAsync(string.Empty, command, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+                containerGatewayMock.Verify(x => x.RunAsync(string.Empty, command, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -76,13 +80,15 @@ public class ContainerTests : BaseContainerTests
                 // Arrange
                 var parsed = IPAddress.Parse(ipAddress);
 
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(parsed);
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
                 // Act
@@ -99,24 +105,26 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenCreatedWithARun_ExpectLabelsToBePassedToTheGateway()
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
 
                 var run = new RunAttribute();
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), run });
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), run });
                 _containers.Add(container);
 
                 // Act
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--label" && y.Value == $"mittons.fixtures.run.id={run.Id}")),
@@ -134,11 +142,13 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenContainerHealthIsPassing_ExpectInitializationToComplete(HealthStatus status)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(status);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
                 // Act
@@ -150,13 +160,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenContainerBecomesHealthy_ExpectContainerIdToBeReturned()
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.SetupSequence(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.SetupSequence(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Unknown)
                     .ReturnsAsync(HealthStatus.Unknown)
                     .ReturnsAsync(HealthStatus.Healthy);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
                 var stopwatch = new Stopwatch();
@@ -178,11 +190,13 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenContainerHealthNeverPassesBeforeProvidedTimeout_ExpectExceptionToBeThrown(HealthStatus status)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(status);
 
-                var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
                 // Act
@@ -194,12 +208,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthChecksAreDisabled_ExpectTheDisabledFlagToBeApplied()
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -214,9 +231,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--no-healthcheck" && y.Value == string.Empty)),
@@ -229,12 +246,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthChecksAreDisabledAndOtherFieldsAreSet_ExpectOnlyNoHealthCheckToBeApplied()
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -257,9 +277,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
@@ -281,12 +301,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthCheckCommandIsSet_ExpectHealthCmdToBeApplied(string command)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -301,9 +324,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-cmd" && y.Value == command)),
@@ -321,12 +344,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int milliseconds, int seconds)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -341,9 +367,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-interval" && y.Value == $"{seconds}s")),
@@ -361,12 +387,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int milliseconds, int seconds)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -381,9 +410,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-timeout" && y.Value == $"{seconds}s")),
@@ -401,12 +430,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int milliseconds, int seconds)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -421,9 +453,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-start-period" && y.Value == $"{seconds}s")),
@@ -439,12 +471,15 @@ public class ContainerTests : BaseContainerTests
             public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(int retries)
             {
                 // Arrange
-                var gatewayMock = new Mock<IDockerGateway>();
-                gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Running);
 
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
                 var container = new Container(
-                    gatewayMock.Object,
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
                     Guid.Empty,
                     new Attribute[]
                     {
@@ -459,9 +494,9 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                gatewayMock.Verify(
+                containerGatewayMock.Verify(
                         x =>
-                        x.ContainerRunAsync(
+                        x.RunAsync(
                             string.Empty,
                             string.Empty,
                             It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-retries" && y.Value == retries.ToString())),
@@ -478,37 +513,41 @@ public class ContainerTests : BaseContainerTests
         public async Task DisposeAsync_WhenCalled_ExpectADockerRemoveCommandToBeExecuted()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(container);
 
             // Act
             await container.DisposeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemoveAsync(container.Id, It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RemoveAsync(container.Id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task DisposeAsync_WhenCalledWhileAnotherContainerIsRunning_ExpectOnlyTheCalledContainerToBeRemoved()
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerRunAsync("runningimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.RunAsync("runningimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("runningid");
-            gatewayMock.Setup(x => x.ContainerRunAsync("disposingimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.RunAsync("disposingimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("disposingid");
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var runningContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute("runningimage"), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var runningContainer = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute("runningimage"), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(runningContainer);
             await runningContainer.InitializeAsync(CancellationToken.None);
 
-            var disposingContainer = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute("disposingimage"), new CommandAttribute(string.Empty), new RunAttribute() });
+            var disposingContainer = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute("disposingimage"), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(disposingContainer);
             await disposingContainer.InitializeAsync(CancellationToken.None);
 
@@ -516,8 +555,8 @@ public class ContainerTests : BaseContainerTests
             await disposingContainer.DisposeAsync();
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemoveAsync(disposingContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
-            gatewayMock.Verify(x => x.ContainerRemoveAsync(runningContainer.Id, It.IsAny<CancellationToken>()), Times.Never);
+            containerGatewayMock.Verify(x => x.RemoveAsync(disposingContainer.Id, It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RemoveAsync(runningContainer.Id, It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 
@@ -529,11 +568,13 @@ public class ContainerTests : BaseContainerTests
         public async Task AddFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string hostFilename, string containerFilename, string owner, string permissions)
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -542,7 +583,7 @@ public class ContainerTests : BaseContainerTests
             await container.AddFileAsync(hostFilename, containerFilename, owner, permissions, cancellationToken);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerAddFileAsync(container.Id, hostFilename, containerFilename, owner, permissions, cancellationToken), Times.Once);
+            containerGatewayMock.Verify(x => x.AddFileAsync(container.Id, hostFilename, containerFilename, owner, permissions, cancellationToken), Times.Once);
         }
 
         [Theory]
@@ -551,18 +592,20 @@ public class ContainerTests : BaseContainerTests
         public async Task RemoveFile_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string containerFilename)
         {
             // Arrange
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(container);
 
             // Act
             await container.RemoveFileAsync(containerFilename, CancellationToken.None);
 
             // Assert
-            gatewayMock.Verify(x => x.ContainerRemoveFileAsync(container.Id, containerFilename, It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RemoveFileAsync(container.Id, containerFilename, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -573,17 +616,19 @@ public class ContainerTests : BaseContainerTests
             // Arrange
             var fileContents = Guid.NewGuid().ToString();
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.AddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
                 .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;
@@ -608,17 +653,19 @@ public class ContainerTests : BaseContainerTests
             var fileContents = Guid.NewGuid().ToString();
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents));
 
-            var gatewayMock = new Mock<IDockerGateway>();
-            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new Container(gatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
             _containers.Add(container);
 
             var actualFilename = default(string);
             var actualContents = default(string);
 
-            gatewayMock.Setup(x => x.ContainerAddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.AddFileAsync(container.Id, It.IsAny<string>(), containerFilename, owner, permissions, It.IsAny<CancellationToken>()))
                 .Callback<string, string, string, string, string, CancellationToken>((_, hostFilename, _, _, _, _) =>
                 {
                     actualFilename = hostFilename;

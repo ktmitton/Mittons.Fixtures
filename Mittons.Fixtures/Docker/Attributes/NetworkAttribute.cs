@@ -3,11 +3,11 @@ using System;
 namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
-    public class Network : Attribute
+    public class NetworkAttribute : Attribute
     {
         public string Name { get; }
 
-        public Network(string name)
+        public NetworkAttribute(string name)
         {
             Name = name;
         }

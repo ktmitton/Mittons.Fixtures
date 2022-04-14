@@ -47,7 +47,7 @@ public class DockerEnvironmentFixtureTests : IClassFixture<ExampleDockerEnvironm
         var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
         Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
-        Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+        Assert.Equal(RunAttribute.DefaultId, labels["mittons.fixtures.run.id"]);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class DockerEnvironmentFixtureTests : IClassFixture<ExampleDockerEnvironm
         var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
         Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
-        Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+        Assert.Equal(RunAttribute.DefaultId, labels["mittons.fixtures.run.id"]);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class DockerEnvironmentFixtureTests : IClassFixture<ExampleDockerEnvironm
             var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
             Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
-            Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+            Assert.Equal(RunAttribute.DefaultId, labels["mittons.fixtures.run.id"]);
         }
     }
 
@@ -252,7 +252,7 @@ public class DockerEnvironmentFixtureTests : IClassFixture<ExampleDockerEnvironm
             var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
 
             Assert.True(labels.ContainsKey("mittons.fixtures.run.id"));
-            Assert.Equal(Run.DefaultId, labels["mittons.fixtures.run.id"]);
+            Assert.Equal(RunAttribute.DefaultId, labels["mittons.fixtures.run.id"]);
         }
     }
 }

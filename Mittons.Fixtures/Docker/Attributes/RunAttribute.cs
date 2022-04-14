@@ -5,7 +5,7 @@ using Mittons.Fixtures.Extensions;
 namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
-    public class Run : Attribute, IOptionAttribute
+    public class RunAttribute : Attribute, IOptionAttribute
     {
         public static string DefaultId = Guid.NewGuid().ToString();
 
@@ -18,22 +18,22 @@ namespace Mittons.Fixtures.Docker.Attributes
             new KeyValuePair<string, string>("--label", $"mittons.fixtures.run.id={Id}")
         };
 
-        public Run()
+        public RunAttribute()
             : this(DefaultId)
         {
         }
 
-        public Run(bool teardownOnComplete)
+        public RunAttribute(bool teardownOnComplete)
             : this(DefaultId, teardownOnComplete)
         {
         }
 
-        public Run(string id)
+        public RunAttribute(string id)
             : this(id, true)
         {
         }
 
-        public Run(string id, bool teardownOnComplete)
+        public RunAttribute(string id, bool teardownOnComplete)
         {
             var replacedId = id.ReplaceEnvironmentVariables();
 

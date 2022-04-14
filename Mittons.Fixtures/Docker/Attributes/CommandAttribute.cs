@@ -3,11 +3,11 @@ using System;
 namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class Command : Attribute
+    public class CommandAttribute : Attribute
     {
         public string Value { get; }
 
-        public Command(string value)
+        public CommandAttribute(string value)
         {
             Value = value;
         }

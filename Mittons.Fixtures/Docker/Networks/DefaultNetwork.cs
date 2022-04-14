@@ -23,7 +23,7 @@ namespace Mittons.Fixtures.Docker.Networks
             _dockerGateway = dockerGateway;
             _name = name;
 
-            var run = attributes.OfType<Run>().Single();
+            var run = attributes.OfType<RunAttribute>().Single();
 
             _options = run.Options;
             _teardownOnComplete = run.TeardownOnComplete;

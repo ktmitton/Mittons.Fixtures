@@ -250,7 +250,7 @@ public class DockerEnvironmentFixtureTests
             gatewayMock.Verify(
                     x => x.NetworkCreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -258,7 +258,7 @@ public class DockerEnvironmentFixtureTests
             gatewayMock.Verify(
                     x => x.NetworkCreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -267,7 +267,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.ContainerRunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -276,7 +276,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.ContainerRunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -303,7 +303,7 @@ public class DockerEnvironmentFixtureTests
             gatewayMock.Verify(
                     x => x.NetworkCreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -311,7 +311,7 @@ public class DockerEnvironmentFixtureTests
             gatewayMock.Verify(
                     x => x.NetworkCreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -320,7 +320,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.ContainerRunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -329,7 +329,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.ContainerRunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={Run.DefaultId}")),
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once

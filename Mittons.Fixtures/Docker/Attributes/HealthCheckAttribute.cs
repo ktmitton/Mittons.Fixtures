@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Mittons.Fixtures.Docker.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class HealthCheck : Attribute, IOptionAttribute
+    public class HealthCheckAttribute : Attribute, IOptionAttribute
     {
         public bool Disabled { get; set; }
 
@@ -60,7 +60,7 @@ namespace Mittons.Fixtures.Docker.Attributes
             }
         }
 
-        public HealthCheck()
+        public HealthCheckAttribute()
         {
         }
     }

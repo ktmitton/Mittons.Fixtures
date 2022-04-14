@@ -73,7 +73,7 @@ public class SftpContainerTests : BaseContainerTests
                     Guid.Empty,
                     new Attribute[]
                     {
-                        new HealthCheck
+                        new HealthCheckAttribute
                         {
                             Disabled = false,
                             Command = "test",
@@ -172,9 +172,9 @@ public class SftpContainerTests : BaseContainerTests
             var container = new SftpContainer(
                     gatewayMock.Object,
                     Guid.Empty,
-                    new SftpUserAccount[]
+                    new[]
                     {
-                        new SftpUserAccount { Username = username, Password = password }
+                        new SftpUserAccountAttribute { Username = username, Password = password }
                     }
                 );
             _containers.Add(container);
@@ -199,11 +199,11 @@ public class SftpContainerTests : BaseContainerTests
             var container = new SftpContainer(
                     gatewayMock.Object,
                     Guid.Empty,
-                    new SftpUserAccount[]
+                    new[]
                     {
-                        new SftpUserAccount { Username = "testuser1", Password = "testpassword1" },
-                        new SftpUserAccount { Username = "testuser2", Password = "testpassword2" },
-                        new SftpUserAccount { Username = "guest", Password = "guest" }
+                        new SftpUserAccountAttribute { Username = "testuser1", Password = "testpassword1" },
+                        new SftpUserAccountAttribute { Username = "testuser2", Password = "testpassword2" },
+                        new SftpUserAccountAttribute { Username = "guest", Password = "guest" }
                     }
                 );
             _containers.Add(container);
@@ -248,7 +248,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[0]);
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccountAttribute[0]);
             _containers.Add(container);
 
             // Act
@@ -313,7 +313,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerExecuteCommandAsync(It.IsAny<string>(), "ssh-keygen -l -E sha256 -f /etc/ssh/ssh_host_ed25519_key.pub", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { $"256 SHA256:{expectedEd25519ShaFingerprint} root@fec96a1bc7dc (ED25519)" });
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(username, password) });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(username, password) });
             _containers.Add(container);
 
             // Act
@@ -354,8 +354,8 @@ public class SftpContainerTests : BaseContainerTests
             // Arrange
             var accounts = new[]
             {
-                new SftpUserAccount("user", "password"),
-                new SftpUserAccount("test", "test")
+                new SftpUserAccountAttribute("user", "password"),
+                new SftpUserAccountAttribute("test", "test")
             };
 
             var expectedHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : containerIpAddress;
@@ -422,7 +422,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -444,7 +444,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var cancellationToken = new CancellationToken();
@@ -468,7 +468,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var actualFilename = default(string);
@@ -505,7 +505,7 @@ public class SftpContainerTests : BaseContainerTests
             gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new SftpUserAccount[] { new SftpUserAccount(user, "password") });
+            var container = new SftpContainer(gatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
             _containers.Add(container);
 
             var actualFilename = default(string);

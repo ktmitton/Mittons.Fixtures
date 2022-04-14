@@ -28,6 +28,8 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly IEnumerable<NetworkAlias> _networks;
 
+        private readonly bool _teardownOnComplete;
+
         public Container(IDockerGateway dockerGateway, Guid instanceId, IEnumerable<Attribute> attributes)
         {
             _dockerGateway = dockerGateway;
@@ -41,6 +43,8 @@ namespace Mittons.Fixtures.Docker.Containers
             _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
             _networks = attributes.OfType<NetworkAlias>();
+
+            _teardownOnComplete = attributes.OfType<Run>().SingleOrDefault()?.TeardownOnComplete ?? true;
         }
 
         /// <inheritdoc/>
@@ -64,10 +68,8 @@ namespace Mittons.Fixtures.Docker.Containers
         /// <remarks>
         /// This must be invoked when an instance of <see cref="Container"/> is no longer used.
         /// </remarks>
-        public virtual async Task DisposeAsync()
-        {
-            await _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None);
-        }
+        public virtual Task DisposeAsync()
+            => _teardownOnComplete ? _dockerGateway.ContainerRemoveAsync(Id, CancellationToken.None) : Task.CompletedTask;
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {

@@ -17,7 +17,7 @@ public class DockerEnvironmentFixtureTests
 {
     public class RunTests : IAsyncDisposable
     {
-        [Run("BUILD_BUILDID")]
+        [Run("${BUILD_BUILDID}")]
         [Network("network1")]
         [Network("network2")]
         private class BuildEnvironmentFixture : DockerEnvironmentFixture
@@ -34,7 +34,7 @@ public class DockerEnvironmentFixtureTests
             }
         }
 
-        [Run("RELEASE_RELEASEID")]
+        [Run("${RELEASE_RELEASEID}")]
         [Network("network1")]
         [Network("network2")]
         private class ReleaseEnvironmentFixture : DockerEnvironmentFixture
@@ -51,7 +51,7 @@ public class DockerEnvironmentFixtureTests
             }
         }
 
-        [Run("UNSET_UNSETID")]
+        [Run("${UNSET_UNSETID}")]
         [Network("network1")]
         [Network("network2")]
         private class UnsetEnvironmentFixture : DockerEnvironmentFixture
@@ -79,6 +79,23 @@ public class DockerEnvironmentFixtureTests
             public Container? RedisContainer { get; set; }
 
             public MissingEnvironmentFixture(IDockerGateway dockerGateway)
+                : base(dockerGateway)
+            {
+            }
+        }
+
+        [Run("test")]
+        [Network("network1")]
+        [Network("network2")]
+        private class StaticEnvironmentFixture : DockerEnvironmentFixture
+        {
+            [Image("alpine:3.15")]
+            public Container? AlpineContainer { get; set; }
+
+            [Image("redis:alpine")]
+            public Container? RedisContainer { get; set; }
+
+            public StaticEnvironmentFixture(IDockerGateway dockerGateway)
                 : base(dockerGateway)
             {
             }
@@ -316,6 +333,212 @@ public class DockerEnvironmentFixtureTests
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithRunDetailsFromAStaticString_ExpectTheRunIdToBeSet()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new StaticEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            gatewayMock.Verify(
+                    x => x.NetworkCreateAsync(
+                        $"network1-{fixture.InstanceId}",
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+            gatewayMock.Verify(
+                    x => x.NetworkCreateAsync(
+                        $"network2-{fixture.InstanceId}",
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+            gatewayMock.Verify(
+                    x => x.ContainerRunAsync(
+                        "alpine:3.15",
+                        "",
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+            gatewayMock.Verify(
+                    x => x.ContainerRunAsync(
+                        "redis:alpine",
+                        "",
+                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+        }
+    }
+
+    public class DisposeAsyncTests : IAsyncDisposable
+    {
+        [Run("test", false)]
+        [Network("network1")]
+        [Network("network2")]
+        private class KeepUpWithIdEnvironmentFixture : DockerEnvironmentFixture
+        {
+            [Image("alpine:3.15")]
+            public Container? AlpineContainer { get; set; }
+
+            [Image("redis:alpine")]
+            public Container? RedisContainer { get; set; }
+
+            public KeepUpWithIdEnvironmentFixture(IDockerGateway dockerGateway)
+                : base(dockerGateway)
+            {
+            }
+        }
+
+        [Run(false)]
+        [Network("network1")]
+        [Network("network2")]
+        private class KeepUpWithoutIdEnvironmentFixture : DockerEnvironmentFixture
+        {
+            [Image("alpine:3.15")]
+            public Container? AlpineContainer { get; set; }
+
+            [Image("redis:alpine")]
+            public Container? RedisContainer { get; set; }
+
+            public KeepUpWithoutIdEnvironmentFixture(IDockerGateway dockerGateway)
+                : base(dockerGateway)
+            {
+            }
+        }
+
+        private readonly List<DockerEnvironmentFixture> _fixtures = new List<DockerEnvironmentFixture>();
+
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var fixture in _fixtures)
+            {
+                await fixture.DisposeAsync();
+            }
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithIdAndShouldKeepUpAfterComplete_ExpectTheEnvironmentToNotBeDisposed()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new KeepUpWithIdEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            await fixture.InitializeAsync();
+
+            // Act
+            await fixture.DisposeAsync();
+
+            // Assert
+            gatewayMock.Verify(
+                    x => x.NetworkRemoveAsync(
+                        $"network1-{fixture.InstanceId}",
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+            gatewayMock.Verify(
+                    x => x.NetworkRemoveAsync(
+                        $"network2-{fixture.InstanceId}",
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+
+            var alpineId = fixture.AlpineContainer?.Id ?? string.Empty;
+            gatewayMock.Verify(
+                    x => x.ContainerRemoveAsync(
+                        alpineId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+
+            var redisId = fixture.RedisContainer?.Id ?? string.Empty;
+            gatewayMock.Verify(
+                    x => x.ContainerRemoveAsync(
+                        redisId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedAndWithNoIdShouldKeepUpAfterComplete_ExpectTheEnvironmentToNotBeDisposed()
+        {
+            // Arrange
+            var gatewayMock = new Mock<IDockerGateway>();
+            gatewayMock.Setup(x => x.ContainerGetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(IPAddress.Any);
+            gatewayMock.Setup(x => x.ContainerGetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var fixture = new KeepUpWithoutIdEnvironmentFixture(gatewayMock.Object);
+            _fixtures.Add(fixture);
+
+            await fixture.InitializeAsync();
+
+            // Act
+            await fixture.DisposeAsync();
+
+            // Assert
+            gatewayMock.Verify(
+                    x => x.NetworkRemoveAsync(
+                        $"network1-{fixture.InstanceId}",
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+            gatewayMock.Verify(
+                    x => x.NetworkRemoveAsync(
+                        $"network2-{fixture.InstanceId}",
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+
+            var alpineId = fixture.AlpineContainer?.Id ?? string.Empty;
+            gatewayMock.Verify(
+                    x => x.ContainerRemoveAsync(
+                        alpineId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+
+            var redisId = fixture.RedisContainer?.Id ?? string.Empty;
+            gatewayMock.Verify(
+                    x => x.ContainerRemoveAsync(
+                        redisId,
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
                 );
         }
     }

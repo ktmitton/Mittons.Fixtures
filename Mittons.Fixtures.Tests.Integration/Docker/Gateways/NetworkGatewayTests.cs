@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;
 
-public class NetworkGatewayTests
+public class NetworkGatewayTests : IDisposable
 {
     private readonly List<string> _networkNames = new List<string>();
 

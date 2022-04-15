@@ -15,517 +15,690 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;
 
-public class ContainerGatewayTests : IDisposable
+public class ContainerGatewayTests
 {
-    private readonly List<string> _containerIds = new List<string>();
-
-    private readonly List<string> _filenames = new List<string>();
-
-    public void Dispose()
+    public class RunTests : IDisposable
     {
-        foreach (var containerId in _containerIds)
+        private readonly List<string> _containerIds = new List<string>();
+
+        public void Dispose()
         {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        [Fact]
+        public async Task Run_WhenCalledWithLabels_ExpectContainerToHaveTheLabelsApplied()
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var containerGateway = new ContainerGateway();
+
+            // Act
+            var containerId = await containerGateway.RunAsync(
+                    imageName,
+                    string.Empty,
+                    new List<Option>
+                    {
+                        new Option
+                        {
+                            Name = "--label",
+                            Value = "first=second"
+                        },
+                        new Option
+                        {
+                            Name = "--label",
+                            Value = "third=fourth"
+                        }
+                    },
+                    CancellationToken.None
+                );
+
+            _containerIds.Add(containerId);
+
+            // Assert
             using var proc = new Process();
             proc.StartInfo.FileName = "docker";
-            proc.StartInfo.Arguments = $"rm --force {containerId}";
+            proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Labels}}}}\"";
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.RedirectStandardOutput = true;
 
             proc.Start();
             proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadToEnd();
+
+            var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
+
+            Assert.Contains(actualLabels, x => x.Key == "first" && x.Value == "second");
+            Assert.Contains(actualLabels, x => x.Key == "third" && x.Value == "fourth");
         }
 
-        foreach (var filename in _filenames)
+        [Fact]
+        public async Task Run_WhenCalledWithAnImage_ExpectContainerToBeForTheRequestedImage()
         {
-            File.Delete(filename);
-        }
-    }
+            // Arrange
+            var images = new[] { "alpine:3.15", "alpine:3.14" };
 
-    [Fact]
-    public async Task ContainerRun_WhenCalledWithLabels_ExpectContainerToHaveTheLabelsApplied()
-    {
-        // Arrange
-        var imageName = "alpine:3.15";
-        var containerGateway = new ContainerGateway();
+            var containerGateway = new ContainerGateway();
 
-        // Act
-        var containerId = await containerGateway.RunAsync(
-                imageName,
-                string.Empty,
-                new List<Option>
+            // Act
+            var containers = images.Select(x => (Image: x, Task: containerGateway.RunAsync(x, string.Empty, Enumerable.Empty<Option>(), CancellationToken.None)));
+            await Task.WhenAll(containers.Select(x => x.Task));
+
+            _containerIds.AddRange(containers.Select(x => x.Task.Result));
+
+            // Assert
+            Assert.All(containers, container =>
                 {
-                    new Option
+                    using (var process = new Process())
                     {
-                        Name = "--label",
-                        Value = "first=second"
-                    },
-                    new Option
-                    {
-                        Name = "--label",
-                        Value = "third=fourth"
+                        process.StartInfo.FileName = "docker";
+                        process.StartInfo.Arguments = $"inspect {container.Task.Result} --format '{{{{.Config.Image}}}}'";
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.RedirectStandardOutput = true;
+
+                        process.Start();
+                        process.WaitForExit();
+
+                        var output = process.StandardOutput?.ReadLine()?.Replace("'", string.Empty);
+
+                        Assert.Equal(container.Image, output);
                     }
-                },
-                CancellationToken.None
-            );
-
-        _containerIds.Add(containerId);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Labels}}}}\"";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadToEnd();
-
-        var actualLabels = JsonSerializer.Deserialize<Dictionary<string, string>>(output) ?? new Dictionary<string, string>();
-
-        Assert.Contains(actualLabels, x => x.Key == "first" && x.Value == "second");
-        Assert.Contains(actualLabels, x => x.Key == "third" && x.Value == "fourth");
-    }
-
-    [Theory]
-    [InlineData("alpine:3.15")]
-    [InlineData("alpine:3.14")]
-    public async Task ContainerRun_WhenCalledWithAnImage_ExpectContainerToBeForTheRequestedImage(string imageName)
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        // Act
-        var containerId = await containerGateway.RunAsync(imageName, string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Image}}}}'";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var outputBuilder = new StringBuilder();
-
-        while (!proc.StandardOutput.EndOfStream)
-        {
-            outputBuilder.Append(proc.StandardOutput.ReadLine());
+                });
         }
 
-        var output = outputBuilder.ToString();
-
-        Assert.Equal($"'{imageName}'", output);
-    }
-
-    [Fact]
-    public async Task ContainerRun_WhenCalledForAlpineWithNoCommand_ExpectContainerToHaveStartedWithTheDefaultCommand()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        // Act
-        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var outputBuilder = new StringBuilder();
-
-        while (!proc.StandardOutput.EndOfStream)
+        [Fact]
+        public async Task Run_WhenCalledForAlpineWithNoCommand_ExpectContainerToHaveStartedWithTheDefaultCommand()
         {
-            outputBuilder.Append(proc.StandardOutput.ReadLine());
-        }
+            // Arrange
+            var containerGateway = new ContainerGateway();
 
-        var output = outputBuilder.ToString();
+            // Act
+            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
 
-        Assert.Equal("'[/bin/sh]'", output);
-    }
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
 
-    [Fact]
-    public async Task ContainerRun_WhenCalledForAlpineWithACommand_ExpectContainerToHaveStartedWithTheCommand()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
+            proc.Start();
+            proc.WaitForExit();
 
-        // Act
-        var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
+            var outputBuilder = new StringBuilder();
 
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var outputBuilder = new StringBuilder();
-
-        while (!proc.StandardOutput.EndOfStream)
-        {
-            outputBuilder.Append(proc.StandardOutput.ReadLine());
-        }
-
-        var output = outputBuilder.ToString();
-
-        Assert.Equal("'[/bin/bash]'", output);
-    }
-
-    [Fact]
-    public async Task ContainerRemove_WhenTheContainerDoesNotExist_ExpectSuccessfulReturn()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        // Act
-        // Assert
-        await containerGateway.RemoveAsync("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72", CancellationToken.None);
-    }
-
-    [Fact]
-    public async Task ContainerRemove_WhenTheContainerExists_ExpectTheContainerToBeRemoved()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        await containerGateway.RemoveAsync(containerId, CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"ps -a --filter id={containerId} --format '{{{{.ID}}}}'";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadToEnd();
-
-        Assert.Empty(output);
-    }
-
-    [Fact]
-    public async Task ContainerGetDefaultNetworkIpAddress_WhenTheContainerIsOnOneNetwork_ReturnsTheIpAddressForTheNetwork()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\"";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        IPAddress.TryParse(proc.StandardOutput.ReadLine(), out var expectedIpAddress);
-
-        Assert.Equal(expectedIpAddress, ipAddress);
-    }
-
-    [Theory]
-    [InlineData("/tmp2/test.txt")]
-    [InlineData("/tmp3/temp4/test2.txt")]
-    public async Task ContainerAddFile_WhenCalledForMissingDirectory_ExpectDirectoryToBeCreated(string containerFilename)
-    {
-        // Arrange
-        var fileContents = "hello, world";
-
-        var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-        _filenames.Add(temporaryFilename);
-
-        File.WriteAllText(temporaryFilename, fileContents);
-
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} cat {containerFilename}";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadToEnd();
-
-        Assert.Equal(fileContents, output);
-    }
-
-    [Theory]
-    [InlineData("test", "/tmp/test.txt")]
-    [InlineData("test\nfile", "/tmp/test2.txt")]
-    [InlineData("file\ntest", "/test.txt")]
-    public async Task ContainerAddFile_WhenCalled_ExpectFileToBeCopiedToTheContainer(string fileContents, string containerFilename)
-    {
-        // Arrange
-        var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-        _filenames.Add(temporaryFilename);
-
-        File.WriteAllText(temporaryFilename, fileContents);
-
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} cat {containerFilename}";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadToEnd();
-
-        Assert.Equal(fileContents, output);
-    }
-
-    [Theory]
-    [InlineData("777", "/tmp/test.txt")]
-    [InlineData("757", "/tmp/test2.txt")]
-    [InlineData("557", "/test.txt")]
-    public async Task ContainerAddFile_WhenCalledWithPermissions_ExpectThePermissionsToBeSet(string permissions, string containerFilename)
-    {
-        // Arrange
-        var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-        _filenames.Add(temporaryFilename);
-
-        File.WriteAllText(temporaryFilename, "hello, world");
-
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, default(string), permissions, CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%a\" {containerFilename}";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadLine();
-
-        Assert.Equal(permissions, output);
-    }
-
-    [Theory]
-    [InlineData("guest", "/tmp/test.txt")]
-    [InlineData("tester", "/tmp/test2.txt")]
-    [InlineData("root", "/test.txt")]
-    public async Task ContainerAddFile_WhenCalledWithAnOwner_ExpectThePermissionsToBeSet(string owner, string containerFilename)
-    {
-        // Arrange
-        var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-        _filenames.Add(temporaryFilename);
-
-        File.WriteAllText(temporaryFilename, "hello, world");
-
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        // Act
-        await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, owner, default(string), CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} stat -c \"%U\" {containerFilename}";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadLine();
-
-        Assert.Equal(owner, output);
-    }
-
-    [Theory]
-    [InlineData("/tmp/test.txt")]
-    [InlineData("/tmp/test2.txt")]
-    [InlineData("/test.txt")]
-    public async Task ContainerRemoveFile_WhenCalled_ExpectFileToBeRemoved(string containerFilename)
-    {
-        // Arrange
-        var temporaryFilename = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-        _filenames.Add(temporaryFilename);
-
-        File.WriteAllText(temporaryFilename, "hello, world");
-
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
-
-        // Act
-        await containerGateway.RemoveFileAsync(containerId, containerFilename, CancellationToken.None);
-
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} ls {containerFilename}";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
-
-        proc.Start();
-        proc.WaitForExit();
-
-        var output = proc.StandardOutput.ReadToEnd();
-
-        Assert.Empty(output);
-    }
-
-    [Fact]
-    public async Task ContainerExecuteCommand_WhenCalled_ExpectResultsToBeReturned()
-    {
-        // Arrange
-        var containerGateway = new ContainerGateway();
-
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
-
-        for (var i = 0; i < 10; ++i)
-        {
-            var health = await containerGateway.ExecuteCommandAsync(containerId, "ps aux | grep -v grep | grep sshd || exit 1", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
-
-            if (health.Any())
+            while (!proc.StandardOutput.EndOfStream)
             {
-                break;
+                outputBuilder.Append(proc.StandardOutput.ReadLine());
             }
 
-            await Task.Delay(1000);
+            var output = outputBuilder.ToString();
+
+            Assert.Equal("'[/bin/sh]'", output);
         }
 
-        // Act
-        var results = await containerGateway.ExecuteCommandAsync(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        [Fact]
+        public async Task Run_WhenCalledForAlpineWithACommand_ExpectContainerToHaveStartedWithTheCommand()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
 
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"exec {containerId} ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
+            // Act
+            var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
 
-        proc.Start();
-        proc.WaitForExit();
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"inspect {containerId} --format '{{{{.Config.Cmd}}}}'";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
 
-        var output = proc.StandardOutput.ReadLine();
+            proc.Start();
+            proc.WaitForExit();
 
-        Assert.Single(results);
-        Assert.Equal(output, results.First());
+            var outputBuilder = new StringBuilder();
+
+            while (!proc.StandardOutput.EndOfStream)
+            {
+                outputBuilder.Append(proc.StandardOutput.ReadLine());
+            }
+
+            var output = outputBuilder.ToString();
+
+            Assert.Equal("'[/bin/bash]'", output);
+        }
     }
 
-    [Fact]
-    public async Task ContainerGetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
+    public class RemoveTests : IDisposable
     {
-        // Arrange
-        var containerGateway = new ContainerGateway();
+        private readonly List<string> _containerIds = new List<string>();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
 
-        // Act
-        var actualPort = await containerGateway.GetHostPortMappingAsync(containerId, "tcp", 22, CancellationToken.None);
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
 
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"port {containerId} 22/tcp";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
+        [Fact]
+        public async Task Remove_WhenTheContainerDoesNotExist_ExpectSuccessfulReturn()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
 
-        proc.Start();
-        proc.WaitForExit();
+            // Act
+            // Assert
+            await containerGateway.RemoveAsync("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72", CancellationToken.None);
+        }
 
-        int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
+        [Fact]
+        public async Task Remove_WhenTheContainerExists_ExpectTheContainerToBeRemoved()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
 
-        Assert.Equal(expectedPort, actualPort);
+            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            // Act
+            await containerGateway.RemoveAsync(containerId, CancellationToken.None);
+
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"ps -a --filter id={containerId} --format '{{{{.ID}}}}'";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadToEnd();
+
+            Assert.Empty(output);
+        }
     }
 
-    [Fact]
-    public async Task ContainerGetHostPortMapping_WhenCalledForRedis_ExpectHostPortToBeReturnedForContainerPort6379()
+    public class GetDefaultNetworkIpAddressTests : IDisposable
     {
-        // Arrange
-        var containerGateway = new ContainerGateway();
+        private readonly List<string> _containerIds = new List<string>();
 
-        var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
-        _containerIds.Add(containerId);
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
 
-        // Act
-        var actualPort = await containerGateway.GetHostPortMappingAsync(containerId, "tcp", 6379, CancellationToken.None);
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
 
-        // Assert
-        using var proc = new Process();
-        proc.StartInfo.FileName = "docker";
-        proc.StartInfo.Arguments = $"port {containerId} 6379/tcp";
-        proc.StartInfo.UseShellExecute = false;
-        proc.StartInfo.RedirectStandardOutput = true;
+        [Fact]
+        public async Task GetDefaultNetworkIpAddress_WhenTheContainerIsOnOneNetwork_ReturnsTheIpAddressForTheNetwork()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
 
-        proc.Start();
-        proc.WaitForExit();
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
 
-        int.TryParse(proc.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
+            // Act
+            var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, CancellationToken.None);
 
-        Assert.Equal(expectedPort, actualPort);
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\"";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            IPAddress.TryParse(proc.StandardOutput.ReadLine(), out var expectedIpAddress);
+
+            Assert.Equal(expectedIpAddress, ipAddress);
+        }
+    }
+
+    public class AddFile : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        private readonly List<string> _filenames = new List<string>();
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+
+            foreach (var filename in _filenames)
+            {
+                File.Delete(filename);
+            }
+        }
+
+        [Fact]
+        public async Task AddFile_WhenCalledForMissingDirectory_ExpectDirectoryToBeCreated()
+        {
+            // Arrange
+            var files = new (string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("/tmp2/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("/tmp3/temp4/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            var fileContents = "hello, world";
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, fileContents);
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            // Act
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.All(files, file =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"exec {containerId} cat {file.ContainerFilename}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    var output = process.StandardOutput.ReadToEnd();
+
+                    Assert.Equal(fileContents, output);
+                }
+            });
+        }
+
+        [Fact]
+        public async Task AddFile_WhenCalled_ExpectFileToBeCopiedToTheContainer()
+        {
+            // Arrange
+            var files = new (string FileContents, string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("test", "/tmp/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("test\nfile", "/tmp/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("file\ntest", "/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, file.FileContents);
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            // Act
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.All(files, file =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"exec {containerId} cat {file.ContainerFilename}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    var output = process.StandardOutput.ReadToEnd();
+
+                    Assert.Equal(file.FileContents, output);
+                }
+            });
+        }
+
+        [Fact]
+        public async Task AddFile_WhenCalledWithPermissions_ExpectThePermissionsToBeSet()
+        {
+            // Arrange
+            var files = new (string Permissions, string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("777", "/tmp/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("757", "/tmp/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("557", "/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, "hello, world");
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            // Act
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), x.Permissions, CancellationToken.None));
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.All(files, file =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"exec {containerId} stat -c \"%a\" {file.ContainerFilename}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    var output = process.StandardOutput.ReadLine();
+
+                    Assert.Equal(file.Permissions, output);
+                }
+            });
+        }
+
+        [Fact]
+        public async Task AddFile_WhenCalledWithAnOwner_ExpectThePermissionsToBeSet()
+        {
+            // Arrange
+            var files = new (string Owner, string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("guest", "/tmp/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("tester", "/tmp/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("root", "/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, "hello, world");
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            // Act
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, x.Owner, default(string), CancellationToken.None));
+            await Task.WhenAll(tasks);
+
+            // Assert
+            Assert.All(files, file =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"exec {containerId} stat -c \"%U\" {file.ContainerFilename}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    var output = process.StandardOutput.ReadLine();
+
+                    Assert.Equal(file.Owner, output);
+                }
+            });
+        }
+    }
+
+    public class RemoveFile : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        private readonly List<string> _filenames = new List<string>();
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+
+            foreach (var filename in _filenames)
+            {
+                File.Delete(filename);
+            }
+        }
+
+        [Fact]
+        public async Task RemoveFile_WhenCalled_ExpectFileToBeRemoved()
+        {
+            // Arrange
+            var files = new (string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("/tmp/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("/tmp/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            var fileContents = "hello, world";
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, fileContents);
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            await Task.WhenAll(addTasks);
+
+            // Act
+            var removeTasks = files.Select(x => containerGateway.RemoveFileAsync(containerId, x.ContainerFilename, CancellationToken.None));
+            await Task.WhenAll(removeTasks);
+
+            // Assert
+            Assert.All(files, file =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"exec {containerId} ls {file.ContainerFilename}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    var output = process.StandardOutput.ReadToEnd();
+
+                    Assert.Empty(output);
+                }
+            });
+        }
+    }
+
+    public class ExecuteCommandTests : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        [Fact]
+        public async Task ExecuteCommand_WhenCalled_ExpectResultsToBeReturned()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            _containerIds.Add(containerId);
+
+            for (var i = 0; i < 10; ++i)
+            {
+                var health = await containerGateway.ExecuteCommandAsync(containerId, "ps aux | grep -v grep | grep sshd || exit 1", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+
+                if (health.Any())
+                {
+                    break;
+                }
+
+                await Task.Delay(1000);
+            }
+
+            // Act
+            var results = await containerGateway.ExecuteCommandAsync(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"exec {containerId} ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var output = proc.StandardOutput.ReadLine();
+
+            Assert.Single(results);
+            Assert.Equal(output, results.First());
+        }
+    }
+
+    public class GetHostPortMapping : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        [Fact]
+        public async Task GetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
+
+            var containers = new (Task<string> Task, string Scheme, int Port)[]
+            {
+                (containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None), "tcp", 22),
+                (containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None), "tcp", 6379)
+            };
+            await Task.WhenAll(containers.Select(x => x.Task));
+
+            _containerIds.AddRange(containers.Select(x => x.Task.Result));
+
+            // Act
+            var portMappings = containers.Select(x => (Task: containerGateway.GetHostPortMappingAsync(x.Task.Result, x.Scheme, x.Port, CancellationToken.None), ContainerId: x.Task.Result, Scheme: x.Scheme, Port: x.Port));
+            await Task.WhenAll(portMappings.Select(x => x.Task));
+
+            // Assert
+            Assert.All(portMappings, portMapping =>
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"port {portMapping.ContainerId} {portMapping.Port}/{portMapping.Scheme}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    int.TryParse(process.StandardOutput?.ReadLine()?.Split(':')?.Last(), out var expectedPort);
+
+                    Assert.Equal(expectedPort, portMapping.Task.Result);
+                }
+            });
+        }
     }
 
     public class GetHealthStatusAsync : IDisposable
@@ -623,6 +796,28 @@ public class ContainerGatewayTests : IDisposable
 
             var containerId = await containerGateway.RunAsync("alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
+
+            for (var i = 0; i < 10; ++i)
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{.State.Running}}}}\"";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.Start();
+                    process.WaitForExit();
+
+                    var isRunning = JsonSerializer.Deserialize<bool>(process.StandardOutput.BaseStream);
+
+                    if (!isRunning)
+                    {
+                        break;
+                    }
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(250));
+            }
 
             // Act
             var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);

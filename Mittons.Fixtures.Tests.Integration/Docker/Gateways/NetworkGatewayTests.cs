@@ -81,7 +81,7 @@ public class NetworkGatewayTests
         var networkName = "test";
         var uniqueName = $"{networkName}-{Guid.NewGuid()}";
 
-        var expectedOptions = new Option[]
+        var expectedOptions = new List<Option>
         {
             new Option
             {

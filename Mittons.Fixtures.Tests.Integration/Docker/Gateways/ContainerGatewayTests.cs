@@ -21,6 +21,16 @@ public class ContainerGatewayTests
     {
         private readonly List<string> _containerIds = new List<string>();
 
+        private readonly CancellationToken _cancellationToken;
+
+        public RunTests()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
         public void Dispose()
         {
             foreach (var containerId in _containerIds)
@@ -60,7 +70,7 @@ public class ContainerGatewayTests
                             Value = "third=fourth"
                         }
                     },
-                    CancellationToken.None
+                    _cancellationToken
                 );
 
             _containerIds.Add(containerId);
@@ -92,7 +102,7 @@ public class ContainerGatewayTests
             var containerGateway = new ContainerGateway();
 
             // Act
-            var containers = images.Select(x => (Image: x, Task: containerGateway.RunAsync(x, string.Empty, Enumerable.Empty<Option>(), CancellationToken.None)));
+            var containers = images.Select(x => (Image: x, Task: containerGateway.RunAsync(x, string.Empty, Enumerable.Empty<Option>(), _cancellationToken)));
             await Task.WhenAll(containers.Select(x => x.Task));
 
             _containerIds.AddRange(containers.Select(x => x.Task.Result));
@@ -124,7 +134,7 @@ public class ContainerGatewayTests
             var containerGateway = new ContainerGateway();
 
             // Act
-            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Assert
@@ -156,7 +166,7 @@ public class ContainerGatewayTests
             var containerGateway = new ContainerGateway();
 
             // Act
-            var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Assert
@@ -186,6 +196,16 @@ public class ContainerGatewayTests
     {
         private readonly List<string> _containerIds = new List<string>();
 
+        private readonly CancellationToken _cancellationToken;
+
+        public RemoveTests()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
         public void Dispose()
         {
             foreach (var containerId in _containerIds)
@@ -209,7 +229,7 @@ public class ContainerGatewayTests
 
             // Act
             // Assert
-            await containerGateway.RemoveAsync("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72", CancellationToken.None);
+            await containerGateway.RemoveAsync("cd898788786795df83dbf414bbcc9e6c6be9d4bc932e96a6542c03d033e1cc72", _cancellationToken);
         }
 
         [Fact]
@@ -218,11 +238,11 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            await containerGateway.RemoveAsync(containerId, CancellationToken.None);
+            await containerGateway.RemoveAsync(containerId, _cancellationToken);
 
             // Assert
             using var proc = new Process();
@@ -243,6 +263,16 @@ public class ContainerGatewayTests
     public class GetDefaultNetworkIpAddressTests : IDisposable
     {
         private readonly List<string> _containerIds = new List<string>();
+
+        private readonly CancellationToken _cancellationToken;
+
+        public GetDefaultNetworkIpAddressTests()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
 
         public void Dispose()
         {
@@ -265,11 +295,11 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, CancellationToken.None);
+            var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, _cancellationToken);
 
             // Assert
             using var proc = new Process();
@@ -292,6 +322,16 @@ public class ContainerGatewayTests
         private readonly List<string> _containerIds = new List<string>();
 
         private readonly List<string> _filenames = new List<string>();
+
+        private readonly CancellationToken _cancellationToken;
+
+        public AddFile()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
 
         public void Dispose()
         {
@@ -334,11 +374,11 @@ public class ContainerGatewayTests
 
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
             await Task.WhenAll(tasks);
 
             // Assert
@@ -381,11 +421,11 @@ public class ContainerGatewayTests
 
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
             await Task.WhenAll(tasks);
 
             // Assert
@@ -428,11 +468,11 @@ public class ContainerGatewayTests
 
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), x.Permissions, CancellationToken.None));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), x.Permissions, _cancellationToken));
             await Task.WhenAll(tasks);
 
             // Assert
@@ -475,11 +515,11 @@ public class ContainerGatewayTests
 
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, x.Owner, default(string), CancellationToken.None));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, x.Owner, default(string), _cancellationToken));
             await Task.WhenAll(tasks);
 
             // Assert
@@ -508,6 +548,16 @@ public class ContainerGatewayTests
         private readonly List<string> _containerIds = new List<string>();
 
         private readonly List<string> _filenames = new List<string>();
+
+        private readonly CancellationToken _cancellationToken;
+
+        public RemoveFile()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
 
         public void Dispose()
         {
@@ -551,14 +601,14 @@ public class ContainerGatewayTests
 
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
-            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), CancellationToken.None));
+            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
             await Task.WhenAll(addTasks);
 
             // Act
-            var removeTasks = files.Select(x => containerGateway.RemoveFileAsync(containerId, x.ContainerFilename, CancellationToken.None));
+            var removeTasks = files.Select(x => containerGateway.RemoveFileAsync(containerId, x.ContainerFilename, _cancellationToken));
             await Task.WhenAll(removeTasks);
 
             // Assert
@@ -586,6 +636,16 @@ public class ContainerGatewayTests
     {
         private readonly List<string> _containerIds = new List<string>();
 
+        private readonly CancellationToken _cancellationToken;
+
+        public ExecuteCommandTests()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
         public void Dispose()
         {
             foreach (var containerId in _containerIds)
@@ -607,7 +667,7 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             for (var i = 0; i < 10; ++i)
@@ -646,6 +706,16 @@ public class ContainerGatewayTests
     {
         private readonly List<string> _containerIds = new List<string>();
 
+        private readonly CancellationToken _cancellationToken;
+
+        public GetHostPortMapping()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
         public void Dispose()
         {
             foreach (var containerId in _containerIds)
@@ -662,22 +732,22 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task GetHostPortMapping_WhenCalledForSftp_ExpectHostPortToBeReturnedForContainerPort22()
+        public async Task GetHostPortMapping_WhenCalledForExposedPorts_ExpectHostPortToBeReturned()
         {
             // Arrange
             var containerGateway = new ContainerGateway();
 
             var containers = new (Task<string> Task, string Scheme, int Port)[]
             {
-                (containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None), "tcp", 22),
-                (containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None), "tcp", 6379)
+                (containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken), "tcp", 22),
+                (containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken), "tcp", 6379)
             };
             await Task.WhenAll(containers.Select(x => x.Task));
 
             _containerIds.AddRange(containers.Select(x => x.Task.Result));
 
             // Act
-            var portMappings = containers.Select(x => (Task: containerGateway.GetHostPortMappingAsync(x.Task.Result, x.Scheme, x.Port, CancellationToken.None), ContainerId: x.Task.Result, Scheme: x.Scheme, Port: x.Port));
+            var portMappings = containers.Select(x => (Task: containerGateway.GetHostPortMappingAsync(x.Task.Result, x.Scheme, x.Port, _cancellationToken), ContainerId: x.Task.Result, Scheme: x.Scheme, Port: x.Port));
             await Task.WhenAll(portMappings.Select(x => x.Task));
 
             // Assert
@@ -707,6 +777,16 @@ public class ContainerGatewayTests
 
         private readonly List<string> _filenames = new List<string>();
 
+        private readonly CancellationToken _cancellationToken;
+
+        public GetHealthStatusAsync()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
         public void Dispose()
         {
             foreach (var containerId in _containerIds)
@@ -728,11 +808,11 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);
+            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, _cancellationToken);
 
             // Assert
             Assert.Equal(HealthStatus.Running, healthStatus);
@@ -744,12 +824,12 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
             await Task.Delay(TimeSpan.FromSeconds(5));
-            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);
+            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, _cancellationToken);
 
             // Assert
             Assert.Equal(HealthStatus.Healthy, healthStatus);
@@ -761,12 +841,12 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
             await Task.Delay(TimeSpan.FromSeconds(2));
-            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);
+            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, _cancellationToken);
 
             // Assert
             Assert.Equal(HealthStatus.Unhealthy, healthStatus);
@@ -778,11 +858,11 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             // Act
-            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);
+            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, _cancellationToken);
 
             // Assert
             Assert.Equal(HealthStatus.Unknown, healthStatus);
@@ -794,7 +874,7 @@ public class ContainerGatewayTests
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("alpine", string.Empty, Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
             for (var i = 0; i < 10; ++i)
@@ -820,7 +900,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, CancellationToken.None);
+            var healthStatus = await containerGateway.GetHealthStatusAsync(containerId, _cancellationToken);
 
             // Assert
             Assert.Equal(HealthStatus.Unknown, healthStatus);

@@ -201,7 +201,7 @@ public class ContainerTests
                 _containers.Add(container);
 
                 var cancellationTokenSource = new CancellationTokenSource();
-                cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
+                cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(110));
 
                 // Act
                 // Assert

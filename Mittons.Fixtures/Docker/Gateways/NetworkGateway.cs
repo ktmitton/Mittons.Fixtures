@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Extensions;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
@@ -12,11 +11,9 @@ namespace Mittons.Fixtures.Docker.Gateways
     {
         private static TimeSpan _defaultTimeout = TimeSpan.FromSeconds(10);
 
-        public async Task CreateAsync(string networkName, IEnumerable<KeyValuePair<string, string>> options, CancellationToken cancellationToken)
+        public async Task CreateAsync(string networkName, IEnumerable<Option> options, CancellationToken cancellationToken)
         {
-            var formattedOptions = options.Select(x => $"{x.Key} \"{x.Value}\"");
-
-            using (var process = new DockerProcess($"network create {string.Join(" ", formattedOptions)} {networkName}"))
+            using (var process = new DockerProcess($"network create {options.ToCommandFormattedString()} {networkName}"))
             {
                 await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Mittons.Fixtures.Extensions;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Attributes
 {
@@ -13,9 +14,13 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public bool TeardownOnComplete { get; }
 
-        public IEnumerable<KeyValuePair<string, string>> Options => new[]
+        public IEnumerable<Option> Options => new List<Option>
         {
-            new KeyValuePair<string, string>("--label", $"mittons.fixtures.run.id={Id}")
+            new Option
+            {
+                Name = "--label",
+                Value = $"mittons.fixtures.run.id={Id}"
+            }
         };
 
         public RunAttribute()

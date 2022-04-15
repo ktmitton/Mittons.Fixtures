@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Extensions;
+using Mittons.Fixtures.Models;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;
@@ -51,10 +52,18 @@ public class ContainerGatewayTests : IDisposable
         var containerId = await containerGateway.RunAsync(
                 imageName,
                 string.Empty,
-                new List<KeyValuePair<string, string>>
+                new List<Option>
                 {
-                    new KeyValuePair<string, string>("--label", "first=second"),
-                    new KeyValuePair<string, string>("--label", "third=fourth")
+                    new Option
+                    {
+                        Name = "--label",
+                        Value = "first=second"
+                    },
+                    new Option
+                    {
+                        Name = "--label",
+                        Value = "third=fourth"
+                    }
                 },
                 CancellationToken.None
             );
@@ -88,7 +97,7 @@ public class ContainerGatewayTests : IDisposable
         var containerGateway = new ContainerGateway();
 
         // Act
-        var containerId = await containerGateway.RunAsync(imageName, string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync(imageName, string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Assert
@@ -120,7 +129,7 @@ public class ContainerGatewayTests : IDisposable
         var containerGateway = new ContainerGateway();
 
         // Act
-        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Assert
@@ -152,7 +161,7 @@ public class ContainerGatewayTests : IDisposable
         var containerGateway = new ContainerGateway();
 
         // Act
-        var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/bash", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Assert
@@ -194,7 +203,7 @@ public class ContainerGatewayTests : IDisposable
         // Arrange
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("alpine:3.15", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -221,7 +230,7 @@ public class ContainerGatewayTests : IDisposable
         // Arrange
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -258,7 +267,7 @@ public class ContainerGatewayTests : IDisposable
 
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -294,7 +303,7 @@ public class ContainerGatewayTests : IDisposable
 
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -330,7 +339,7 @@ public class ContainerGatewayTests : IDisposable
 
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -366,7 +375,7 @@ public class ContainerGatewayTests : IDisposable
 
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -402,7 +411,7 @@ public class ContainerGatewayTests : IDisposable
 
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         await containerGateway.AddFileAsync(containerId, temporaryFilename, containerFilename, default(string), default(string), CancellationToken.None);
@@ -431,7 +440,7 @@ public class ContainerGatewayTests : IDisposable
         // Arrange
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         for (var i = 0; i < 10; ++i)
@@ -471,7 +480,7 @@ public class ContainerGatewayTests : IDisposable
         // Arrange
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -498,7 +507,7 @@ public class ContainerGatewayTests : IDisposable
         // Arrange
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
         _containerIds.Add(containerId);
 
         // Act
@@ -546,7 +555,7 @@ public class ContainerGatewayTests : IDisposable
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
 
             // Act
@@ -562,7 +571,7 @@ public class ContainerGatewayTests : IDisposable
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"echo hello\" --health-interval=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
 
             // Act
@@ -579,7 +588,7 @@ public class ContainerGatewayTests : IDisposable
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
 
             // Act
@@ -596,7 +605,7 @@ public class ContainerGatewayTests : IDisposable
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("--health-cmd=\"exit 1\" --health-interval=1s --health-retries=1 --health-start-period=1s redis:alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
 
             // Act
@@ -612,7 +621,7 @@ public class ContainerGatewayTests : IDisposable
             // Arrange
             var containerGateway = new ContainerGateway();
 
-            var containerId = await containerGateway.RunAsync("alpine", string.Empty, Enumerable.Empty<KeyValuePair<string, string>>(), CancellationToken.None);
+            var containerId = await containerGateway.RunAsync("alpine", string.Empty, Enumerable.Empty<Option>(), CancellationToken.None);
             _containerIds.Add(containerId);
 
             // Act

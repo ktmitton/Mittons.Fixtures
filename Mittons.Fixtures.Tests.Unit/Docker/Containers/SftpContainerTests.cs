@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Models;
 using Moq;
 using Xunit;
 
@@ -48,13 +49,13 @@ public class SftpContainerTests : BaseContainerTests
                     x.RunAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
-                            !x.Any(y => y.Key == "--no-healthcheck") &&
-                            x.Any(y => y.Key == "--health-cmd" && y.Value == "ps aux | grep -v grep | grep sshd || exit 1") &&
-                            x.Any(y => y.Key == "--health-interval" && y.Value == "1s") &&
-                            x.Any(y => y.Key == "--health-timeout" && y.Value == "1s") &&
-                            x.Any(y => y.Key == "--health-start-period" && y.Value == "5s") &&
-                            x.Any(y => y.Key == "--health-retries" && y.Value == "3")
+                        It.Is<IEnumerable<Option>>(x =>
+                            !x.Any(y => y.Name == "--no-healthcheck") &&
+                            x.Any(y => y.Name == "--health-cmd" && y.Value == "ps aux | grep -v grep | grep sshd || exit 1") &&
+                            x.Any(y => y.Name == "--health-interval" && y.Value == "1s") &&
+                            x.Any(y => y.Name == "--health-timeout" && y.Value == "1s") &&
+                            x.Any(y => y.Name == "--health-start-period" && y.Value == "5s") &&
+                            x.Any(y => y.Name == "--health-retries" && y.Value == "3")
                         ),
                         It.IsAny<CancellationToken>()
                     )
@@ -101,13 +102,13 @@ public class SftpContainerTests : BaseContainerTests
                     x.RunAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
-                            !x.Any(y => y.Key == "--no-healthcheck") &&
-                            x.Any(y => y.Key == "--health-cmd" && y.Value == "test") &&
-                            x.Any(y => y.Key == "--health-interval" && y.Value == "2s") &&
-                            x.Any(y => y.Key == "--health-timeout" && y.Value == "2s") &&
-                            x.Any(y => y.Key == "--health-start-period" && y.Value == "2s") &&
-                            x.Any(y => y.Key == "--health-retries" && y.Value == "1")
+                        It.Is<IEnumerable<Option>>(x =>
+                            !x.Any(y => y.Name == "--no-healthcheck") &&
+                            x.Any(y => y.Name == "--health-cmd" && y.Value == "test") &&
+                            x.Any(y => y.Name == "--health-interval" && y.Value == "2s") &&
+                            x.Any(y => y.Name == "--health-timeout" && y.Value == "2s") &&
+                            x.Any(y => y.Name == "--health-start-period" && y.Value == "2s") &&
+                            x.Any(y => y.Name == "--health-retries" && y.Value == "1")
                         ),
                         It.IsAny<CancellationToken>()
                     )
@@ -138,7 +139,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(sftpImageName, It.IsAny<string>(), It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 
@@ -163,7 +164,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), "guest:guest", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -196,7 +197,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"{username}:{password}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"{username}:{password}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -228,7 +229,7 @@ public class SftpContainerTests : BaseContainerTests
             await container.InitializeAsync(CancellationToken.None);
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync(It.IsAny<string>(), $"testuser1:testpassword1 testuser2:testpassword2 guest:guest", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Models;
 using Moq;
 using Xunit;
 
@@ -40,7 +41,7 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                containerGatewayMock.Verify(x => x.RunAsync(imageName, string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+                containerGatewayMock.Verify(x => x.RunAsync(imageName, string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -65,7 +66,7 @@ public class ContainerTests : BaseContainerTests
                 await container.InitializeAsync(CancellationToken.None);
 
                 // Assert
-                containerGatewayMock.Verify(x => x.RunAsync(string.Empty, command, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+                containerGatewayMock.Verify(x => x.RunAsync(string.Empty, command, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -127,7 +128,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--label" && y.Value == $"mittons.fixtures.run.id={run.Id}")),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--label" && y.Value == $"mittons.fixtures.run.id={run.Id}")),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -236,7 +237,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--no-healthcheck" && y.Value == string.Empty)),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--no-healthcheck" && y.Value == string.Empty)),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -282,13 +283,13 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x =>
-                                x.Any(y => y.Key == "--no-healthcheck") &&
-                                !x.Any(y => y.Key == "--health-cmd") &&
-                                !x.Any(y => y.Key == "--health-interval") &&
-                                !x.Any(y => y.Key == "--health-timeout") &&
-                                !x.Any(y => y.Key == "--health-start-period") &&
-                                !x.Any(y => y.Key == "--health-retries")
+                            It.Is<IEnumerable<Option>>(x =>
+                                x.Any(y => y.Name == "--no-healthcheck") &&
+                                !x.Any(y => y.Name == "--health-cmd") &&
+                                !x.Any(y => y.Name == "--health-interval") &&
+                                !x.Any(y => y.Name == "--health-timeout") &&
+                                !x.Any(y => y.Name == "--health-start-period") &&
+                                !x.Any(y => y.Name == "--health-retries")
                             ),
                             It.IsAny<CancellationToken>()
                         )
@@ -329,7 +330,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-cmd" && y.Value == command)),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-cmd" && y.Value == command)),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -372,7 +373,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-interval" && y.Value == $"{seconds}s")),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-interval" && y.Value == $"{seconds}s")),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -415,7 +416,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-timeout" && y.Value == $"{seconds}s")),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-timeout" && y.Value == $"{seconds}s")),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -458,7 +459,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-start-period" && y.Value == $"{seconds}s")),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-start-period" && y.Value == $"{seconds}s")),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -499,7 +500,7 @@ public class ContainerTests : BaseContainerTests
                         x.RunAsync(
                             string.Empty,
                             string.Empty,
-                            It.Is<IEnumerable<KeyValuePair<string, string>>>(x => x.Any(y => y.Key == "--health-retries" && y.Value == retries.ToString())),
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-retries" && y.Value == retries.ToString())),
                             It.IsAny<CancellationToken>()
                         )
                     );
@@ -534,9 +535,9 @@ public class ContainerTests : BaseContainerTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.RunAsync("runningimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.RunAsync("runningimage", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("runningid");
-            containerGatewayMock.Setup(x => x.RunAsync("disposingimage", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()))
+            containerGatewayMock.Setup(x => x.RunAsync("disposingimage", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("disposingid");
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);

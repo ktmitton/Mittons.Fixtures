@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
     public interface IContainerGateway
     {
-        Task<string> RunAsync(string imageName, string command, IEnumerable<KeyValuePair<string, string>> options, CancellationToken cancellationToken);
+        Task<string> RunAsync(string imageName, string command, IEnumerable<Option> options, CancellationToken cancellationToken);
 
         Task RemoveAsync(string containerId, CancellationToken cancellationToken);
 

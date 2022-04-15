@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Attributes
 {
     public interface IOptionAttribute
     {
-        IEnumerable<KeyValuePair<string, string>> Options { get; }
+        IEnumerable<Option> Options { get; }
     }
 }

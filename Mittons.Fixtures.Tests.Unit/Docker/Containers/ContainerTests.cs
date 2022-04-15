@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Docker.Containers;
 
-public class ContainerTests : BaseContainerTests
+public class ContainerTests
 {
     public class InitializeTests
     {
@@ -200,9 +200,12 @@ public class ContainerTests : BaseContainerTests
                 var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
                 _containers.Add(container);
 
+                var cancellationTokenSource = new CancellationTokenSource();
+                cancellationTokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
+
                 // Act
                 // Assert
-                await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync(CancellationToken.None));
+                await Assert.ThrowsAsync<OperationCanceledException>(() => container.InitializeAsync(cancellationTokenSource.Token));
             }
 
             [Fact]

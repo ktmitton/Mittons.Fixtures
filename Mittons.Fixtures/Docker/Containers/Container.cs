@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Containers
@@ -61,7 +62,7 @@ namespace Mittons.Fixtures.Docker.Containers
             Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken);
             IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken);
 
-            await EnsureHealthyAsync(TimeSpan.FromSeconds(5));
+            await EnsureHealthyAsync(cancellationToken);
 
             foreach (var networkAlias in _networks)
             {
@@ -107,14 +108,13 @@ namespace Mittons.Fixtures.Docker.Containers
         public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
             => _containerGateway.RemoveFileAsync(Id, containerFilename, cancellationToken);
 
-        private async Task<string> EnsureHealthyAsync(TimeSpan timeout)
+        private async Task<string> EnsureHealthyAsync(CancellationToken cancellationToken)
         {
-            var timeoutCancellationTokenSource = new CancellationTokenSource();
-            timeoutCancellationTokenSource.CancelAfter(timeout);
+            var timeoutToken = cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromMinutes(1));
 
-            while (!timeoutCancellationTokenSource.Token.IsCancellationRequested)
+            while (true)
             {
-                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutCancellationTokenSource.Token);
+                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutToken);
 
                 if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
                 {
@@ -122,9 +122,9 @@ namespace Mittons.Fixtures.Docker.Containers
                 }
 
                 await Task.Delay(TimeSpan.FromMilliseconds(50));
-            }
 
-            timeoutCancellationTokenSource.Token.ThrowIfCancellationRequested();
+                timeoutToken.ThrowIfCancellationRequested();
+            }
 
             return Id;
         }

@@ -8,9 +8,9 @@ using Mittons.Fixtures.Docker.Gateways;
 
 namespace Mittons.Fixtures.Docker.Networks
 {
-    public class DefaultNetwork : IAsyncLifetime
+    public class Network : IAsyncLifetime
     {
-        private readonly IDockerGateway _dockerGateway;
+        private readonly INetworkGateway _networkGateway;
 
         private readonly string _name;
 
@@ -18,9 +18,9 @@ namespace Mittons.Fixtures.Docker.Networks
 
         private readonly bool _teardownOnComplete;
 
-        public DefaultNetwork(IDockerGateway dockerGateway, string name, IEnumerable<Attribute> attributes)
+        public Network(INetworkGateway networkGateway, string name, IEnumerable<Attribute> attributes)
         {
-            _dockerGateway = dockerGateway;
+            _networkGateway = networkGateway;
             _name = name;
 
             var run = attributes.OfType<RunAttribute>().Single();
@@ -31,16 +31,16 @@ namespace Mittons.Fixtures.Docker.Networks
 
         /// <inheritdoc/>
         /// <remarks>
-        /// This must be invoked when an instance of <see cref="DefaultNetwork"/> is no longer used.
+        /// This must be invoked when an instance of <see cref="Network"/> is no longer used.
         /// </remarks>
         public Task DisposeAsync()
-            => _teardownOnComplete ? _dockerGateway.NetworkRemoveAsync(_name, CancellationToken.None) : Task.CompletedTask;
+            => _teardownOnComplete ? _networkGateway.RemoveAsync(_name, CancellationToken.None) : Task.CompletedTask;
 
         /// <inheritdoc/>
         /// <remarks>
-        /// This must be invoked after an instance of <see cref="DefaultNetwork"/> is created, before it is used.
+        /// This must be invoked after an instance of <see cref="Network"/> is created, before it is used.
         /// </remarks>
         public Task InitializeAsync(CancellationToken cancellationToken)
-            => _dockerGateway.NetworkCreateAsync(_name, _options, cancellationToken);
+            => _networkGateway.CreateAsync(_name, _options, cancellationToken);
     }
 }

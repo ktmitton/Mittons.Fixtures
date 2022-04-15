@@ -16,14 +16,14 @@ namespace Mittons.Fixtures.Docker.Fixtures
 
         private readonly List<Container> _containers;
 
-        private readonly DefaultNetwork[] _networks;
+        private readonly Network[] _networks;
 
         public DockerEnvironmentFixture()
-            : this(new DefaultDockerGateway())
+            : this(new ContainerGateway(), new NetworkGateway())
         {
         }
 
-        public DockerEnvironmentFixture(IDockerGateway dockerGateway)
+        public DockerEnvironmentFixture(IContainerGateway containerGateway, INetworkGateway networkGateway)
         {
             var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
 
@@ -43,7 +43,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
                 throw new NotSupportedException($"Networks with the same name cannot be created for the same environment. The following networks were duplicated: [{string.Join(", ", duplicateNetworks.Select(x => x.Key))}]");
             }
 
-            _networks = networks.Select(x => new DefaultNetwork(dockerGateway, $"{x.Name}-{InstanceId}", environmentAttributes)).ToArray();
+            _networks = networks.Select(x => new Network(networkGateway, $"{x.Name}-{InstanceId}", environmentAttributes)).ToArray();
 
             _containers = new List<Container>();
 
@@ -51,7 +51,7 @@ namespace Mittons.Fixtures.Docker.Fixtures
             {
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
-                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { dockerGateway, InstanceId, attributes });
+                var container = (Container)Activator.CreateInstance(propertyInfo.PropertyType, new object[] { containerGateway, networkGateway, InstanceId, attributes });
                 propertyInfo.SetValue(this, container);
                 _containers.Add(container);
             }

@@ -299,7 +299,7 @@ public class ContainerGatewayTests
             _containerIds.Add(containerId);
 
             // Act
-            var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, _cancellationToken);
+            var ipAddress = await containerGateway.GetDefaultNetworkIpAddressAsync(containerId, new CancellationToken());
 
             // Assert
             using var proc = new Process();

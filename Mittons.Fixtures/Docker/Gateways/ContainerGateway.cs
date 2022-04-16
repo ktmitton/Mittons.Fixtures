@@ -88,11 +88,11 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public async Task EmptyDirectoryAsync(string containerid, string directory, CancellationToken cancellationToken)
         {
-            var files = await ExecuteCommandAsync(containerid, $"ls {directory}", cancellationToken);
+            var files = await ExecuteCommandAsync(containerid, $"ls {directory}", cancellationToken).ConfigureAwait(false);
 
             foreach (var file in files)
             {
-                await ExecuteCommandAsync(containerid, $"rm -rf {directory}/{file}", cancellationToken);
+                await ExecuteCommandAsync(containerid, $"rm -rf {directory}/{file}", cancellationToken).ConfigureAwait(false);
             }
         }
 

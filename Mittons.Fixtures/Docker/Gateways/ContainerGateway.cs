@@ -11,8 +11,6 @@ namespace Mittons.Fixtures.Docker.Gateways
 {
     public class ContainerGateway : IContainerGateway
     {
-        private static TimeSpan _defaultTimeout = TimeSpan.FromSeconds(10);
-
         public async Task<string> RunAsync(string imageName, string command, IEnumerable<Option> options, CancellationToken cancellationToken)
         {
             using (var process = new DockerProcess($"run -P -d {options.ToExecutionParametersFormattedString()} {imageName} {command}"))
@@ -56,19 +54,19 @@ namespace Mittons.Fixtures.Docker.Gateways
 
             using (var process = new DockerProcess($"exec {containerId} mkdir -p \"{directory}\" >/dev/null 2>&1"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }
 
             using (var process = new DockerProcess($"cp \"{hostFilename}\" \"{containerId}:{containerFilename}\""))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(owner))
             {
                 using (var process = new DockerProcess($"exec {containerId} chown {owner} \"{containerFilename}\""))
                 {
-                    await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -76,7 +74,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             {
                 using (var process = new DockerProcess($"exec {containerId} chmod {permissions} \"{containerFilename}\""))
                 {
-                    await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -85,7 +83,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"exec {containerId} rm \"{containerFilename}\""))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -111,7 +109,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"port {containerId} {containerPort}/{protocol}"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 int.TryParse((await process.StandardOutput.ReadLineAsync().ConfigureAwait(false)).Split(':').Last(), out var port);
 
@@ -123,7 +121,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"inspect {containerId} -f \"{{{{if .State.Health}}}}{{{{.State.Health.Status}}}}{{{{else}}}}{{{{.State.Status}}}}{{{{end}}}}\""))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 switch (await process.StandardOutput.ReadLineAsync().ConfigureAwait(false))
                 {

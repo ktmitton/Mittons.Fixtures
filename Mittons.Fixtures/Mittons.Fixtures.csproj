@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Mittons.Fixtures</PackageId>
-    <PackageVersion>1.0.0-rc.2</PackageVersion>
+    <PackageVersion>1.0.0-rc.3</PackageVersion>
     <Authors>Kenneth Mitton</Authors>
     <Description>Provides fixtures for defining test environments used in integration/system/end-to-end testing.</Description>
     <Copyright>Copyright (c) Kenneth Mitton 2021</Copyright>

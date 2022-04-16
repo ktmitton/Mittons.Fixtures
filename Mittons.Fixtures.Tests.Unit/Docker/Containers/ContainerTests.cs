@@ -98,6 +98,96 @@ public class ContainerTests
                 // Assert
                 Assert.Equal(parsed, container.IpAddress);
             }
+
+            [Theory]
+            [InlineData("test", "www.example.com")]
+            [InlineData("other", "sftp.example.com")]
+            public async Task InitializeAsync_WhenANetworkAliasDoesNotSpecifyExternalStatus_ExpectTheContainerToBeConnectedToAnInternalNetwork(string networkName, string alias)
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(IPAddress.Any);
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var instanceId = Guid.NewGuid();
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var networkAlias = new NetworkAliasAttribute(networkName, alias);
+
+                var attributes = new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute(), networkAlias };
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, instanceId, attributes);
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                networkGatewayMock.Verify(x => x.ConnectAsync($"{networkName}-{instanceId}", container.Id, alias, It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData("test", "www.example.com")]
+            [InlineData("other", "sftp.example.com")]
+            public async Task InitializeAsync_WhenANetworkAliasIsSpecifiedForAnInternalNetwork_ExpectTheContainerToBeConnectedToAnInternalNetwork(string networkName, string alias)
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(IPAddress.Any);
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var instanceId = Guid.NewGuid();
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var networkAlias = new NetworkAliasAttribute(networkName, alias, false);
+
+                var attributes = new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute(), networkAlias };
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, instanceId, attributes);
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                networkGatewayMock.Verify(x => x.ConnectAsync($"{networkName}-{instanceId}", container.Id, alias, It.IsAny<CancellationToken>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData("test", "www.example.com")]
+            [InlineData("other", "sftp.example.com")]
+            public async Task InitializeAsync_WhenANetworkAliasIsSpecifiedForAnExternalNetwork_ExpectTheContainerToBeConnectedToAnExternalNetwork(string networkName, string alias)
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(IPAddress.Any);
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+
+                var instanceId = Guid.NewGuid();
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var networkAlias = new NetworkAliasAttribute(networkName, alias, true);
+
+                var attributes = new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute(), networkAlias };
+
+                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, instanceId, attributes);
+                _containers.Add(container);
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                networkGatewayMock.Verify(x => x.ConnectAsync($"{networkName}", container.Id, alias, It.IsAny<CancellationToken>()), Times.Once);
+            }
         }
 
         public class LabelTests : BaseContainerTests

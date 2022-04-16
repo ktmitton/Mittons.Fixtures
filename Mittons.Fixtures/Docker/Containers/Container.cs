@@ -66,7 +66,9 @@ namespace Mittons.Fixtures.Docker.Containers
 
             foreach (var networkAlias in _networks)
             {
-                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken).ConfigureAwait(false);
+                var networkName = networkAlias.IsExternalNetwork ? networkAlias.NetworkName : $"{networkAlias.NetworkName}-{_instanceId}";
+
+                await _networkGateway.ConnectAsync(networkName, Id, networkAlias.Alias, cancellationToken).ConfigureAwait(false);
             }
         }
 

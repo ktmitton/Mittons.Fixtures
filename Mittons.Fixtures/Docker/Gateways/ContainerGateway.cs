@@ -17,7 +17,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"run -P -d {options.ToExecutionParametersFormattedString()} {imageName} {command}"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
+                await process.RunProcessAsync(new CancellationToken());
 
                 var containerId = default(string);
 

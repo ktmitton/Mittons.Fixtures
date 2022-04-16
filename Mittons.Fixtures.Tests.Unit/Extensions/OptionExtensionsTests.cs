@@ -12,7 +12,7 @@ public class OptionExtensionsTests
     [Fact]
     public void ToExecutionParameterFormattedString_WhenOptionIsNull_ExpectArgumentNullException()
     {
-        Option stubOption = null;
+        Option? stubOption = null;
 
         Assert.Throws<ArgumentNullException>(() => stubOption.ToExecutionParameterFormattedString());
     }
@@ -88,7 +88,7 @@ public class OptionExtensionsTests
     [Fact]
     public void ToExecutionParametersFormattedString_WhenOptionsIsNull_ExpectArgumentNullException()
     {
-        IEnumerable<Option> stubOptions = null;
+        IEnumerable<Option>? stubOptions = null;
 
         Assert.Throws<ArgumentNullException>(() => stubOptions.ToExecutionParametersFormattedString());
     }

@@ -75,7 +75,7 @@ namespace Mittons.Fixtures.Docker.Containers
         /// This must be invoked when an instance of <see cref="Container"/> is no longer used.
         /// </remarks>
         public virtual Task DisposeAsync()
-            => _teardownOnComplete ? _containerGateway.RemoveAsync(Id, CancellationToken.None) : Task.CompletedTask;
+            => _teardownOnComplete ? _containerGateway.RemoveAsync(Id, new CancellationToken()) : Task.CompletedTask;
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {

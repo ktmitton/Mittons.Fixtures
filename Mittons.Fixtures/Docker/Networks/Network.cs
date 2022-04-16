@@ -35,7 +35,7 @@ namespace Mittons.Fixtures.Docker.Networks
         /// This must be invoked when an instance of <see cref="Network"/> is no longer used.
         /// </remarks>
         public Task DisposeAsync()
-            => _teardownOnComplete ? _networkGateway.RemoveAsync(_name, CancellationToken.None) : Task.CompletedTask;
+            => _teardownOnComplete ? _networkGateway.RemoveAsync(_name, new CancellationToken()) : Task.CompletedTask;
 
         /// <inheritdoc/>
         /// <remarks>

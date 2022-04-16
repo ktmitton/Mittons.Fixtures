@@ -47,7 +47,7 @@ public class ConnectionSettingsTests : IClassFixture<ReportingEnvironmentFixture
         // Arrange
         var connectionSettings = _reportingEnvironment.SftpContainer.SftpConnectionSettings.Single(x => x.Key == "admin").Value;
 
-        await _reportingEnvironment.SftpContainer.CreateUserFileAsync(connectionSettings.Username, fileContents, filename, default, default, CancellationToken.None);
+        await _reportingEnvironment.SftpContainer.CreateUserFileAsync(connectionSettings.Username, fileContents, filename, default, default, new CancellationToken());
 
         var connectionInfo = new ConnectionInfo(
                 connectionSettings.Host,

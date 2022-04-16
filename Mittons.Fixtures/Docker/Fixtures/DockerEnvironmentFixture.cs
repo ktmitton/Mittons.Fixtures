@@ -61,8 +61,8 @@ namespace Mittons.Fixtures.Docker.Fixtures
         /// <remarks>
         /// This must be invoked after an instance of <see cref="DockerEnvironmentFixture"/> is created, before it is used.
         /// </remarks>
-        public Task InitializeAsync()
-            => InitializeAsync(CancellationToken.None);
+        public virtual Task InitializeAsync()
+            => InitializeAsync(new CancellationToken());
 
         /// <inheritdoc/>
         /// <remarks>
@@ -70,9 +70,9 @@ namespace Mittons.Fixtures.Docker.Fixtures
         /// </remarks>
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken)));
+            await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken))).ConfigureAwait(false);
 
-            await Task.WhenAll(_containers.Select(x => x.InitializeAsync(cancellationToken)));
+            await Task.WhenAll(_containers.Select(x => x.InitializeAsync(cancellationToken))).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -81,9 +81,9 @@ namespace Mittons.Fixtures.Docker.Fixtures
         /// </remarks>
         public async Task DisposeAsync()
         {
-            await Task.WhenAll(_containers.Select(x => x.DisposeAsync()));
+            await Task.WhenAll(_containers.Select(x => x.DisposeAsync())).ConfigureAwait(false);
 
-            await Task.WhenAll(_networks.Select(x => x.DisposeAsync()));
+            await Task.WhenAll(_networks.Select(x => x.DisposeAsync())).ConfigureAwait(false);
         }
     }
 }

@@ -12,7 +12,7 @@ using Mittons.Fixtures.Models;
 using Moq;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit.Docker.Environments;
+namespace Mittons.Fixtures.Tests.Unit.Docker.Fixtures;
 
 public class DockerEnvironmentFixtureTests
 {

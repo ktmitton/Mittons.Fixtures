@@ -12,11 +12,21 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;
 
-public class NetworkGatewayTests
+public class NetworkGatewayTests : IDisposable
 {
     private readonly List<string> _networkNames = new List<string>();
 
     private readonly List<string> _containerIds = new List<string>();
+
+    private readonly CancellationToken _cancellationToken;
+
+    public NetworkGatewayTests()
+    {
+        var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+        _cancellationToken = cancellationTokenSource.Token;
+    }
 
     public void Dispose()
     {
@@ -57,7 +67,7 @@ public class NetworkGatewayTests
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
         // Assert
         using var proc = new Process();
@@ -100,7 +110,7 @@ public class NetworkGatewayTests
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, expectedOptions, (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, expectedOptions, _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
         // Assert
         using var proc = new Process();
@@ -131,10 +141,10 @@ public class NetworkGatewayTests
 
         _networkNames.Add(uniqueName);
 
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
         // Act
-        await networkGateway.RemoveAsync(uniqueName, CancellationToken.None);
+        await networkGateway.RemoveAsync(uniqueName, _cancellationToken);
 
         // Assert
         using var proc = new Process();
@@ -161,15 +171,15 @@ public class NetworkGatewayTests
         var networkGateway = new NetworkGateway();
         var containerGateway = new ContainerGateway();
 
-        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), CancellationToken.None);
+        var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest", Enumerable.Empty<Option>(), _cancellationToken);
         _containerIds.Add(containerId);
 
         _networkNames.Add(uniqueName);
 
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
 
         // Act
-        await networkGateway.ConnectAsync(uniqueName, containerId, "test.example.com", CancellationToken.None);
+        await networkGateway.ConnectAsync(uniqueName, containerId, "test.example.com", _cancellationToken);
 
         // Assert
         using var proc = new Process();

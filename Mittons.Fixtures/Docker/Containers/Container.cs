@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Containers
@@ -58,14 +59,14 @@ namespace Mittons.Fixtures.Docker.Containers
         /// </remarks>
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken);
-            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken);
+            Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
+            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken).ConfigureAwait(false);
 
-            await EnsureHealthyAsync(TimeSpan.FromSeconds(5));
+            await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var networkAlias in _networks)
             {
-                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken);
+                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -74,7 +75,7 @@ namespace Mittons.Fixtures.Docker.Containers
         /// This must be invoked when an instance of <see cref="Container"/> is no longer used.
         /// </remarks>
         public virtual Task DisposeAsync()
-            => _teardownOnComplete ? _containerGateway.RemoveAsync(Id, CancellationToken.None) : Task.CompletedTask;
+            => _teardownOnComplete ? _containerGateway.RemoveAsync(Id, new CancellationToken()) : Task.CompletedTask;
 
         public async Task CreateFileAsync(string fileContents, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
@@ -82,7 +83,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
             File.WriteAllText(temporaryFilename, fileContents);
 
-            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken).ConfigureAwait(false);
 
             File.Delete(temporaryFilename);
         }
@@ -96,7 +97,7 @@ namespace Mittons.Fixtures.Docker.Containers
                 fileContents.CopyTo(fileStream);
             }
 
-            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken).ConfigureAwait(false);
 
             File.Delete(temporaryFilename);
         }
@@ -107,24 +108,23 @@ namespace Mittons.Fixtures.Docker.Containers
         public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
             => _containerGateway.RemoveFileAsync(Id, containerFilename, cancellationToken);
 
-        private async Task<string> EnsureHealthyAsync(TimeSpan timeout)
+        private async Task<string> EnsureHealthyAsync(CancellationToken cancellationToken)
         {
-            var timeoutCancellationTokenSource = new CancellationTokenSource();
-            timeoutCancellationTokenSource.CancelAfter(timeout);
+            var timeoutToken = cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromMinutes(1));
 
-            while (!timeoutCancellationTokenSource.Token.IsCancellationRequested)
+            while (true)
             {
-                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutCancellationTokenSource.Token);
+                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutToken).ConfigureAwait(false);
 
                 if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
                 {
                     break;
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(50));
-            }
+                await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false);
 
-            timeoutCancellationTokenSource.Token.ThrowIfCancellationRequested();
+                timeoutToken.ThrowIfCancellationRequested();
+            }
 
             return Id;
         }

@@ -29,19 +29,19 @@ namespace Mittons.Fixtures.Docker.Containers
 
         public override async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            await base.InitializeAsync(cancellationToken);
+            await base.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
             var host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : IpAddress.ToString();
-            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _containerGateway.GetHostPortMappingAsync(Id, "tcp", 22, cancellationToken) : 22;
+            var port = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? await _containerGateway.GetHostPortMappingAsync(Id, "tcp", 22, cancellationToken).ConfigureAwait(false) : 22;
             var rsaFingerprint = new Fingerprint
             {
-                Md5 = await GetFingerprintAsync(_containerGateway, "rsa", "md5", cancellationToken),
-                Sha256 = await GetFingerprintAsync(_containerGateway, "rsa", "sha256", cancellationToken)
+                Md5 = await GetFingerprintAsync(_containerGateway, "rsa", "md5", cancellationToken).ConfigureAwait(false),
+                Sha256 = await GetFingerprintAsync(_containerGateway, "rsa", "sha256", cancellationToken).ConfigureAwait(false)
             };
             var ed25519Fingerprint = new Fingerprint
             {
-                Md5 = await GetFingerprintAsync(_containerGateway, "ed25519", "md5", cancellationToken),
-                Sha256 = await GetFingerprintAsync(_containerGateway, "ed25519", "sha256", cancellationToken)
+                Md5 = await GetFingerprintAsync(_containerGateway, "ed25519", "md5", cancellationToken).ConfigureAwait(false),
+                Sha256 = await GetFingerprintAsync(_containerGateway, "ed25519", "sha256", cancellationToken).ConfigureAwait(false)
             };
 
             SftpConnectionSettings = _accounts.Select(
@@ -75,7 +75,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private async Task<string> GetFingerprintAsync(IContainerGateway containerGateway, string algorithm, string hash, CancellationToken cancellationToken)
         {
-            var execResults = (await containerGateway.ExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)))).ToArray();
+            var execResults = (await containerGateway.ExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5))).ConfigureAwait(false)).ToArray();
 
             if (execResults.Length != 1)
             {

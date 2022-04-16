@@ -15,8 +15,8 @@
         /// </summary>
         /// <remarks>
         /// Set as a direct value with no quotations.  
-        /// Set to an empty string if there is no value to accompany the option name.
+        /// Set to <c>null</c>, <c>empty string</c>, or <c>white-space</c> if there is no value to accompany the option name.
         /// </remarks>
-        public string Value { get; set; } = string.Empty;
+        public string Value { get; set; }
     }
 }

@@ -30,7 +30,7 @@ public class OptionExtensionsTests
     }
 
     [Fact]
-    public void ToExecutionParameterFormattedString_WhenValueIsNull_ExpectArgumentNullException()
+    public void ToExecutionParameterFormattedString_WhenValueIsNull_ExpectExecutionParameterFormattedStringWithOnlyName()
     {
         var stubOption = new Option
         {
@@ -38,11 +38,41 @@ public class OptionExtensionsTests
             Value = null
         };
 
-        Assert.Throws<ArgumentNullException>(() => stubOption.ToExecutionParameterFormattedString());
+        var commandFormattedString = stubOption.ToExecutionParameterFormattedString();
+
+        Assert.Equal("--option", commandFormattedString);
     }
 
     [Fact]
-    public void ToExecutionParameterFormattedString_WhenNameAndValueAreNotNull_ExpectCommandFormattedString()
+    public void ToExecutionParameterFormattedString_WhenValueIsEmptyString_ExpectExecutionParameterFormattedStringWithOnlyName()
+    {
+        var stubOption = new Option
+        {
+            Name = "--option",
+            Value = string.Empty
+        };
+
+        var commandFormattedString = stubOption.ToExecutionParameterFormattedString();
+
+        Assert.Equal("--option", commandFormattedString);
+    }
+
+    [Fact]
+    public void ToExecutionParameterFormattedString_WhenValueIsWhiteSpace_ExpectExecutionParameterFormattedStringWithOnlyName()
+    {
+        var stubOption = new Option
+        {
+            Name = "--option",
+            Value = " "
+        };
+
+        var commandFormattedString = stubOption.ToExecutionParameterFormattedString();
+
+        Assert.Equal("--option", commandFormattedString);
+    }
+
+    [Fact]
+    public void ToExecutionParameterFormattedString_WhenNameAndValueAreNotNull_ExpectExecutionParameterFormattedString()
     {
         var stubOption = new Option
         {
@@ -74,7 +104,7 @@ public class OptionExtensionsTests
     }
 
     [Fact]
-    public void ToExecutionParametersFormattedString_WhenOptionsHasElement_ExpectCommandFormattedString()
+    public void ToExecutionParametersFormattedString_WhenOptionsHasElement_ExpectExecutionParameterFormattedString()
     {
         var stubOptions = new Option[]
         {
@@ -91,7 +121,7 @@ public class OptionExtensionsTests
     }
 
     [Fact]
-    public void ToExecutionParametersFormattedString_WhenOptionsHasElements_ExpectCommandFormattedString()
+    public void ToExecutionParametersFormattedString_WhenOptionsHasElements_ExpectExecutionParameterFormattedString()
     {
         var stubOptions = new Option[]
         {

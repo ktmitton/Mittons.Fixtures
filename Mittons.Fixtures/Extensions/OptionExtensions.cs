@@ -15,7 +15,7 @@ namespace Mittons.Fixtures.Extensions
         /// </summary>
         /// <param name="option"></param>
         /// <returns>The option as a string formatted for use in a <c>docker</c> command.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the option, or its properties, are <c>null</c>.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when the option, or its name property is <c>null</c>.</exception>
         public static string ToExecutionParameterFormattedString(this Option option)
         {
             if(option is null)
@@ -28,12 +28,7 @@ namespace Mittons.Fixtures.Extensions
                 throw new ArgumentNullException(nameof(option.Name));
             }
 
-            if(option.Value is null)
-            {
-                throw new ArgumentNullException(nameof(option.Value));
-            }
-
-            return $"{option.Name} \"{option.Value}\"";
+            return string.IsNullOrWhiteSpace(option.Value) ? option.Name : $"{option.Name} \"{option.Value}\"";
         }
 
         /// <summary>

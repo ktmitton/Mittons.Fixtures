@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -84,6 +83,16 @@ namespace Mittons.Fixtures.Docker.Gateways
             using (var process = new DockerProcess($"exec {containerId} rm \"{containerFilename}\""))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task EmptyDirectoryAsync(string containerid, string directory, CancellationToken cancellationToken)
+        {
+            var files = await ExecuteCommandAsync(containerid, $"ls {directory}", cancellationToken);
+
+            foreach (var file in files)
+            {
+                await ExecuteCommandAsync(containerid, $"rm -rf {directory}/{file}", cancellationToken);
             }
         }
 

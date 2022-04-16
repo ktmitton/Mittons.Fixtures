@@ -632,6 +632,88 @@ public class ContainerGatewayTests
         }
     }
 
+    public class EmptyDirectory : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        private readonly List<string> _filenames = new List<string>();
+
+        private readonly CancellationToken _cancellationToken;
+
+        public EmptyDirectory()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+
+            foreach (var filename in _filenames)
+            {
+                File.Delete(filename);
+            }
+        }
+
+        [Fact]
+        public async Task EmptyDirectory_WhenCalled_ExpectDirectoryToBeEmptied()
+        {
+            // Arrange
+            var files = new (string ContainerFilename, string TemporaryFilename)[]
+            {
+                ("/tmp/test.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())),
+                ("/tmp/test/test2.txt", Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
+            };
+
+            _filenames.AddRange(files.Select(x => x.TemporaryFilename));
+
+            var fileContents = "hello, world";
+
+            foreach (var file in files)
+            {
+                File.WriteAllText(file.TemporaryFilename, fileContents);
+            }
+
+            var containerGateway = new ContainerGateway();
+
+            var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), _cancellationToken);
+            _containerIds.Add(containerId);
+
+            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
+            await Task.WhenAll(addTasks);
+
+            // Act
+            await containerGateway.EmptyDirectoryAsync(containerId, "/tmp", _cancellationToken);
+
+            // Assert
+            using var process = new Process();
+            process.StartInfo.FileName = "docker";
+            process.StartInfo.Arguments = $"exec {containerId} ls /tmp";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+
+            process.Start();
+            process.WaitForExit();
+
+            var output = process.StandardOutput.ReadToEnd();
+
+            Assert.Empty(output);
+        }
+    }
+
     public class ExecuteCommandTests : IDisposable
     {
         private readonly List<string> _containerIds = new List<string>();

@@ -613,6 +613,28 @@ public class ContainerTests
         }
 
         [Theory]
+        [InlineData("destination/one")]
+        [InlineData("two")]
+        public async Task EmptyDirectoryAsync_WhenCalled_ExpectDetailsToBeForwardedToTheGateway(string directory)
+        {
+            // Arrange
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
+            _containers.Add(container);
+
+            // Act
+            await container.EmptyDirectoryAsync(directory, CancellationToken.None);
+
+            // Assert
+            containerGatewayMock.Verify(x => x.EmptyDirectoryAsync(container.Id, directory, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
         [InlineData("destination/one", "testowner", "testpermissions")]
         [InlineData("two", "owner", "permissions")]
         public async Task CreateFile_WhenCalledWithAString_ExpectGatewayToBeCalledWithATemporaryFile(string containerFilename, string owner, string permissions)

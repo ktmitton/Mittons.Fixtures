@@ -13,6 +13,10 @@
         /// <summary>
         /// The value for the option.
         /// </summary>
-        public string Value { get; set; }
+        /// <remarks>
+        /// Set as a direct value with no quotations.  
+        /// Set to an empty string if there is no value to accompany the option name.
+        /// </remarks>
+        public string Value { get; set; } = string.Empty;
     }
 }

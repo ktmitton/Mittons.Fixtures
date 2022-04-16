@@ -10,15 +10,15 @@ namespace Mittons.Fixtures.Tests.Unit.Extensions;
 public class OptionExtensionsTests
 {
     [Fact]
-    public void ToCommandFormattedString_WhenOptionIsNull_ExpectArgumentNullException()
+    public void ToExecutionParameterFormattedString_WhenOptionIsNull_ExpectArgumentNullException()
     {
         Option stubOption = null;
 
-        Assert.Throws<ArgumentNullException>(() => stubOption.ToCommandFormattedString());
+        Assert.Throws<ArgumentNullException>(() => stubOption.ToExecutionParameterFormattedString());
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenNameIsNull_ExpectArgumentNullException()
+    public void ToExecutionParameterFormattedString_WhenNameIsNull_ExpectArgumentNullException()
     {
         var stubOption = new Option
         {
@@ -26,11 +26,11 @@ public class OptionExtensionsTests
             Value = "value"
         };
 
-        Assert.Throws<ArgumentNullException>(() => stubOption.ToCommandFormattedString());
+        Assert.Throws<ArgumentNullException>(() => stubOption.ToExecutionParameterFormattedString());
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenValueIsNull_ExpectArgumentNullException()
+    public void ToExecutionParameterFormattedString_WhenValueIsNull_ExpectArgumentNullException()
     {
         var stubOption = new Option
         {
@@ -38,11 +38,11 @@ public class OptionExtensionsTests
             Value = null
         };
 
-        Assert.Throws<ArgumentNullException>(() => stubOption.ToCommandFormattedString());
+        Assert.Throws<ArgumentNullException>(() => stubOption.ToExecutionParameterFormattedString());
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenNameAndValueAreNotNull_ExpectCommandFormattedString()
+    public void ToExecutionParameterFormattedString_WhenNameAndValueAreNotNull_ExpectCommandFormattedString()
     {
         var stubOption = new Option
         {
@@ -50,33 +50,33 @@ public class OptionExtensionsTests
             Value = "value"
         };
 
-        var commandFormattedString = stubOption.ToCommandFormattedString();
+        var commandFormattedString = stubOption.ToExecutionParameterFormattedString();
 
         Assert.Equal("--option \"value\"", commandFormattedString);
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenOptionsIsNull_ExpectArgumentNullException()
+    public void ToExecutionParametersFormattedString_WhenOptionsIsNull_ExpectArgumentNullException()
     {
         IEnumerable<Option> stubOptions = null;
 
-        Assert.Throws<ArgumentNullException>(() => stubOptions.ToCommandFormattedString());
+        Assert.Throws<ArgumentNullException>(() => stubOptions.ToExecutionParametersFormattedString());
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenOptionsIsEmpty_ExpectEmptyString()
+    public void ToExecutionParametersFormattedString_WhenOptionsIsEmpty_ExpectEmptyString()
     {
         var stubOptions = Enumerable.Empty<Option>();
 
-        var commandFormattedString = stubOptions.ToCommandFormattedString();
+        var commandFormattedString = stubOptions.ToExecutionParametersFormattedString();
 
-        Assert.Equal(String.Empty, commandFormattedString);
+        Assert.Equal(string.Empty, commandFormattedString);
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenOptionsHasElement_ExpectCommandFormattedString()
+    public void ToExecutionParametersFormattedString_WhenOptionsHasElement_ExpectCommandFormattedString()
     {
-        var stubOptions = new List<Option>
+        var stubOptions = new Option[]
         {
             new Option
             {
@@ -85,15 +85,15 @@ public class OptionExtensionsTests
             }
         };
 
-        var commandFormattedString = stubOptions.ToCommandFormattedString();
+        var commandFormattedString = stubOptions.ToExecutionParametersFormattedString();
 
         Assert.Equal("--option \"value\"", commandFormattedString);
     }
 
     [Fact]
-    public void ToCommandFormattedString_WhenOptionsHasElements_ExpectCommandFormattedString()
+    public void ToExecutionParametersFormattedString_WhenOptionsHasElements_ExpectCommandFormattedString()
     {
-        var stubOptions = new List<Option>
+        var stubOptions = new Option[]
         {
             new Option
             {
@@ -107,7 +107,7 @@ public class OptionExtensionsTests
             }
         };
 
-        var commandFormattedString = stubOptions.ToCommandFormattedString();
+        var commandFormattedString = stubOptions.ToExecutionParametersFormattedString();
 
         Assert.Equal("--option \"value\" --option \"value\"", commandFormattedString);
     }

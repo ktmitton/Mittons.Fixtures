@@ -15,7 +15,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public async Task<string> RunAsync(string imageName, string command, IEnumerable<Option> options, CancellationToken cancellationToken)
         {
-            using (var process = new DockerProcess($"run -P -d {options.ToCommandFormattedString()} {imageName} {command}"))
+            using (var process = new DockerProcess($"run -P -d {options.ToExecutionParametersFormattedString()} {imageName} {command}"))
             {
                 await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
 

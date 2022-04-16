@@ -13,7 +13,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         public async Task CreateAsync(string networkName, IEnumerable<Option> options, CancellationToken cancellationToken)
         {
-            using (var process = new DockerProcess($"network create {options.ToCommandFormattedString()} {networkName}"))
+            using (var process = new DockerProcess($"network create {options.ToExecutionParametersFormattedString()} {networkName}"))
             {
                 await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
             }

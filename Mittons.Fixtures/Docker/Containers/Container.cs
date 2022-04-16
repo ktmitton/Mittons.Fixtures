@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
@@ -26,7 +27,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly Guid _instanceId;
 
-        private readonly IEnumerable<KeyValuePair<string, string>> _options;
+        private readonly IEnumerable<Option> _options;
 
         private readonly IEnumerable<NetworkAliasAttribute> _networks;
 

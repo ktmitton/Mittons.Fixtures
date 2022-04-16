@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Attributes
 {
@@ -18,41 +19,41 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public int? Retries { get; set; }
 
-        public IEnumerable<KeyValuePair<string, string>> Options
+        public IEnumerable<Option> Options
         {
             get
             {
-                var options = new List<KeyValuePair<string, string>>();
+                var options = new List<Option>();
 
                 if (Disabled)
                 {
-                    options.Add(new KeyValuePair<string, string>("--no-healthcheck", string.Empty));
+                    options.Add(new Option { Name = "--no-healthcheck", Value = string.Empty });
                 }
                 else
                 {
                     if (!string.IsNullOrWhiteSpace(Command))
                     {
-                        options.Add(new KeyValuePair<string, string>("--health-cmd", Command));
+                        options.Add(new Option { Name = "--health-cmd", Value = Command });
                     }
 
                     if (Interval.HasValue)
                     {
-                        options.Add(new KeyValuePair<string, string>("--health-interval", $"{Math.Ceiling(Interval.Value.TotalSeconds)}s"));
+                        options.Add(new Option { Name = "--health-interval", Value = $"{Math.Ceiling(Interval.Value.TotalSeconds)}s" });
                     }
 
                     if (Timeout.HasValue)
                     {
-                        options.Add(new KeyValuePair<string, string>("--health-timeout", $"{Math.Ceiling(Timeout.Value.TotalSeconds)}s"));
+                        options.Add(new Option { Name = "--health-timeout", Value = $"{Math.Ceiling(Timeout.Value.TotalSeconds)}s" });
                     }
 
                     if (StartPeriod.HasValue)
                     {
-                        options.Add(new KeyValuePair<string, string>("--health-start-period", $"{Math.Ceiling(StartPeriod.Value.TotalSeconds)}s"));
+                        options.Add(new Option { Name = "--health-start-period", Value = $"{Math.Ceiling(StartPeriod.Value.TotalSeconds)}s" });
                     }
 
                     if (Retries.HasValue)
                     {
-                        options.Add(new KeyValuePair<string, string>("--health-retries", Retries.Value.ToString()));
+                        options.Add(new Option { Name = "--health-retries", Value = Retries.Value.ToString() });
                     }
                 }
 

@@ -8,6 +8,7 @@ using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Models;
 using Moq;
 using Xunit;
 
@@ -146,7 +147,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -154,7 +155,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -163,7 +164,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -172,7 +173,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_buildId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -201,7 +202,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -209,7 +210,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -218,7 +219,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -227,7 +228,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={_releaseId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -256,7 +257,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -264,7 +265,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -273,7 +274,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -282,7 +283,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -311,7 +312,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -319,7 +320,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -328,7 +329,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -337,7 +338,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id={RunAttribute.DefaultId}")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -366,7 +367,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network1-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -374,7 +375,7 @@ public class DockerEnvironmentFixtureTests
             networkGatewayMock.Verify(
                     x => x.CreateAsync(
                         $"network2-{fixture.InstanceId}",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -383,7 +384,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "alpine:3.15",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -392,7 +393,7 @@ public class DockerEnvironmentFixtureTests
                     x => x.RunAsync(
                         "redis:alpine",
                         "",
-                        It.Is<IEnumerable<KeyValuePair<string, string>>>(y => y.Any(z => z.Key == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
+                        It.Is<IEnumerable<Option>>(y => y.Any(z => z.Name == "--label" && z.Value == $"mittons.fixtures.run.id=test")),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -602,8 +603,8 @@ public class DockerEnvironmentFixtureTests
             await fixture.InitializeAsync();
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync("alpine:3.15", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            containerGatewayMock.Verify(x => x.RunAsync("redis:alpine", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync("alpine:3.15", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
+            containerGatewayMock.Verify(x => x.RunAsync("redis:alpine", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -616,8 +617,8 @@ public class DockerEnvironmentFixtureTests
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            containerGatewayMock.Setup(x => x.RunAsync("alpine:3.15", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>())).ReturnsAsync("runningid");
-            containerGatewayMock.Setup(x => x.RunAsync("redis:alpine", string.Empty, It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>())).ReturnsAsync("disposingid");
+            containerGatewayMock.Setup(x => x.RunAsync("alpine:3.15", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>())).ReturnsAsync("runningid");
+            containerGatewayMock.Setup(x => x.RunAsync("redis:alpine", string.Empty, It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>())).ReturnsAsync("disposingid");
 
             var networkGatewayMock = new Mock<INetworkGateway>();
 
@@ -688,7 +689,7 @@ public class DockerEnvironmentFixtureTests
             await fixture.InitializeAsync();
 
             // Assert
-            containerGatewayMock.Verify(x => x.RunAsync("atmoz/sftp:alpine", It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            containerGatewayMock.Verify(x => x.RunAsync("atmoz/sftp:alpine", It.IsAny<string>(), It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [Fact]
@@ -701,8 +702,8 @@ public class DockerEnvironmentFixtureTests
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
-            containerGatewayMock.Setup(x => x.RunAsync("atmoz/sftp:alpine", "guest:guest", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>())).ReturnsAsync("guest");
-            containerGatewayMock.Setup(x => x.RunAsync("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>())).ReturnsAsync("account");
+            containerGatewayMock.Setup(x => x.RunAsync("atmoz/sftp:alpine", "guest:guest", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>())).ReturnsAsync("guest");
+            containerGatewayMock.Setup(x => x.RunAsync("atmoz/sftp:alpine", "testuser1:testpassword1 testuser2:testpassword2", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>())).ReturnsAsync("account");
 
             var networkGatewayMock = new Mock<INetworkGateway>();
 
@@ -792,8 +793,8 @@ public class DockerEnvironmentFixtureTests
             await fixture.InitializeAsync();
 
             // Assert
-            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -835,10 +836,10 @@ public class DockerEnvironmentFixtureTests
             await fixture2.InitializeAsync();
 
             // Assert
-            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture1.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture1.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture2.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
-            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture2.InstanceId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture1.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture1.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network1-{fixture2.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
+            networkGatewayMock.Verify(x => x.CreateAsync($"network2-{fixture2.InstanceId}", It.IsAny<IEnumerable<Option>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

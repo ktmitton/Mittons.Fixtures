@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
 using Mittons.Fixtures.Docker.Gateways;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Docker.Networks
 {
@@ -14,7 +15,7 @@ namespace Mittons.Fixtures.Docker.Networks
 
         private readonly string _name;
 
-        private readonly IEnumerable<KeyValuePair<string, string>> _options;
+        private readonly IEnumerable<Option> _options;
 
         private readonly bool _teardownOnComplete;
 

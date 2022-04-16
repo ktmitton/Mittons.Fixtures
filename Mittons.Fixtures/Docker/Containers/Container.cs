@@ -59,14 +59,14 @@ namespace Mittons.Fixtures.Docker.Containers
         /// </remarks>
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken);
-            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken);
+            Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
+            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken).ConfigureAwait(false);
 
-            await EnsureHealthyAsync(cancellationToken);
+            await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var networkAlias in _networks)
             {
-                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken);
+                await _networkGateway.ConnectAsync($"{networkAlias.NetworkName}-{_instanceId}", Id, networkAlias.Alias, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
             File.WriteAllText(temporaryFilename, fileContents);
 
-            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken).ConfigureAwait(false);
 
             File.Delete(temporaryFilename);
         }
@@ -97,7 +97,7 @@ namespace Mittons.Fixtures.Docker.Containers
                 fileContents.CopyTo(fileStream);
             }
 
-            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken);
+            await AddFileAsync(temporaryFilename, containerFilename, owner, permissions, cancellationToken).ConfigureAwait(false);
 
             File.Delete(temporaryFilename);
         }
@@ -114,14 +114,14 @@ namespace Mittons.Fixtures.Docker.Containers
 
             while (true)
             {
-                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutToken);
+                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutToken).ConfigureAwait(false);
 
                 if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
                 {
                     break;
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(50));
+                await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false);
 
                 timeoutToken.ThrowIfCancellationRequested();
             }

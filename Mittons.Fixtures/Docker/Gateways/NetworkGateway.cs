@@ -15,7 +15,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"network create {options.ToExecutionParametersFormattedString()} {networkName}"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
+                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
             }
         }
 
@@ -23,7 +23,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"network rm {networkName}"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
+                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
             }
         }
 
@@ -31,7 +31,7 @@ namespace Mittons.Fixtures.Docker.Gateways
         {
             using (var process = new DockerProcess($"network connect --alias {alias} {networkName} {containerId}"))
             {
-                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout));
+                await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
             }
         }
     }

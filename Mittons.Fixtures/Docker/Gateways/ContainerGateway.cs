@@ -99,7 +99,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
                 while (!process.StandardOutput.EndOfStream)
                 {
-                    var line = await process.StandardOutput.ReadLineAsync();
+                    var line = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
                     lines.Add(line);
                 }
 
@@ -113,7 +113,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             {
                 await process.RunProcessAsync(cancellationToken.CreateLinkedTimeoutToken(_defaultTimeout)).ConfigureAwait(false);
 
-                int.TryParse((await process.StandardOutput.ReadLineAsync()).Split(':').Last(), out var port);
+                int.TryParse((await process.StandardOutput.ReadLineAsync().ConfigureAwait(false)).Split(':').Last(), out var port);
 
                 return port;
             }

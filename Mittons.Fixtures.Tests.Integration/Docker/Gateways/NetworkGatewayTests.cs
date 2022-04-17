@@ -205,4 +205,62 @@ public class NetworkGatewayTests : IDisposable
 
         Assert.Contains(uniqueName, connectedNetworks);
     }
+
+    [Fact]
+    public async Task CreateAsync_WhenOptionsIsNull_ExpectNetworkToBeCreated()
+    {
+        // Arrange
+        var networkName = "test";
+        var uniqueName = $"{networkName}-{Guid.NewGuid()}";
+
+        var networkGateway = new NetworkGateway();
+
+        _networkNames.Add(uniqueName);
+
+        // Act
+        await networkGateway.CreateAsync(uniqueName, default(IEnumerable<Option>), _cancellationToken);
+
+        // Assert
+        using var proc = new Process();
+        proc.StartInfo.FileName = "docker";
+        proc.StartInfo.Arguments = $"network ls -qf Name={uniqueName}";
+        proc.StartInfo.UseShellExecute = false;
+        proc.StartInfo.RedirectStandardOutput = true;
+
+        proc.Start();
+        proc.WaitForExit();
+
+        var shortNetworkId = proc.StandardOutput.ReadLine();
+
+        Assert.NotEmpty(shortNetworkId);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenOptionsIsEmpty_ExpectNetworkToBeCreated()
+    {
+        // Arrange
+        var networkName = "test";
+        var uniqueName = $"{networkName}-{Guid.NewGuid()}";
+
+        var networkGateway = new NetworkGateway();
+
+        _networkNames.Add(uniqueName);
+
+        // Act
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken);
+
+        // Assert
+        using var proc = new Process();
+        proc.StartInfo.FileName = "docker";
+        proc.StartInfo.Arguments = $"network ls -qf Name={uniqueName}";
+        proc.StartInfo.UseShellExecute = false;
+        proc.StartInfo.RedirectStandardOutput = true;
+
+        proc.Start();
+        proc.WaitForExit();
+
+        var shortNetworkId = proc.StandardOutput.ReadLine();
+
+        Assert.NotEmpty(shortNetworkId);
+    }
 }

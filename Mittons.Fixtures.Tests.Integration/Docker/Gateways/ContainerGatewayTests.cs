@@ -47,7 +47,7 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task Run_WhenCalledWithLabels_ExpectContainerToHaveTheLabelsApplied()
+        public async Task RunAsync_WhenCalledWithLabels_ExpectContainerToHaveTheLabelsApplied()
         {
             // Arrange
             var imageName = "alpine:3.15";
@@ -94,7 +94,7 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task Run_WhenCalledWithAnImage_ExpectContainerToBeForTheRequestedImage()
+        public async Task RunAsync_WhenCalledWithAnImage_ExpectContainerToBeForTheRequestedImage()
         {
             // Arrange
             var images = new[] { "alpine:3.15", "alpine:3.14" };
@@ -102,7 +102,7 @@ public class ContainerGatewayTests
             var containerGateway = new ContainerGateway();
 
             // Act
-            var containers = images.Select(x => (Image: x, Task: containerGateway.RunAsync(x, string.Empty, Enumerable.Empty<Option>(), _cancellationToken)));
+            var containers = images.Select(x => (Image: x, Task: containerGateway.RunAsync(x, string.Empty, Enumerable.Empty<Option>(), _cancellationToken))).ToArray();
             await Task.WhenAll(containers.Select(x => x.Task));
 
             _containerIds.AddRange(containers.Select(x => x.Task.Result));
@@ -128,7 +128,7 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task Run_WhenCalledForAlpineWithNoCommand_ExpectContainerToHaveStartedWithTheDefaultCommand()
+        public async Task RunAsync_WhenCalledForAlpineWithNoCommand_ExpectContainerToHaveStartedWithTheDefaultCommand()
         {
             // Arrange
             var containerGateway = new ContainerGateway();
@@ -160,7 +160,7 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task Run_WhenCalledForAlpineWithACommand_ExpectContainerToHaveStartedWithTheCommand()
+        public async Task RunAsync_WhenCalledForAlpineWithACommand_ExpectContainerToHaveStartedWithTheCommand()
         {
             // Arrange
             var containerGateway = new ContainerGateway();
@@ -189,6 +189,56 @@ public class ContainerGatewayTests
             var output = outputBuilder.ToString();
 
             Assert.Equal("'[/bin/bash]'", output);
+        }
+
+        [Fact]
+        public async Task RunAsync_WhenOptionsIsNull_ExpectContainerToStillRun()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
+
+            // Act
+            var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/sh", default(IEnumerable<Option>), _cancellationToken);
+            _containerIds.Add(containerId);
+
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"ps -aqf Id={containerId}";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var shortContainerId = proc.StandardOutput.ReadLine();
+
+            Assert.StartsWith(shortContainerId, containerId);
+        }
+
+        [Fact]
+        public async Task RunAsync_WhenOptionsIsEmpty_ExpectContainerToStillRun()
+        {
+            // Arrange
+            var containerGateway = new ContainerGateway();
+
+            // Act
+            var containerId = await containerGateway.RunAsync("alpine:3.15", "/bin/sh", Enumerable.Empty<Option>(), _cancellationToken);
+            _containerIds.Add(containerId);
+
+            // Assert
+            using var proc = new Process();
+            proc.StartInfo.FileName = "docker";
+            proc.StartInfo.Arguments = $"ps -aqf Id={containerId}";
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+
+            proc.Start();
+            proc.WaitForExit();
+
+            var shortContainerId = proc.StandardOutput.ReadLine();
+
+            Assert.StartsWith(shortContainerId, containerId);
         }
     }
 
@@ -378,7 +428,7 @@ public class ContainerGatewayTests
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken)).ToList();
             await Task.WhenAll(tasks);
 
             // Assert
@@ -425,7 +475,7 @@ public class ContainerGatewayTests
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken)).ToList();
             await Task.WhenAll(tasks);
 
             // Assert
@@ -472,7 +522,7 @@ public class ContainerGatewayTests
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), x.Permissions, _cancellationToken));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), x.Permissions, _cancellationToken)).ToList();
             await Task.WhenAll(tasks);
 
             // Assert
@@ -519,7 +569,7 @@ public class ContainerGatewayTests
             _containerIds.Add(containerId);
 
             // Act
-            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, x.Owner, default(string), _cancellationToken));
+            var tasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, x.Owner, default(string), _cancellationToken)).ToList();
             await Task.WhenAll(tasks);
 
             // Assert
@@ -604,11 +654,11 @@ public class ContainerGatewayTests
             var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
-            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
+            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken)).ToList();
             await Task.WhenAll(addTasks);
 
             // Act
-            var removeTasks = files.Select(x => containerGateway.RemoveFileAsync(containerId, x.ContainerFilename, _cancellationToken));
+            var removeTasks = files.Select(x => containerGateway.RemoveFileAsync(containerId, x.ContainerFilename, _cancellationToken)).ToList();
             await Task.WhenAll(removeTasks);
 
             // Assert
@@ -692,7 +742,7 @@ public class ContainerGatewayTests
             var containerId = await containerGateway.RunAsync("atmoz/sftp:alpine", "guest:guest tester:tester", Enumerable.Empty<Option>(), _cancellationToken);
             _containerIds.Add(containerId);
 
-            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken));
+            var addTasks = files.Select(x => containerGateway.AddFileAsync(containerId, x.TemporaryFilename, x.ContainerFilename, default(string), default(string), _cancellationToken)).ToList();
             await Task.WhenAll(addTasks);
 
             // Act

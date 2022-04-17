@@ -67,7 +67,7 @@ public class NetworkGatewayTests : IDisposable
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken);
 
         // Assert
         using var proc = new Process();
@@ -110,7 +110,7 @@ public class NetworkGatewayTests : IDisposable
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, expectedOptions, _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, expectedOptions, _cancellationToken);
 
         // Assert
         using var proc = new Process();
@@ -141,7 +141,7 @@ public class NetworkGatewayTests : IDisposable
 
         _networkNames.Add(uniqueName);
 
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken);
 
         // Act
         await networkGateway.RemoveAsync(uniqueName, _cancellationToken);
@@ -176,7 +176,7 @@ public class NetworkGatewayTests : IDisposable
 
         _networkNames.Add(uniqueName);
 
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken);
 
         // Act
         await networkGateway.ConnectAsync(uniqueName, containerId, "test.example.com", _cancellationToken);

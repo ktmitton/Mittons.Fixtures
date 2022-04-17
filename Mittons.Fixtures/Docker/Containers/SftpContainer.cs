@@ -78,7 +78,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private async Task<string> GetFingerprintAsync(IContainerGateway containerGateway, string algorithm, string hash, CancellationToken cancellationToken)
         {
-            var execResults = (await containerGateway.ExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5))).ConfigureAwait(false)).ToArray();
+            var execResults = (await containerGateway.ExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken).ConfigureAwait(false)).ToArray();
 
             if (execResults.Length != 1)
             {

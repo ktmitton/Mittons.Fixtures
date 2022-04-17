@@ -15,5 +15,13 @@ public class ReportingEnvironmentFixture : DockerEnvironmentFixture, Xunit.IAsyn
     public SftpContainer SftpContainer { get; set; }
 
     public override Task InitializeAsync()
-        => base.InitializeAsync(new CancellationToken().CreateLinkedTimeoutToken(TimeSpan.FromMinutes(5)));
+        => base.InitializeAsync(CreateTimeoutCancellationToken(TimeSpan.FromMinutes(5)));
+
+    private static CancellationToken CreateTimeoutCancellationToken(TimeSpan timeout)
+    {
+        var timeoutCancellationTokenSource = new CancellationTokenSource();
+        timeoutCancellationTokenSource.CancelAfter(timeout);
+
+        return timeoutCancellationTokenSource.Token;
+    }
 }

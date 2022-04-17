@@ -589,6 +589,152 @@ public class ContainerTests
                         )
                     );
             }
+
+            [Fact]
+            public async Task InitializeAsync_WhenHealthDetailsAreNotSet_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new HealthCheckAttribute(),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenHealthDetailsAreSetToZero_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new HealthCheckAttribute { Interval = 0, Retries = 0, StartPeriod = 0, Timeout = 0 },
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenNoHealthAttributeIsProvided_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
+                    );
+            }
         }
     }
 

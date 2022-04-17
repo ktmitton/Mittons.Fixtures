@@ -136,9 +136,9 @@ namespace Mittons.Fixtures.Docker.Containers
                         {
                             Disabled = false,
                             Command = "ps aux | grep -v grep | grep sshd || exit 1",
-                            Interval = TimeSpan.FromSeconds(1),
-                            Timeout = TimeSpan.FromSeconds(1),
-                            StartPeriod = TimeSpan.FromSeconds(5),
+                            Interval = 1,
+                            Timeout = 1,
+                            StartPeriod = 5,
                             Retries = 3
                         }
                     }

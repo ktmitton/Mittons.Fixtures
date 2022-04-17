@@ -358,9 +358,9 @@ public class ContainerTests
                         {
                             Disabled = true,
                             Command = "test",
-                            Interval = TimeSpan.FromSeconds(1),
-                            Timeout = TimeSpan.FromSeconds(1),
-                            StartPeriod = TimeSpan.FromSeconds(1),
+                            Interval = 1,
+                            Timeout = 1,
+                            StartPeriod = 1,
                             Retries = 1
                         },
                         new RunAttribute()
@@ -430,12 +430,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -452,7 +449,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { Interval = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { Interval = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);
@@ -473,12 +470,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -495,7 +489,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { Timeout = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { Timeout = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);
@@ -516,12 +510,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -538,7 +529,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { StartPeriod = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { StartPeriod = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);

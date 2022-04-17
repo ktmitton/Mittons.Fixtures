@@ -84,9 +84,9 @@ public class SftpContainerTests : BaseContainerTests
                         {
                             Disabled = false,
                             Command = "test",
-                            Interval = TimeSpan.FromSeconds(2),
-                            Timeout = TimeSpan.FromSeconds(2),
-                            StartPeriod = TimeSpan.FromSeconds(2),
+                            Interval = 2,
+                            Timeout = 2,
+                            StartPeriod = 2,
                             Retries = 1
                         }
                     }

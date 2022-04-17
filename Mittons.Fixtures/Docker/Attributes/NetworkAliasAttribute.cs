@@ -9,10 +9,18 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public string Alias { get; }
 
+        public bool IsExternalNetwork { get; }
+
         public NetworkAliasAttribute(string networkName, string alias)
+            : this(networkName, alias, false)
+        {
+        }
+
+        public NetworkAliasAttribute(string networkName, string alias, bool isExternalNetwork)
         {
             NetworkName = networkName;
             Alias = alias;
+            IsExternalNetwork = isExternalNetwork;
         }
     }
 }

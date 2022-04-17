@@ -18,7 +18,7 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         Task RemoveFileAsync(string containerId, string containerFilename, CancellationToken cancellationToken);
 
-        Task EmptyDirectoryAsync(string containerid, string directory, CancellationToken cancellationToken);
+        Task EmptyDirectoryAsync(string containerId, string directory, CancellationToken cancellationToken);
 
         Task<IEnumerable<string>> ExecuteCommandAsync(string containerId, string command, CancellationToken cancellationToken);
 

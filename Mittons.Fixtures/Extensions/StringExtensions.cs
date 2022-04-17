@@ -5,7 +5,7 @@ namespace Mittons.Fixtures.Extensions
 {
     public static class StringExtensions
     {
-        public static string ReplaceEnvironmentVariables(this string template)
+        internal static string ReplaceEnvironmentVariables(this string template)
         {
             return Regex.Replace(template, @"\$\{([^\}]+)\}", new MatchEvaluator(GetEnvironmentVariableOrDefault));
         }

@@ -218,7 +218,7 @@ public class NetworkGatewayTests : IDisposable
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, default(IEnumerable<Option>), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, default(IEnumerable<Option>), _cancellationToken);
 
         // Assert
         using var proc = new Process();
@@ -247,7 +247,7 @@ public class NetworkGatewayTests : IDisposable
         _networkNames.Add(uniqueName);
 
         // Act
-        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+        await networkGateway.CreateAsync(uniqueName, Enumerable.Empty<Option>(), _cancellationToken);
 
         // Assert
         using var proc = new Process();

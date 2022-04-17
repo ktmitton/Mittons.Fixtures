@@ -11,13 +11,13 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public string Command { get; set; }
 
-        public int Interval { get; set; }
+        public byte Interval { get; set; }
 
-        public int Timeout { get; set; }
+        public byte Timeout { get; set; }
 
-        public int StartPeriod { get; set; }
+        public byte StartPeriod { get; set; }
 
-        public int Retries { get; set; }
+        public byte Retries { get; set; }
 
         public IEnumerable<Option> Options
         {

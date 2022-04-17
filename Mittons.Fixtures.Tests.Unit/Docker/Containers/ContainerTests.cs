@@ -432,7 +432,7 @@ public class ContainerTests
             [Theory]
             [InlineData(1)]
             [InlineData(8)]
-            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int seconds)
+            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -472,7 +472,7 @@ public class ContainerTests
             [Theory]
             [InlineData(1)]
             [InlineData(8)]
-            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int seconds)
+            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -512,7 +512,7 @@ public class ContainerTests
             [Theory]
             [InlineData(1)]
             [InlineData(8)]
-            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int seconds)
+            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -553,7 +553,7 @@ public class ContainerTests
             [InlineData(1)]
             [InlineData(2)]
             [InlineData(20)]
-            public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(int retries)
+            public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(byte retries)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();

@@ -16,7 +16,7 @@ namespace Mittons.Fixtures.Extensions
         /// <param name="options"></param>
         /// <returns>The options as a string formatted for use in a <c>docker</c> command.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the options, any option, or their properties, are <c>null</c>.</exception>
-        public static string ToExecutionParametersFormattedString(this IEnumerable<Option> options)
+        internal static string ToExecutionParametersFormattedString(this IEnumerable<Option> options)
             => string.Join(" ", (options ?? Enumerable.Empty<Option>()).Select(option => option.ExecutionParameter).ToList());
     }
 }

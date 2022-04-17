@@ -73,6 +73,9 @@ namespace Mittons.Fixtures.Docker.Containers
         public Task RemoveUserFileAsync(string user, string containerFilename, CancellationToken cancellationToken)
             => RemoveFileAsync(Path.Combine($"/home/{user}", Regex.Replace(containerFilename, "^/", "")).Replace("\\", "/"), cancellationToken);
 
+        public Task EmptyUserDirectoryAsync(string user, CancellationToken cancellationToken)
+            => EmptyDirectoryAsync($"/home/{user}", cancellationToken);
+
         private async Task<string> GetFingerprintAsync(IContainerGateway containerGateway, string algorithm, string hash, CancellationToken cancellationToken)
         {
             var execResults = (await containerGateway.ExecuteCommandAsync(Id, $"ssh-keygen -l -E {hash} -f /etc/ssh/ssh_host_{algorithm}_key.pub", cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5))).ConfigureAwait(false)).ToArray();

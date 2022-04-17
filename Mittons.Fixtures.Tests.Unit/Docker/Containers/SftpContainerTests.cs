@@ -559,5 +559,27 @@ public class SftpContainerTests : BaseContainerTests
             Assert.False(File.Exists(actualFilename));
             Assert.Equal(fileContents, actualContents);
         }
+
+        [Theory]
+        [InlineData("admin")]
+        [InlineData("tswift")]
+        public async Task EmptyUserDirectoryAsync_WhenCalled_ExpectUsersDirectoryToBeEmptied(string user)
+        {
+            // Arrange
+            var containerGatewayMock = new Mock<IContainerGateway>();
+            containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(HealthStatus.Healthy);
+
+            var networkGatewayMock = new Mock<INetworkGateway>();
+
+            var container = new SftpContainer(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new[] { new SftpUserAccountAttribute(user, "password") });
+            _containers.Add(container);
+
+            // Act
+            await container.EmptyUserDirectoryAsync(user, CancellationToken.None);
+
+            // Assert
+            containerGatewayMock.Verify(x => x.EmptyDirectoryAsync(container.Id, $"/home/{user}", It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

@@ -110,6 +110,9 @@ namespace Mittons.Fixtures.Docker.Containers
         public Task RemoveFileAsync(string containerFilename, CancellationToken cancellationToken)
             => _containerGateway.RemoveFileAsync(Id, containerFilename, cancellationToken);
 
+        public Task EmptyDirectoryAsync(string directory, CancellationToken cancellationToken)
+            => _containerGateway.EmptyDirectoryAsync(Id, directory, cancellationToken);
+
         private async Task<string> EnsureHealthyAsync(CancellationToken cancellationToken)
         {
             var timeoutToken = cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromMinutes(1));

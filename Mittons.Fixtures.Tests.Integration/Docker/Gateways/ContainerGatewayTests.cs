@@ -754,7 +754,7 @@ public class ContainerGatewayTests
 
             for (var i = 0; i < 10; ++i)
             {
-                var health = await containerGateway.ExecuteCommandAsync(containerId, "ps aux | grep -v grep | grep sshd || exit 1", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+                var health = await containerGateway.ExecuteCommandAsync(containerId, "ps aux | grep -v grep | grep sshd || exit 1", _cancellationToken);
 
                 if (health.Any())
                 {
@@ -765,7 +765,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var results = await containerGateway.ExecuteCommandAsync(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", (new CancellationToken()).CreateLinkedTimeoutToken(TimeSpan.FromSeconds(5)));
+            var results = await containerGateway.ExecuteCommandAsync(containerId, "ssh-keygen -l -E md5 -f /etc/ssh/ssh_host_rsa_key.pub", _cancellationToken);
 
             // Assert
             using var proc = new Process();

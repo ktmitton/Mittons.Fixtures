@@ -115,11 +115,9 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private async Task<string> EnsureHealthyAsync(CancellationToken cancellationToken)
         {
-            var timeoutToken = cancellationToken.CreateLinkedTimeoutToken(TimeSpan.FromMinutes(1));
-
             while (true)
             {
-                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, timeoutToken).ConfigureAwait(false);
+                var healthStatus = await _containerGateway.GetHealthStatusAsync(Id, cancellationToken).ConfigureAwait(false);
 
                 if ((healthStatus == HealthStatus.Running) || (healthStatus == HealthStatus.Healthy))
                 {
@@ -128,7 +126,7 @@ namespace Mittons.Fixtures.Docker.Containers
 
                 await Task.Delay(TimeSpan.FromMilliseconds(50)).ConfigureAwait(false);
 
-                timeoutToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             return Id;

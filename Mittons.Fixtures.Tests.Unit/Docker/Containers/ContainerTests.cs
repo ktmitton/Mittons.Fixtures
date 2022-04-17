@@ -358,9 +358,9 @@ public class ContainerTests
                         {
                             Disabled = true,
                             Command = "test",
-                            Interval = TimeSpan.FromSeconds(1),
-                            Timeout = TimeSpan.FromSeconds(1),
-                            StartPeriod = TimeSpan.FromSeconds(1),
+                            Interval = 1,
+                            Timeout = 1,
+                            StartPeriod = 1,
                             Retries = 1
                         },
                         new RunAttribute()
@@ -430,12 +430,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckIntervalIsSet_ExpectHealthIntervalToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -452,7 +449,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { Interval = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { Interval = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);
@@ -473,12 +470,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckTimeoutIsSet_ExpectHealthTimeoutToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -495,7 +489,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { Timeout = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { Timeout = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);
@@ -516,12 +510,9 @@ public class ContainerTests
             }
 
             [Theory]
-            [InlineData(250, 1)]
-            [InlineData(500, 1)]
-            [InlineData(750, 1)]
-            [InlineData(1000, 1)]
-            [InlineData(7500, 8)]
-            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(int milliseconds, int seconds)
+            [InlineData(1)]
+            [InlineData(8)]
+            public async Task InitializeAsync_WhenHealthCheckStartPeriodIsSet_ExpectHealthCheckStartPeriodToBeApplied(byte seconds)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -538,7 +529,7 @@ public class ContainerTests
                     {
                         new ImageAttribute(string.Empty),
                         new CommandAttribute(string.Empty),
-                        new HealthCheckAttribute { StartPeriod = TimeSpan.FromMilliseconds(milliseconds) },
+                        new HealthCheckAttribute { StartPeriod = seconds },
                         new RunAttribute()
                     });
                 _containers.Add(container);
@@ -562,7 +553,7 @@ public class ContainerTests
             [InlineData(1)]
             [InlineData(2)]
             [InlineData(20)]
-            public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(int retries)
+            public async Task InitializeAsync_WhenHealthRetriesIsSet_ExpectHealthRetriesToBeApplied(byte retries)
             {
                 // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
@@ -596,6 +587,152 @@ public class ContainerTests
                             It.Is<IEnumerable<Option>>(x => x.Any(y => y.Name == "--health-retries" && y.Value == retries.ToString())),
                             It.IsAny<CancellationToken>()
                         )
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenHealthDetailsAreNotSet_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new HealthCheckAttribute(),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenHealthDetailsAreSetToZero_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new HealthCheckAttribute { Interval = 0, Retries = 0, StartPeriod = 0, Timeout = 0 },
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
+                    );
+            }
+
+            [Fact]
+            public async Task InitializeAsync_WhenNoHealthAttributeIsProvided_ExpectNoHealthParametersToBeApplied()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Running);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                var healthParameters = new[]
+                {
+                    "--no-healthcheck",
+                    "--health-cmd",
+                    "--health-interval",
+                    "--health-timeout",
+                    "--health-start-period",
+                    "--health-retries",
+                };
+
+                // Act
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Assert
+                containerGatewayMock.Verify(
+                        x =>
+                        x.RunAsync(
+                            string.Empty,
+                            string.Empty,
+                            It.Is<IEnumerable<Option>>(x => x.Any(y => healthParameters.Contains(y.Name))),
+                            It.IsAny<CancellationToken>()
+                        ),
+                        Times.Never
                     );
             }
         }

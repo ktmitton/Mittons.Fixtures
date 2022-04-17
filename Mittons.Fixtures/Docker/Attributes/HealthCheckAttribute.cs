@@ -11,13 +11,13 @@ namespace Mittons.Fixtures.Docker.Attributes
 
         public string Command { get; set; }
 
-        public TimeSpan? Interval { get; set; }
+        public byte Interval { get; set; }
 
-        public TimeSpan? Timeout { get; set; }
+        public byte Timeout { get; set; }
 
-        public TimeSpan? StartPeriod { get; set; }
+        public byte StartPeriod { get; set; }
 
-        public int? Retries { get; set; }
+        public byte Retries { get; set; }
 
         public IEnumerable<Option> Options
         {
@@ -36,24 +36,24 @@ namespace Mittons.Fixtures.Docker.Attributes
                         options.Add(new Option { Name = "--health-cmd", Value = Command });
                     }
 
-                    if (Interval.HasValue)
+                    if (Interval > 0)
                     {
-                        options.Add(new Option { Name = "--health-interval", Value = $"{Math.Ceiling(Interval.Value.TotalSeconds)}s" });
+                        options.Add(new Option { Name = "--health-interval", Value = $"{Interval}s" });
                     }
 
-                    if (Timeout.HasValue)
+                    if (Timeout > 0)
                     {
-                        options.Add(new Option { Name = "--health-timeout", Value = $"{Math.Ceiling(Timeout.Value.TotalSeconds)}s" });
+                        options.Add(new Option { Name = "--health-timeout", Value = $"{Timeout}s" });
                     }
 
-                    if (StartPeriod.HasValue)
+                    if (StartPeriod > 0)
                     {
-                        options.Add(new Option { Name = "--health-start-period", Value = $"{Math.Ceiling(StartPeriod.Value.TotalSeconds)}s" });
+                        options.Add(new Option { Name = "--health-start-period", Value = $"{StartPeriod}s" });
                     }
 
-                    if (Retries.HasValue)
+                    if (Retries > 0)
                     {
-                        options.Add(new Option { Name = "--health-retries", Value = Retries.Value.ToString() });
+                        options.Add(new Option { Name = "--health-retries", Value = Retries.ToString() });
                     }
                 }
 

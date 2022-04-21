@@ -9,6 +9,7 @@ using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Fixtures;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Models;
+using Mittons.Fixtures.Resources;
 using Moq;
 using Xunit;
 

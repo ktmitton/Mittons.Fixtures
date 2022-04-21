@@ -9,8 +9,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Gateways;
-using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
+using Mittons.Fixtures.Resources;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;

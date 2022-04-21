@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mittons.Fixtures
+namespace Mittons.Fixtures.Resources
 {
     public interface IServiceLifetime
     {

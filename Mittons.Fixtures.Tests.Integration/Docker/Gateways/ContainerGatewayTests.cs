@@ -49,8 +49,6 @@ public class ContainerGatewayTests
             }
         }
 
-        private record ServiceAccessPoint(Uri GuestUri, Uri HostUri) : IServiceAccessPoint;
-
         private record Port(string HostIp, string HostPort);
 
         [Fact]
@@ -97,7 +95,7 @@ public class ContainerGatewayTests
 
             var predicates = ports.Select(x =>
             {
-                Action<IServiceAccessPoint> method = y =>
+                Action<IServiceResource> method = y =>
                 {
                     var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();

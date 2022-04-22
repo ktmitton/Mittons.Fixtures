@@ -5,14 +5,26 @@ using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Resources
 {
+    /// <summary>
+    /// A gateway for managing <see cref="Mittons.Fixtures.Resources.IService">IServices</see>.
+    /// </summary>
+    /// <remarks>
+    /// Handles creating and disposing of <see cref="Mittons.Fixtures.Resources.IService">Guest services</see>, as well as providing details for <see cref="Mittons.Fixtures.Resources.IServiceResource">resources</see> being monitored through which the Host can communicate with the Guest.
+    /// </remarks>
     public interface IServiceGateway<TService> where TService : IService
     {
-        Task<IEnumerable<IServiceAccessPoint>> GetServiceAccessPointsAsync(TService service, CancellationToken cancellationToken);
+        /// <summary>
+        /// Gets all known <see cref="Mittons.Fixtures.Resources.IServiceResource">resources</see> monitored by a Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// </summary>
+        /// <remarks>
+        /// These can represent asynchronous communication mechanisms such as monitoring a file for changes or more synchronous request-respones channels such as http connections.
+        /// </remarks>
+        Task<IEnumerable<IServiceResource>> GetServiceAccessPointsAsync(TService service, CancellationToken cancellationToken);
     }
 
     public interface IService : IAsyncLifetime
     {
-        IEnumerable<IServiceAccessPoint> ServiceAccessPoints { get; }
+        IEnumerable<IServiceResource> ServiceAccessPoints { get; }
     }
 
     public interface IDockerService : IService
@@ -26,7 +38,7 @@ namespace Mittons.Fixtures.Resources
     /// <remarks>
     /// These communications details can be a variety of mechanisms, such as file changes or network messaging.
     /// </remarks>
-    public interface IServiceAccessPoint
+    public interface IServiceResource
     {
         /// <summary>
         /// Gets the details for how the <see cref="Mittons.Fixtures.Resources.IService"/> monitors a resource to trigger actions.
@@ -35,10 +47,10 @@ namespace Mittons.Fixtures.Resources
         /// This can represent asynchronous communication mechanisms such as monitoring a file for changes or more synchronous request-respones channels such as http connections.
         /// </remarks>
         /// <returns>
-        /// Details describing the resource being monitored by the <see cref="Mittons.Fixtures.Resources.IServiceAccessPoint"/>.
+        /// Details describing the resource being monitored by the <see cref="Mittons.Fixtures.Resources.IServiceResource"/>.
         /// </returns>
         /// <value>
-        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Uniform Resource Identifier</see> with all known details on how the <see cref="Mittons.Fixtures.Resources.IServiceAccessPoint"/> listens for action triggers.
+        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Uniform Resource Identifier</see> with all known details on how the <see cref="Mittons.Fixtures.Resources.IServiceResource"/> listens for action triggers.
         /// </value>
         Uri GuestUri { get; }
 

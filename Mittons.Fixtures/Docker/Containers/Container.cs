@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Docker.Attributes;
@@ -16,9 +15,7 @@ namespace Mittons.Fixtures.Docker.Containers
     {
         public string Id { get; private set; }
 
-        public IPAddress IpAddress { get; private set; }
-
-        public IEnumerable<IServiceAccessPoint> ServiceAccessPoints { get; private set; }
+        public IEnumerable<IServiceResource> ServiceAccessPoints { get; private set; }
 
         protected readonly IContainerGateway _containerGateway;
 
@@ -62,7 +59,6 @@ namespace Mittons.Fixtures.Docker.Containers
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
             Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
-            IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken).ConfigureAwait(false);
             ServiceAccessPoints = await _containerGateway.GetServiceAccessPointsAsync(this, cancellationToken).ConfigureAwait(false);
 
             await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);

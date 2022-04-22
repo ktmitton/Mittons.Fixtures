@@ -31,7 +31,7 @@ public class ContainerTests
                 containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
                 containerGatewayMock.Setup(x => x.GetServiceAccessPointsAsync(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(Enumerable.Empty<IServiceAccessPoint>());
+                    .ReturnsAsync(Enumerable.Empty<IServiceResource>());
 
                 var networkGatewayMock = new Mock<INetworkGateway>();
 
@@ -56,18 +56,42 @@ public class ContainerTests
                 Assert.Empty(actualServiceAccessPoints);
             }
 
-            private record ServiceAccessPoint(Uri GuestUri, Uri HostUri) : IServiceAccessPoint;
+            public record ServiceAccessPoint(Uri GuestUri, Uri HostUri) : IServiceResource;
 
-            [Fact]
-            public async Task AccessPoints_WhenPortsAreExposed_ExpectAnEmptyEnumerable()
+            public static IEnumerable<object[]> GetServiceAccessPoints()
             {
-                // Arrange
-                var expectedServiceAccessPoints = new[]
+                yield return new object[]
                 {
-                    new ServiceAccessPoint(new Uri("tcp://localhost:80"), new Uri("tcp:/192.168.0.1:8080")),
-                    new ServiceAccessPoint(new Uri("udp://localhost:81"), new Uri("udp:/192.168.0.1:8081")),
+                    new[]
+                    {
+                        new ServiceAccessPoint(new Uri("tcp://localhost:80"), new Uri("tcp:/192.168.0.1:8080"))
+                    }
                 };
 
+                yield return new object[]
+                {
+                    new[]
+                    {
+                        new ServiceAccessPoint(new Uri("tcp://localhost:81"), new Uri("tcp:/192.168.0.1:8081")),
+                        new ServiceAccessPoint(new Uri("udp://localhost:82"), new Uri("udp:/192.168.0.1:8082"))
+                    }
+                };
+
+                yield return new object[]
+                {
+                    new[]
+                    {
+                        new ServiceAccessPoint(new Uri("tcp://localhost:83"), new Uri("tcp:/192.168.0.1:8083")),
+                        new ServiceAccessPoint(new Uri("udp://localhost:84"), new Uri("udp:/192.168.0.1:8084"))
+                    }
+                };
+            }
+
+            [Theory]
+            [MemberData(nameof(GetServiceAccessPoints))]
+            public async Task AccessPoints_WhenPortsAreExposed_ExpectAnEmptyEnumerable(ServiceAccessPoint[] expectedServiceAccessPoints)
+            {
+                // Arrange
                 var containerGatewayMock = new Mock<IContainerGateway>();
                 containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
@@ -149,33 +173,6 @@ public class ContainerTests
 
         public class NetworkTests : BaseContainerTests
         {
-            [Theory]
-            [InlineData("192.168.0.0")]
-            [InlineData("192.168.0.1")]
-            [InlineData("127.0.0.1")]
-            public async Task InitializeAsync_WhenCreated_ExpectTheDefaultIpAddressToBeSet(string ipAddress)
-            {
-                // Arrange
-                var parsed = IPAddress.Parse(ipAddress);
-
-                var containerGatewayMock = new Mock<IContainerGateway>();
-                containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(parsed);
-                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(HealthStatus.Healthy);
-
-                var networkGatewayMock = new Mock<INetworkGateway>();
-
-                var container = new Container(containerGatewayMock.Object, networkGatewayMock.Object, Guid.Empty, new Attribute[] { new ImageAttribute(string.Empty), new CommandAttribute(string.Empty), new RunAttribute() });
-                _containers.Add(container);
-
-                // Act
-                await container.InitializeAsync(CancellationToken.None);
-
-                // Assert
-                Assert.Equal(parsed, container.IpAddress);
-            }
-
             [Theory]
             [InlineData("test", "www.example.com")]
             [InlineData("other", "sftp.example.com")]

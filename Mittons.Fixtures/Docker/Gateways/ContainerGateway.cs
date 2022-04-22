@@ -160,7 +160,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public async Task<IEnumerable<IServiceAccessPoint>> GetServiceAccessPointsAsync(IDockerService service, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IServiceResource>> GetServiceAccessPointsAsync(IDockerService service, CancellationToken cancellationToken)
         {
             var ipAddress = await GetServiceIpAddress(service, cancellationToken).ConfigureAwait(false);
 
@@ -177,7 +177,7 @@ namespace Mittons.Fixtures.Docker.Gateways
                 {
                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
 
-                    return new ServiceAccessPoint(
+                    return new ServiceResource(
                         new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),
                         new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}")
                     );
@@ -190,13 +190,13 @@ namespace Mittons.Fixtures.Docker.Gateways
             public string HostPort { get; set; }
         }
 
-        private class ServiceAccessPoint : IServiceAccessPoint
+        private class ServiceResource : IServiceResource
         {
             public Uri GuestUri { get; }
 
             public Uri HostUri { get; }
 
-            public ServiceAccessPoint(Uri guestUri, Uri hostUri)
+            public ServiceResource(Uri guestUri, Uri hostUri)
             {
                 GuestUri = guestUri;
                 HostUri = hostUri;

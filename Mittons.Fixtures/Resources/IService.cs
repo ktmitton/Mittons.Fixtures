@@ -38,7 +38,7 @@ namespace Mittons.Fixtures.Resources
         /// Details describing the resource being monitored by the <see cref="Mittons.Fixtures.Resources.IServiceAccessPoint"/>.
         /// </returns>
         /// <value>
-        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Universal Resource Identifier</see> with all known details on how the <see cref="Mittons.Fixtures.Resources.IServiceAccessPoint"/> listens for action triggers.
+        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Uniform Resource Identifier</see> with all known details on how the <see cref="Mittons.Fixtures.Resources.IServiceAccessPoint"/> listens for action triggers.
         /// </value>
         Uri GuestUri { get; }
 
@@ -52,7 +52,7 @@ namespace Mittons.Fixtures.Resources
         /// Details describing the resource that can be accessed by the Host to communicate with the <see cref="Mittons.Fixtures.Resources.IService"/>.
         /// </returns>
         /// <value>
-        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Universal Resource Identifier</see> with all known details on how the Host communicates with the <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// A <see href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Uniform Resource Identifier</see> with all known details on how the Host communicates with the <see cref="Mittons.Fixtures.Resources.IService"/>.
         /// </value>
         Uri HostUri { get; }
     }

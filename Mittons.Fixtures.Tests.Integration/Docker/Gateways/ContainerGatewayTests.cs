@@ -49,7 +49,7 @@ public class ContainerGatewayTests
             }
         }
 
-        private record ServiceAccessPoint(Uri LocalUri, Uri PublicUri) : IServiceAccessPoint;
+        private record ServiceAccessPoint(Uri GuestUri, Uri HostUri) : IServiceAccessPoint;
 
         private record Port(string HostIp, string HostPort);
 
@@ -102,8 +102,8 @@ public class ContainerGatewayTests
                     var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
 
-                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"), y.LocalUri);
-                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}"), y.PublicUri);
+                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"), y.GuestUri);
+                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}"), y.HostUri);
                 };
 
                 return method;

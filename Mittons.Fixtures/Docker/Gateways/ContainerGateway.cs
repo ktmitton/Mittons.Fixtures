@@ -192,14 +192,14 @@ namespace Mittons.Fixtures.Docker.Gateways
 
         private class ServiceAccessPoint : IServiceAccessPoint
         {
-            public Uri LocalUri { get; }
+            public Uri GuestUri { get; }
 
-            public Uri PublicUri { get; }
+            public Uri HostUri { get; }
 
-            public ServiceAccessPoint(Uri localUri, Uri publicUri)
+            public ServiceAccessPoint(Uri guestUri, Uri hostUri)
             {
-                LocalUri = localUri;
-                PublicUri = publicUri;
+                GuestUri = guestUri;
+                HostUri = hostUri;
             }
         }
     }

@@ -56,7 +56,7 @@ public class ContainerTests
                 Assert.Empty(actualServiceAccessPoints);
             }
 
-            private record ServiceAccessPoint(Uri LocalUri, Uri PublicUri) : IServiceAccessPoint;
+            private record ServiceAccessPoint(Uri GuestUri, Uri HostUri) : IServiceAccessPoint;
 
             [Fact]
             public async Task AccessPoints_WhenPortsAreExposed_ExpectAnEmptyEnumerable()

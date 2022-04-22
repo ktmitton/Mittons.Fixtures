@@ -4,10 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Docker.Attributes;
+using Mittons.Fixtures.Docker.Containers;
 using Mittons.Fixtures.Docker.Gateways;
 using Mittons.Fixtures.Models;
 using Mittons.Fixtures.Resources;
@@ -17,6 +20,103 @@ namespace Mittons.Fixtures.Tests.Integration.Docker.Gateways;
 
 public class ContainerGatewayTests
 {
+    public class GetServiceAccessPointsTests : IDisposable
+    {
+        private readonly List<string> _containerIds = new List<string>();
+
+        private readonly CancellationToken _cancellationToken;
+
+        public GetServiceAccessPointsTests()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
+
+            _cancellationToken = cancellationTokenSource.Token;
+        }
+
+        public void Dispose()
+        {
+            foreach (var containerId in _containerIds)
+            {
+                using var proc = new Process();
+                proc.StartInfo.FileName = "docker";
+                proc.StartInfo.Arguments = $"rm --force {containerId}";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+
+                proc.Start();
+                proc.WaitForExit();
+            }
+        }
+
+        private record ServiceAccessPoint(Uri LocalUri, Uri PublicUri) : IServiceAccessPoint;
+
+        private record Port(string HostIp, string HostPort);
+
+        [Fact]
+        public async Task AccessPoints_WhenPortsAreExposed_ExpectAnEmptyEnumerable()
+        {
+            // Arrange
+            var imageName = "atmoz/sftp:alpine";
+            var containerGateway = new ContainerGateway();
+
+            var container = new Container(
+                new ContainerGateway(),
+                new NetworkGateway(),
+                Guid.Empty,
+                new Attribute[]
+                {
+                    new ImageAttribute(imageName),
+                    new CommandAttribute("guest:guest"),
+                    new RunAttribute()
+                });
+            await container.InitializeAsync(CancellationToken.None);
+            _containerIds.Add(container.Id);
+
+            using var portsProcess = new Process();
+            portsProcess.StartInfo.FileName = "docker";
+            portsProcess.StartInfo.Arguments = $"inspect {container.Id} --format \"{{{{json .NetworkSettings.Ports}}}}\"";
+            portsProcess.StartInfo.UseShellExecute = false;
+            portsProcess.StartInfo.RedirectStandardOutput = true;
+
+            portsProcess.Start();
+            portsProcess.WaitForExit();
+
+            var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(portsProcess.StandardOutput.ReadToEnd()) ?? new Dictionary<string, Port[]>();
+
+            using var ipProcess = new Process();
+            ipProcess.StartInfo.FileName = "docker";
+            ipProcess.StartInfo.Arguments = $"inspect {container.Id} --format \"{{{{.NetworkSettings.IPAddress}}}}\"";
+            ipProcess.StartInfo.UseShellExecute = false;
+            ipProcess.StartInfo.RedirectStandardOutput = true;
+
+            ipProcess.Start();
+            ipProcess.WaitForExit();
+
+            var ipAddress = ipProcess.StandardOutput.ReadLine();
+
+            var predicates = ports.Select(x =>
+            {
+                Action<IServiceAccessPoint> method = y =>
+                {
+                    var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
+                    var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
+
+                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"), y.LocalUri);
+                    Assert.Equal(new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}"), y.PublicUri);
+                };
+
+                return method;
+            }).ToArray();
+
+            // Act
+            var actualServiceAccessPoints = await containerGateway.GetServiceAccessPointsAsync(container, CancellationToken.None);
+
+            // Assert
+            Assert.Collection(actualServiceAccessPoints, predicates);
+        }
+    }
+
     public class RunTests : IDisposable
     {
         private readonly List<string> _containerIds = new List<string>();

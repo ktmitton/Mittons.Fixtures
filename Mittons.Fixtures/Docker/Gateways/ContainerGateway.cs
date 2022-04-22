@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Extensions;
@@ -9,7 +12,7 @@ using Mittons.Fixtures.Resources;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
-    public class ContainerGateway : IContainerGateway
+    public class ContainerGateway : IContainerGateway, IServiceGateway<IDockerService>
     {
         public async Task<string> RunAsync(string imageName, string command, IEnumerable<Option> options, CancellationToken cancellationToken)
         {
@@ -144,6 +147,59 @@ namespace Mittons.Fixtures.Docker.Gateways
                     default:
                         return HealthStatus.Unknown;
                 }
+            }
+        }
+
+        private async Task<string> GetServiceIpAddress(IDockerService service, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"inspect {service.Id} --format \"{{{{.NetworkSettings.IPAddress}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                return await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<IEnumerable<IServiceAccessPoint>> GetServiceAccessPointsAsync(IDockerService service, CancellationToken cancellationToken)
+        {
+            var ipAddress = await GetServiceIpAddress(service, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"inspect {service.Id} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
+                var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
+
+                return ports.Select(x =>
+                {
+                    var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
+
+                    return new ServiceAccessPoint(
+                        new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),
+                        new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}")
+                    );
+                }).ToArray();
+            }
+        }
+        private class Port
+        {
+            public string HostIp { get; set; }
+            public string HostPort { get; set; }
+        }
+
+        private class ServiceAccessPoint : IServiceAccessPoint
+        {
+            public Uri LocalUri { get; }
+
+            public Uri PublicUri { get; }
+
+            public ServiceAccessPoint(Uri localUri, Uri publicUri)
+            {
+                LocalUri = localUri;
+                PublicUri = publicUri;
             }
         }
     }

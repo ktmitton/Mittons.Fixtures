@@ -7,7 +7,7 @@ using Mittons.Fixtures.Resources;
 
 namespace Mittons.Fixtures.Docker.Gateways
 {
-    public interface IContainerGateway
+    public interface IContainerGateway : IServiceGateway<IDockerService>
     {
         Task<string> RunAsync(string imageName, string command, IEnumerable<Option> options, CancellationToken cancellationToken);
 

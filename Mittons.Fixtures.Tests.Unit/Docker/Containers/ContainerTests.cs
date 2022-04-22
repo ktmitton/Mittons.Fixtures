@@ -21,6 +21,82 @@ public class ContainerTests
 {
     public class InitializeTests
     {
+        public class AccessPointTests : BaseContainerTests
+        {
+            [Fact]
+            public async Task AccessPoints_WhenNoPortsAreExposed_ExpectAnEmptyEnumerable()
+            {
+                // Arrange
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+                containerGatewayMock.Setup(x => x.GetServiceAccessPointsAsync(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Enumerable.Empty<IServiceAccessPoint>());
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Act
+                var actualServiceAccessPoints = container.ServiceAccessPoints;
+
+                // Assert
+                Assert.Empty(actualServiceAccessPoints);
+            }
+
+            private record ServiceAccessPoint(Uri LocalUri, Uri PublicUri) : IServiceAccessPoint;
+
+            [Fact]
+            public async Task AccessPoints_WhenPortsAreExposed_ExpectAnEmptyEnumerable()
+            {
+                // Arrange
+                var expectedServiceAccessPoints = new[]
+                {
+                    new ServiceAccessPoint(new Uri("tcp://localhost:80"), new Uri("tcp:/192.168.0.1:8080")),
+                    new ServiceAccessPoint(new Uri("udp://localhost:81"), new Uri("udp:/192.168.0.1:8081")),
+                };
+
+                var containerGatewayMock = new Mock<IContainerGateway>();
+                containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(HealthStatus.Healthy);
+                containerGatewayMock.Setup(x => x.GetServiceAccessPointsAsync(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(expectedServiceAccessPoints);
+
+                var networkGatewayMock = new Mock<INetworkGateway>();
+
+                var container = new Container(
+                    containerGatewayMock.Object,
+                    networkGatewayMock.Object,
+                    Guid.Empty,
+                    new Attribute[]
+                    {
+                        new ImageAttribute(string.Empty),
+                        new CommandAttribute(string.Empty),
+                        new RunAttribute()
+                    });
+                _containers.Add(container);
+
+                await container.InitializeAsync(CancellationToken.None);
+
+                // Act
+                var actualServiceAccessPoints = container.ServiceAccessPoints;
+
+                // Assert
+                Assert.Equal(expectedServiceAccessPoints, actualServiceAccessPoints);
+            }
+        }
         public class ImageTests : BaseContainerTests
         {
             [Theory]

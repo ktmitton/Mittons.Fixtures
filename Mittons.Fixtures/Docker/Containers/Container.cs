@@ -12,11 +12,13 @@ using Mittons.Fixtures.Resources;
 
 namespace Mittons.Fixtures.Docker.Containers
 {
-    public class Container : IAsyncLifetime
+    public class Container : IDockerService
     {
         public string Id { get; private set; }
 
         public IPAddress IpAddress { get; private set; }
+
+        public IEnumerable<IServiceAccessPoint> ServiceAccessPoints { get; private set; }
 
         protected readonly IContainerGateway _containerGateway;
 
@@ -61,6 +63,7 @@ namespace Mittons.Fixtures.Docker.Containers
         {
             Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
             IpAddress = await _containerGateway.GetDefaultNetworkIpAddressAsync(Id, cancellationToken).ConfigureAwait(false);
+            ServiceAccessPoints = await _containerGateway.GetServiceAccessPointsAsync(this, cancellationToken).ConfigureAwait(false);
 
             await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);
 

@@ -30,7 +30,7 @@ public class ContainerTests
                 var containerGatewayMock = new Mock<IContainerGateway>();
                 containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
-                containerGatewayMock.Setup(x => x.GetServiceAccessPointsAsync(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
+                containerGatewayMock.Setup(x => x.GetServiceResources(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(Enumerable.Empty<IServiceResource>());
 
                 var networkGatewayMock = new Mock<INetworkGateway>();
@@ -95,7 +95,7 @@ public class ContainerTests
                 var containerGatewayMock = new Mock<IContainerGateway>();
                 containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(HealthStatus.Healthy);
-                containerGatewayMock.Setup(x => x.GetServiceAccessPointsAsync(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
+                containerGatewayMock.Setup(x => x.GetServiceResources(It.IsAny<IDockerService>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(expectedServiceAccessPoints);
 
                 var networkGatewayMock = new Mock<INetworkGateway>();

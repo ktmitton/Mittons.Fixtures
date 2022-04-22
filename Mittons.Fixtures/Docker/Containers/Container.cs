@@ -59,7 +59,7 @@ namespace Mittons.Fixtures.Docker.Containers
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
             Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
-            ServiceAccessPoints = await _containerGateway.GetServiceAccessPointsAsync(this, cancellationToken).ConfigureAwait(false);
+            ServiceAccessPoints = await _containerGateway.GetServiceResources(this, cancellationToken).ConfigureAwait(false);
 
             await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);
 

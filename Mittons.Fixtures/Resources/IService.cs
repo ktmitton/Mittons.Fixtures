@@ -16,10 +16,23 @@ namespace Mittons.Fixtures.Resources
         /// <summary>
         /// Gets all known <see cref="Mittons.Fixtures.Resources.IServiceResource">resources</see> monitored by a Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
         /// </summary>
+        /// <param name="service">
+        /// The <see cref="Mittons.Fixtures.Resources.IService"/> for which resource details should be retrieved.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to cancel the operation.
+        /// </param>
+        /// <returns>
+        /// All known resources being monitored by the Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// </returns>
+        /// <value>
+        /// The returned resources are typically used by the Host to communicate with the Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// </value>
+        /// <exception cref="System.OperationCanceledException">If the <see cref="Mittons.Fixtures.Resources.IServiceGateway"/> supports it, this exception may be thrown if the <paramref name="cancellationToken"/> is cancelled before the operation can complete.</exception>
         /// <remarks>
         /// These can represent asynchronous communication mechanisms such as monitoring a file for changes or more synchronous request-respones channels such as http connections.
         /// </remarks>
-        Task<IEnumerable<IServiceResource>> GetServiceAccessPointsAsync(TService service, CancellationToken cancellationToken);
+        Task<IEnumerable<IServiceResource>> GetServiceResources(TService service, CancellationToken cancellationToken);
     }
 
     public interface IService : IAsyncLifetime

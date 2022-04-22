@@ -160,7 +160,7 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public async Task<IEnumerable<IServiceResource>> GetServiceAccessPointsAsync(IDockerService service, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IServiceResource>> GetServiceResources(IDockerService service, CancellationToken cancellationToken)
         {
             var ipAddress = await GetServiceIpAddress(service, cancellationToken).ConfigureAwait(false);
 

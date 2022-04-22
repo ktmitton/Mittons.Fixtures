@@ -108,7 +108,7 @@ public class ContainerGatewayTests
             }).ToArray();
 
             // Act
-            var actualServiceAccessPoints = await containerGateway.GetServiceAccessPointsAsync(container, CancellationToken.None);
+            var actualServiceAccessPoints = await containerGateway.GetServiceResources(container, CancellationToken.None);
 
             // Assert
             Assert.Collection(actualServiceAccessPoints, predicates);

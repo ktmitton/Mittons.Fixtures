@@ -27,5 +27,21 @@ namespace Mittons.Fixtures
         /// The provided <see cref="Mittons.Fixtures.INetwork"/> should not be intialized yet, and should contain all details needed by the <see cref="Mittons.Fixtures.INetworkGateway"/> to create a new instance.
         /// </remarks>
         Task<TNetwork> CreateNetworkAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken);
+
+
+        /// <summary>
+        /// Stops and removes an <see cref="Mittons.Fixtures.INetwork"/>.
+        /// </summary>
+        /// <param name="service">
+        /// The <see cref="Mittons.Fixtures.INetwork"/> that should be stopped and removed from the Host system.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to cancel the operation.
+        /// </param>
+        /// <exception cref="System.OperationCanceledException">If the <see cref="Mittons.Fixtures.INetworkGateway"/> supports it, this exception may be thrown if the <paramref name="cancellationToken"/> is cancelled before the operation can complete.</exception>
+        /// <remarks>
+        /// This operation will remove the <see cref="Mittons.Fixtures.INetwork"/> and release all resources it held on the Host system.
+        /// </remarks>
+        Task RemoveNetworkAsync(INetwork network, CancellationToken cancellationToken);
     }
 }

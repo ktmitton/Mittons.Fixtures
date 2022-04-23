@@ -112,6 +112,7 @@ namespace Mittons.Fixtures
             if (_environmentAttributes.OfType<RunAttribute>().Single().TeardownOnComplete)
             {
                 await Task.WhenAll(_services.Select(x => _serviceGatewayFactory.GetServiceGateway(x.GetType()).RemoveServiceAsync(x, CancellationToken.None))).ConfigureAwait(false);
+                await Task.WhenAll(_networks.Select(x => _networkGatewayFactory.GetNetworkGateway(x.GetType()).RemoveNetworkAsync(x, CancellationToken.None))).ConfigureAwait(false);
             }
         }
 
@@ -169,6 +170,9 @@ namespace Mittons.Fixtures
 
                 public async Task<INetwork> CreateNetworkAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
                     => await _baseGateway.CreateNetworkAsync(attributes, cancellationToken).ConfigureAwait(false);
+
+                public async Task RemoveNetworkAsync(INetwork network, CancellationToken cancellationToken)
+                    => await _baseGateway.RemoveNetworkAsync((T)network, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -18,14 +18,20 @@ public class GuestEnvironmentFixtureTests
         [Run(true)]
         private class TeardownEnvironmentFixture : GuestEnvironmentFixture
         {
+            [Network("network1")]
+            public IContainerNetwork? Netowrk1 { get; set; }
+
+            [Network("network2")]
+            public IContainerNetwork? Network2 { get; set; }
+
             [Image("alpine:3.15")]
             public IContainerService? AlpineContainer { get; set; }
 
             [Image("redis:alpine")]
             public IContainerService? RedisContainer { get; set; }
 
-            public TeardownEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory)
-                : base(serviceGatewayFactory)
+            public TeardownEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory, INetworkGatewayFactory networkGatewayFactory)
+                : base(serviceGatewayFactory, networkGatewayFactory)
             {
             }
         }
@@ -33,31 +39,87 @@ public class GuestEnvironmentFixtureTests
         [Run(false)]
         private class KeepUpEnvironmentFixture : GuestEnvironmentFixture
         {
+            [Network("network1")]
+            public IContainerNetwork? Netowrk1 { get; set; }
+
+            [Network("network2")]
+            public IContainerNetwork? Network2 { get; set; }
+
             [Image("alpine:3.15")]
             public IContainerService? AlpineContainer { get; set; }
 
             [Image("redis:alpine")]
             public IContainerService? RedisContainer { get; set; }
 
-            public KeepUpEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory)
-                : base(serviceGatewayFactory)
+            public KeepUpEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory, INetworkGatewayFactory networkGatewayFactory)
+                : base(serviceGatewayFactory, networkGatewayFactory)
             {
             }
+        }
+
+        private readonly Mock<IServiceGateway<IService>> _mockServiceGateway;
+
+        private readonly Mock<IServiceGatewayFactory> _mockServiceGatewayFactory;
+
+        private readonly Mock<INetworkGateway<INetwork>> _mockNetworkGateway;
+
+        private readonly Mock<INetworkGatewayFactory> _mockNetworkGatewayFactory;
+
+        public DisposeTests()
+        {
+            _mockServiceGateway = new Mock<IServiceGateway<IService>>();
+            _mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Mock.Of<IContainerService>());
+
+            _mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
+            _mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
+                .Returns(_mockServiceGateway.Object);
+
+            _mockNetworkGateway = new Mock<INetworkGateway<INetwork>>();
+            _mockNetworkGateway.Setup(x => x.CreateNetworkAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Mock.Of<IContainerNetwork>());
+
+            _mockNetworkGatewayFactory = new Mock<INetworkGatewayFactory>();
+            _mockNetworkGatewayFactory.Setup(x => x.GetNetworkGateway(It.IsAny<Type>()))
+                .Returns(_mockNetworkGateway.Object);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WhenNetworksExistAndRunIsDefinedToTeardownOnComplete_ExpectNetworksToBeRemoved()
+        {
+            // Arrange
+            var fixture = new TeardownEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Act
+            await fixture.DisposeAsync().ConfigureAwait(false);
+
+            // Assert
+            _mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(fixture.Netowrk1, It.IsAny<CancellationToken>()), Times.Once);
+            _mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(fixture.Network2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WhenNetworksExistAndRunIsDefinedToNotTeardownOnComplete_ExpectNetworksToNotBeRemoved()
+        {
+            // Arrange
+            var fixture = new KeepUpEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Act
+            await fixture.DisposeAsync().ConfigureAwait(false);
+
+            // Assert
+            _mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(It.IsAny<INetwork>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
         public async Task DisposeAsync_WhenServicesExistAndRunIsDefinedToTeardownOnComplete_ExpectServicesToBeRemoved()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new TeardownEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new TeardownEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
@@ -65,23 +127,15 @@ public class GuestEnvironmentFixtureTests
             await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
-            mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.AlpineContainer, It.IsAny<CancellationToken>()), Times.Once);
-            mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.RedisContainer, It.IsAny<CancellationToken>()), Times.Once);
+            _mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.AlpineContainer, It.IsAny<CancellationToken>()), Times.Once);
+            _mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.RedisContainer, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
         public async Task DisposeAsync_WhenServicesExistAndRunIsDefinedToNotTeardownOnComplete_ExpectServicesToNotBeRemoved()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new KeepUpEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new KeepUpEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
@@ -89,7 +143,7 @@ public class GuestEnvironmentFixtureTests
             await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
-            mockServiceGateway.Verify(x => x.RemoveServiceAsync(It.IsAny<IContainerService>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockServiceGateway.Verify(x => x.RemoveServiceAsync(It.IsAny<IContainerService>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 

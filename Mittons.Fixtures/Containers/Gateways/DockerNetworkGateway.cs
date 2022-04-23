@@ -12,5 +12,10 @@ namespace Mittons.Fixtures.Containers.Gateways
         {
             throw new NotImplementedException();
         }
+
+        public Task RemoveNetworkAsync(INetwork network, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

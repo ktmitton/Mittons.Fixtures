@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Models;
 
-namespace Mittons.Fixtures.Docker.Attributes
+namespace Mittons.Fixtures.Containers.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
     public class HealthCheckAttribute : Attribute, IOptionAttribute

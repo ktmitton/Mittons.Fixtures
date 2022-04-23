@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Docker.Attributes
+namespace Mittons.Fixtures.Containers.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
     public class NetworkAttribute : Attribute

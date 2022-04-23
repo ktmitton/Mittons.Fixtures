@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
 
-namespace Mittons.Fixtures.Docker.Attributes
+namespace Mittons.Fixtures.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
     public class RunAttribute : Attribute, IOptionAttribute

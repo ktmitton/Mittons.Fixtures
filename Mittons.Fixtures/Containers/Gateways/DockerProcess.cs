@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mittons.Fixtures.Docker.Gateways
+namespace Mittons.Fixtures.Containers.Gateways
 {
     internal class DockerProcess : Process
     {

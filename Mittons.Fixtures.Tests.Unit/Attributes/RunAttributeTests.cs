@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Mittons.Fixtures.Docker.Attributes;
+using Mittons.Fixtures.Attributes;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit.Docker.Attributes;
+namespace Mittons.Fixtures.Tests.Unit.Attributes;
 
 public class RunAttributeTests
 {
@@ -34,6 +34,12 @@ public class RunAttributeTests
 
         public static IEnumerable<object[]> GetIdTemplates()
         {
+            yield return new object[]
+            {
+                "my test string",
+                "my test string"
+            };
+
             yield return new object[]
             {
                 "my ${Test1} test string",

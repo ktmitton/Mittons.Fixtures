@@ -80,7 +80,6 @@ namespace Mittons.Fixtures
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             var run = _environmentAttributes.OfType<RunAttribute>().Single();
-            // await Task.WhenAll(_networks.Select(x => x.InitializeAsync(cancellationToken))).ConfigureAwait(false);
 
             foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType)))
             {

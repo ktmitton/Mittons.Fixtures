@@ -6,20 +6,8 @@ using Mittons.Fixtures.Models;
 namespace Mittons.Fixtures.Containers.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
-    public class HealthCheckAttribute : Attribute, IOptionAttribute
+    public class ContainerHealthCheckAttribute : HealthCheckAttribute, IOptionAttribute
     {
-        public bool Disabled { get; set; }
-
-        public string Command { get; set; }
-
-        public byte Interval { get; set; }
-
-        public byte Timeout { get; set; }
-
-        public byte StartPeriod { get; set; }
-
-        public byte Retries { get; set; }
-
         public IEnumerable<Option> Options
         {
             get
@@ -60,10 +48,6 @@ namespace Mittons.Fixtures.Containers.Attributes
 
                 return options;
             }
-        }
-
-        public HealthCheckAttribute()
-        {
         }
     }
 }

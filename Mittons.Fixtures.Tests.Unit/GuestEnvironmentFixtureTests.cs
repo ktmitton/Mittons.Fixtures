@@ -59,10 +59,10 @@ public class GuestEnvironmentFixtureTests
 
             var fixture = new TeardownEnvironmentFixture(mockServiceGatewayFactory.Object);
 
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Act
-            await fixture.DisposeAsync();
+            await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.AlpineContainer, It.IsAny<CancellationToken>()), Times.Once);
@@ -83,10 +83,10 @@ public class GuestEnvironmentFixtureTests
 
             var fixture = new KeepUpEnvironmentFixture(mockServiceGatewayFactory.Object);
 
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Act
-            await fixture.DisposeAsync();
+            await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(x => x.RemoveServiceAsync(It.IsAny<IContainerService>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -157,7 +157,7 @@ public class GuestEnvironmentFixtureTests
             var fixture = new RunNotSetEnvironmentFixture(mockServiceGatewayFactory.Object);
 
             // Act
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(fixture.AlpineContainer);
@@ -179,7 +179,7 @@ public class GuestEnvironmentFixtureTests
             var fixture = new RunNotSetEnvironmentFixture(mockServiceGatewayFactory.Object);
 
             // Act
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(
@@ -208,7 +208,7 @@ public class GuestEnvironmentFixtureTests
             var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
 
             // Act
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(
@@ -237,7 +237,7 @@ public class GuestEnvironmentFixtureTests
             var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
 
             // Act
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(
@@ -266,7 +266,7 @@ public class GuestEnvironmentFixtureTests
             var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
 
             // Act
-            await fixture.InitializeAsync(CancellationToken.None);
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
             mockServiceGateway.Verify(

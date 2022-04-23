@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Exceptions.Containers;
+using Mittons.Fixtures.Extensions;
+using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Containers.Gateways
 {
@@ -31,13 +33,52 @@ namespace Mittons.Fixtures.Containers.Gateways
 
             var command = string.Join(" ", attributes.OfType<CommandAttribute>().Select(x => x.Value));
 
-            using (var process = new DockerProcess($"run -d -P {image.First().Name} {command}"))
+            var options = new List<Option>();
+
+            var healthCheck = attributes.OfType<HealthCheckAttribute>().FirstOrDefault();
+
+            if (!(healthCheck is null))
+            {
+                if (healthCheck.Disabled)
+                {
+                    options.Add(new Option { Name = "--no-healthcheck", Value = string.Empty });
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(healthCheck.Command))
+                    {
+                        options.Add(new Option { Name = "--health-cmd", Value = healthCheck.Command });
+                    }
+
+                    if (healthCheck.Interval > 0)
+                    {
+                        options.Add(new Option { Name = "--health-interval", Value = $"{healthCheck.Interval}s" });
+                    }
+
+                    if (healthCheck.Timeout > 0)
+                    {
+                        options.Add(new Option { Name = "--health-timeout", Value = $"{healthCheck.Timeout}s" });
+                    }
+
+                    if (healthCheck.StartPeriod > 0)
+                    {
+                        options.Add(new Option { Name = "--health-start-period", Value = $"{healthCheck.StartPeriod}s" });
+                    }
+
+                    if (healthCheck.Retries > 0)
+                    {
+                        options.Add(new Option { Name = "--health-retries", Value = healthCheck.Retries.ToString() });
+                    }
+                }
+            }
+
+            using (var process = new DockerProcess($"run -d -P {options.ToExecutionParametersFormattedString()} {image.First().Name} {command}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 var containerId = process.StandardOutput.ReadLine();
 
-                return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken));
+                return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken).ConfigureAwait(false));
             }
         }
 

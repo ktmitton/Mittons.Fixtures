@@ -72,6 +72,10 @@ namespace Mittons.Fixtures.Containers.Gateways
                 }
             }
 
+            var run = attributes.OfType<RunAttribute>().Single();
+
+            options.Add(new Option { Name = "--label", Value = $"mittons.fixtures.run.id={run.Id}" });
+
             using (var process = new DockerProcess($"run -d -P {options.ToExecutionParametersFormattedString()} {image.First().Name} {command}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);

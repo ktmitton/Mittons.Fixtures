@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Attributes;
@@ -50,7 +49,7 @@ public class DockerServiceGatewayTests
         public async Task RemoveServiceAsync_WhenCalled_ExpectTheServiceToBeRemoved()
         {
             // Arrange
-            var attributes = new[] { new ImageAttribute("alpine:3.15") };
+            var attributes = new Attribute[] { new ImageAttribute("alpine:3.15"), new RunAttribute() };
 
             var serviceGateway = new DockerServiceGateway();
 
@@ -78,13 +77,13 @@ public class DockerServiceGatewayTests
         }
     }
 
-    public class AttributeTests : IDisposable
+    public class OptionTests : IDisposable
     {
         private readonly List<string> _containerIds = new List<string>();
 
         private readonly CancellationToken _cancellationToken;
 
-        public AttributeTests()
+        public OptionTests()
         {
             var cancellationTokenSource = new CancellationTokenSource();
             cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(1));
@@ -111,7 +110,7 @@ public class DockerServiceGatewayTests
         public async Task InitializedServiceAsync_WhenCalledWithNoHealthCheck_ExpectNoHealthSettingsToBeSet()
         {
             // Arrange
-            var attributes = new[] { new ImageAttribute("alpine:3.15") };
+            var attributes = new Attribute[] { new ImageAttribute("alpine:3.15"), new RunAttribute() };
             var serviceGateway = new DockerServiceGateway();
 
             // Act
@@ -129,8 +128,7 @@ public class DockerServiceGatewayTests
                 process.Start();
                 process.WaitForExit();
 
-                var temp = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(temp);
+                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
                 Assert.Null(healthCheck);
             }
@@ -140,7 +138,7 @@ public class DockerServiceGatewayTests
         public async Task InitializedServiceAsync_WhenCalledWithADisabledHealthCheck_ExpectHealthChecksToBeDisabled()
         {
             // Arrange
-            var attributes = new Attribute[] { new ImageAttribute("alpine:3.15"), new HealthCheckAttribute { Disabled = true } };
+            var attributes = new Attribute[] { new ImageAttribute("alpine:3.15"), new HealthCheckAttribute { Disabled = true }, new RunAttribute() };
             var serviceGateway = new DockerServiceGateway();
 
             // Act
@@ -158,11 +156,37 @@ public class DockerServiceGatewayTests
                 process.Start();
                 process.WaitForExit();
 
-                var temp = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(temp);
+                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
                 Assert.Equal("NONE", string.Join(" ", healthCheck?.Test ?? new string[0]));
+            }
+        }
+
+        [Fact]
+        public async Task InitializedServiceAsync_WhenCalled_ExpectRunOptionsToBeApplied()
+        {
+            // Arrange
+            var attributes = new Attribute[] { new ImageAttribute("alpine:3.15"), new HealthCheckAttribute { Disabled = true }, new RunAttribute() };
+            var serviceGateway = new DockerServiceGateway();
+
+            // Act
+            var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
+            _containerIds.Add(service.ContainerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Labels}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                process.WaitForExit();
+
+                var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                Assert.Contains(labels, x => x.Key == "mittons.fixtures.run.id" && x.Value == RunAttribute.DefaultId);
             }
         }
 
@@ -185,7 +209,8 @@ public class DockerServiceGatewayTests
                     Timeout = expectedTimeout,
                     StartPeriod = expectedStartPeriod,
                     Retries = expectedRetries
-                }
+                },
+                new RunAttribute()
             };
             var serviceGateway = new DockerServiceGateway();
 
@@ -204,9 +229,7 @@ public class DockerServiceGatewayTests
                 process.Start();
                 process.WaitForExit();
 
-                var temp = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(temp);
+                var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
                 Assert.Equal($"CMD-SHELL {expectedCommand}", string.Join(" ", healthCheck?.Test ?? new string[0]));
                 Assert.Equal(expectedInterval * nanosecondModifier, healthCheck?.Interval);
@@ -289,7 +312,7 @@ public class DockerServiceGatewayTests
         public async Task InitializedServiceAsync_WhenCalledWithAnImageName_ExpectTheImageToBeCreated(string imageName)
         {
             // Arrange
-            var attributes = new[] { new ImageAttribute(imageName) };
+            var attributes = new Attribute[] { new ImageAttribute(imageName), new RunAttribute() };
             var serviceGateway = new DockerServiceGateway();
 
             // Act
@@ -321,7 +344,7 @@ public class DockerServiceGatewayTests
             // Arrange
             var commandParts = command.Split(" ");
 
-            var attributes = new List<Attribute> { new ImageAttribute("alpine:3.15") };
+            var attributes = new List<Attribute> { new ImageAttribute("alpine:3.15"), new RunAttribute() };
             attributes.AddRange(commandParts.Select(x => new CommandAttribute(x)));
 
             var serviceGateway = new DockerServiceGateway();
@@ -354,7 +377,7 @@ public class DockerServiceGatewayTests
         public async Task InitializedServiceAsync_WhenCalledForAnImageWithAnExposedPort_ExpectPortToBePublished(string imageName, string command, int port, string scheme)
         {
             // Arrange
-            var attributes = new Attribute[] { new ImageAttribute(imageName), new CommandAttribute(command) };
+            var attributes = new Attribute[] { new ImageAttribute(imageName), new CommandAttribute(command), new RunAttribute() };
             var serviceGateway = new DockerServiceGateway();
 
             var expectedUriBuilder = new UriBuilder();

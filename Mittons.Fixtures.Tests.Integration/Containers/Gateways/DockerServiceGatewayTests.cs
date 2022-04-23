@@ -16,7 +16,7 @@ namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
 
 public class DockerServiceGatewayTests
 {
-    public class RemoveServiceTests : IDisposable
+    public class RemoveServiceTests : Xunit.IAsyncLifetime
     {
         private readonly List<string> _containerIds = new List<string>();
 
@@ -30,20 +30,23 @@ public class DockerServiceGatewayTests
             _cancellationToken = cancellationTokenSource.Token;
         }
 
-        public void Dispose()
+        public async Task DisposeAsync()
         {
             foreach (var containerId in _containerIds)
             {
-                using var proc = new Process();
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"rm --force {containerId}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+                using var process = new Process();
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"rm --force {containerId}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
 
-                proc.Start();
-                proc.WaitForExit();
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
             }
         }
+
+        public Task InitializeAsync()
+            => Task.CompletedTask;
 
         [Fact]
         public async Task RemoveServiceAsync_WhenCalled_ExpectTheServiceToBeRemoved()
@@ -69,15 +72,15 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
-                var output = process.StandardOutput.ReadToEnd();
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
                 Assert.Empty(output);
             }
         }
     }
 
-    public class OptionTests : IDisposable
+    public class OptionTests : Xunit.IAsyncLifetime
     {
         private readonly List<string> _containerIds = new List<string>();
 
@@ -91,20 +94,23 @@ public class DockerServiceGatewayTests
             _cancellationToken = cancellationTokenSource.Token;
         }
 
-        public void Dispose()
+        public async Task DisposeAsync()
         {
             foreach (var containerId in _containerIds)
             {
-                using var proc = new Process();
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"rm --force {containerId}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+                using var process = new Process();
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"rm --force {containerId}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
 
-                proc.Start();
-                proc.WaitForExit();
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
             }
         }
+
+        public Task InitializeAsync()
+            => Task.CompletedTask;
 
         [Fact]
         public async Task InitializedServiceAsync_WhenCalledWithNoHealthCheck_ExpectNoHealthSettingsToBeSet()
@@ -126,7 +132,7 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
@@ -154,7 +160,7 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
@@ -182,7 +188,7 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var labels = JsonSerializer.Deserialize<Dictionary<string, string>>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
@@ -227,7 +233,7 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var healthCheck = JsonSerializer.Deserialize<HealthCheck>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
@@ -253,7 +259,7 @@ public class DockerServiceGatewayTests
         }
     }
 
-    public class CreateServiceTests : IDisposable
+    public class CreateServiceTests : Xunit.IAsyncLifetime
     {
         private readonly List<string> _containerIds = new List<string>();
 
@@ -267,20 +273,23 @@ public class DockerServiceGatewayTests
             _cancellationToken = cancellationTokenSource.Token;
         }
 
-        public void Dispose()
+        public async Task DisposeAsync()
         {
             foreach (var containerId in _containerIds)
             {
-                using var proc = new Process();
-                proc.StartInfo.FileName = "docker";
-                proc.StartInfo.Arguments = $"rm --force {containerId}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.RedirectStandardOutput = true;
+                using var process = new Process();
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"rm --force {containerId}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
 
-                proc.Start();
-                proc.WaitForExit();
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
             }
         }
+
+        public Task InitializeAsync()
+            => Task.CompletedTask;
 
         [Fact]
         public async Task CreateServiceAsync_WhenCalledWithoutAnImageName_ExpectAnErrorToBeThrown()
@@ -328,9 +337,9 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
-                var output = process.StandardOutput.ReadLine();
+                var output = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
 
                 Assert.Equal(imageName, output);
             }
@@ -362,7 +371,7 @@ public class DockerServiceGatewayTests
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                process.WaitForExit();
+                await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var output = JsonSerializer.Deserialize<string[]>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false)) ?? new string[0];
 
@@ -400,7 +409,7 @@ public class DockerServiceGatewayTests
                     portProcess.StartInfo.RedirectStandardOutput = true;
 
                     portProcess.Start();
-                    portProcess.WaitForExit();
+                    await portProcess.WaitForExitAsync().ConfigureAwait(false);
 
                     var portDetails = (await portProcess.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty).Split(":");
 
@@ -419,7 +428,7 @@ public class DockerServiceGatewayTests
                     ipProcess.StartInfo.RedirectStandardOutput = true;
 
                     ipProcess.Start();
-                    ipProcess.WaitForExit();
+                    await ipProcess.WaitForExitAsync().ConfigureAwait(false);
 
                     expectedUriBuilder.Host = await ipProcess.StandardOutput.ReadLineAsync().ConfigureAwait(false);
                 }

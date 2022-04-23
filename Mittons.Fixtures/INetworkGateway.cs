@@ -42,6 +42,6 @@ namespace Mittons.Fixtures
         /// <remarks>
         /// This operation will remove the <see cref="Mittons.Fixtures.INetwork"/> and release all resources it held on the Host system.
         /// </remarks>
-        Task RemoveNetworkAsync(INetwork network, CancellationToken cancellationToken);
+        Task RemoveNetworkAsync(TNetwork network, CancellationToken cancellationToken);
     }
 }

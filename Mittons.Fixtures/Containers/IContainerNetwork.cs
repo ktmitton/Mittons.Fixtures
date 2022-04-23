@@ -6,5 +6,6 @@ namespace Mittons.Fixtures.Containers
     /// </remarks>
     public interface IContainerNetwork : INetwork
     {
+        string NetworkId { get; }
     }
 }

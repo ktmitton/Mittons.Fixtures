@@ -1,27 +1,16 @@
 using System;
-using System.Collections.Generic;
 using Mittons.Fixtures.Extensions;
-using Mittons.Fixtures.Models;
 
 namespace Mittons.Fixtures.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
-    public class RunAttribute : Attribute, IOptionAttribute
+    public class RunAttribute : Attribute
     {
         public static string DefaultId = Guid.NewGuid().ToString();
 
         public string Id { get; }
 
         public bool TeardownOnComplete { get; }
-
-        public IEnumerable<Option> Options => new List<Option>
-        {
-            new Option
-            {
-                Name = "--label",
-                Value = $"mittons.fixtures.run.id={Id}"
-            }
-        };
 
         public RunAttribute()
             : this(DefaultId)

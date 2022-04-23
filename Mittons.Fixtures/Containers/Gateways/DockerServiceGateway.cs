@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Exceptions.Containers;
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Containers.Attributes
+namespace Mittons.Fixtures.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
     public class CommandAttribute : Attribute

@@ -12,9 +12,9 @@ using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Exceptions.Containers;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Integration;
+namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
 
-public class GuestEnvironmentFixtureTests
+public class DockerServiceGatewayTests
 {
     public class RemoveServiceTests : IDisposable
     {

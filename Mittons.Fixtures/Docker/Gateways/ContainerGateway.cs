@@ -43,18 +43,6 @@ namespace Mittons.Fixtures.Docker.Gateways
             }
         }
 
-        public async Task<IPAddress> GetDefaultNetworkIpAddressAsync(string containerId, CancellationToken cancellationToken)
-        {
-            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{range .NetworkSettings.Networks}}}}{{{{printf \\\"%s\\n\\\" .IPAddress}}}}{{{{end}}}}\""))
-            {
-                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-                IPAddress.TryParse(process.StandardOutput.ReadLine(), out var expectedIpAddress);
-
-                return expectedIpAddress;
-            }
-        }
-
         public async Task AddFileAsync(string containerId, string hostFilename, string containerFilename, string owner, string permissions, CancellationToken cancellationToken)
         {
             var directory = System.IO.Path.GetDirectoryName(containerFilename).Replace("\\", "/");
@@ -119,18 +107,6 @@ namespace Mittons.Fixtures.Docker.Gateways
                 }
 
                 return lines;
-            }
-        }
-
-        public async Task<int> GetHostPortMappingAsync(string containerId, string protocol, int containerPort, CancellationToken cancellationToken)
-        {
-            using (var process = new DockerProcess($"port {containerId} {containerPort}/{protocol}"))
-            {
-                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-                int.TryParse((await process.StandardOutput.ReadLineAsync().ConfigureAwait(false)).Split(':').Last(), out var port);
-
-                return port;
             }
         }
 

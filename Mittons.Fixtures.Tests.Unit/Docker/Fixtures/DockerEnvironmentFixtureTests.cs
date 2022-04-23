@@ -131,8 +131,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -186,8 +184,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -241,8 +237,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -296,8 +290,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -351,8 +343,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -453,8 +443,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -508,8 +496,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -590,8 +576,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -613,8 +597,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -676,8 +658,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -698,8 +678,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -780,8 +758,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -803,8 +779,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -820,8 +794,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -848,8 +820,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 
@@ -880,8 +850,6 @@ public class DockerEnvironmentFixtureTests
         {
             // Arrange
             var containerGatewayMock = new Mock<IContainerGateway>();
-            containerGatewayMock.Setup(x => x.GetDefaultNetworkIpAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(IPAddress.Any);
             containerGatewayMock.Setup(x => x.GetHealthStatusAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(HealthStatus.Healthy);
 

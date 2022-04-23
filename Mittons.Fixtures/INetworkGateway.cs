@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Attributes;
 
 namespace Mittons.Fixtures
 {
@@ -28,11 +29,10 @@ namespace Mittons.Fixtures
         /// </remarks>
         Task<TNetwork> CreateNetworkAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken);
 
-
         /// <summary>
         /// Stops and removes an <see cref="Mittons.Fixtures.INetwork"/>.
         /// </summary>
-        /// <param name="service">
+        /// <param name="network">
         /// The <see cref="Mittons.Fixtures.INetwork"/> that should be stopped and removed from the Host system.
         /// </param>
         /// <param name="cancellationToken">
@@ -43,5 +43,24 @@ namespace Mittons.Fixtures
         /// This operation will remove the <see cref="Mittons.Fixtures.INetwork"/> and release all resources it held on the Host system.
         /// </remarks>
         Task RemoveNetworkAsync(TNetwork network, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Connects an <see cref="Mittons.Fixtures.IService"/> to an <see cref="Mittons.Fixtures.INetwork"/>.
+        /// </summary>
+        /// <param name="network">
+        /// The <see cref="Mittons.Fixtures.INetwork"/> to which the <see cref="Mittons.Fixtures.IService"/> should be connected.
+        /// </param>
+        /// <param name="service">
+        /// The <see cref="Mittons.Fixtures.IService"/> to connect.
+        /// </param>
+        /// <param name="alias">
+        /// The details about how the <see cref="Mittons.Fixtures.IService"/> should be identified within the <see cref="Mittons.Fixtures.INetwork"/>.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to cancel the operation.
+        /// </param>
+        /// <exception cref="System.OperationCanceledException">If the <see cref="Mittons.Fixtures.INetworkGateway"/> supports it, this exception may be thrown if the <paramref name="cancellationToken"/> is cancelled before the operation can complete.</exception>
+        /// <exception cref="System.NotSupportedException">Thrown if the <see cref="Mittons.Fixtures.INetworkGateway"/> does not support the provided <see cref="Mittons.Fixtures.IService"/>.</exception>
+        Task ConnectServiceAsync(TNetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken);
     }
 }

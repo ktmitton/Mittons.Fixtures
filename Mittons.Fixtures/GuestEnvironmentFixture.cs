@@ -100,6 +100,20 @@ namespace Mittons.Fixtures
 
                 propertyInfo.SetValue(this, service);
                 _services.Add(service);
+
+                var networkAliases = attributes.OfType<NetworkAliasAttribute>();
+
+                if (networkAliases.Any())
+                {
+                    foreach (var alias in networkAliases)
+                    {
+                        var network = _networks.Single(x => x.Name == alias.NetworkName);
+
+                        var networkGateway = _networkGatewayFactory.GetNetworkGateway(network.GetType());
+
+                        await networkGateway.ConnectServiceAsync(network, service, alias, cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
         }
 
@@ -173,6 +187,11 @@ namespace Mittons.Fixtures
 
                 public async Task RemoveNetworkAsync(INetwork network, CancellationToken cancellationToken)
                     => await _baseGateway.RemoveNetworkAsync((T)network, cancellationToken).ConfigureAwait(false);
+
+                public Task ConnectServiceAsync(INetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken)
+                {
+                    throw new NotImplementedException();
+                }
             }
         }
     }

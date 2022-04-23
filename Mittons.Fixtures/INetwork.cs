@@ -8,5 +8,6 @@ namespace Mittons.Fixtures
     /// </remarks>
     public interface INetwork
     {
+        string Name { get; }
     }
 }

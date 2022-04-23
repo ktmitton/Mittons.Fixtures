@@ -96,8 +96,10 @@ public class GuestEnvironmentFixtureTests
             await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
+#nullable disable warnings
             _mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(fixture.Netowrk1, It.IsAny<CancellationToken>()), Times.Once);
             _mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(fixture.Network2, It.IsAny<CancellationToken>()), Times.Once);
+#nullable enable warnings
         }
 
         [Fact]
@@ -127,8 +129,10 @@ public class GuestEnvironmentFixtureTests
             await fixture.DisposeAsync().ConfigureAwait(false);
 
             // Assert
+#nullable disable warnings
             _mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.AlpineContainer, It.IsAny<CancellationToken>()), Times.Once);
             _mockServiceGateway.Verify(x => x.RemoveServiceAsync(fixture.RedisContainer, It.IsAny<CancellationToken>()), Times.Once);
+#nullable enable warnings
         }
 
         [Fact]
@@ -173,16 +177,18 @@ public class GuestEnvironmentFixtureTests
         private class RunSetEnvironmentFixture : GuestEnvironmentFixture
         {
             [Network("network1")]
-            public IContainerNetwork? Netowrk1 { get; set; }
+            public IContainerNetwork? Network1 { get; set; }
 
             [Network("network2")]
             public IContainerNetwork? Network2 { get; set; }
 
             [Image("alpine:3.15")]
+            [NetworkAlias("network1", "alpine.example.com")]
             public IContainerService? AlpineContainer { get; set; }
 
             [Image("redis:alpine")]
             [Command("test command")]
+            [NetworkAlias("network2", "redis.example.com", true)]
             public IContainerService? RedisContainer { get; set; }
 
             public RunSetEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory, INetworkGatewayFactory networkGatewayFactory)
@@ -213,7 +219,15 @@ public class GuestEnvironmentFixtureTests
 
             _mockServiceGateway = new Mock<IServiceGateway<IService>>();
             _mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
+                .ReturnsAsync((IEnumerable<Attribute> attributes, CancellationToken cancellationToken) =>
+                    {
+                        var mockService = new Mock<IContainerService>();
+                        mockService.SetupGet(x => x.ContainerId)
+                            .Returns(Guid.NewGuid().ToString());
+
+                        return mockService.Object;
+                    }
+                );
 
             _mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
             _mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
@@ -221,7 +235,17 @@ public class GuestEnvironmentFixtureTests
 
             _mockNetworkGateway = new Mock<INetworkGateway<INetwork>>();
             _mockNetworkGateway.Setup(x => x.CreateNetworkAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerNetwork>());
+                .ReturnsAsync((IEnumerable<Attribute> attributes, CancellationToken cancellationToken) =>
+                    {
+                        var mockNetwork = new Mock<IContainerNetwork>();
+                        mockNetwork.SetupGet(x => x.Name)
+                            .Returns(attributes.OfType<NetworkAttribute>().FirstOrDefault()?.Name ?? string.Empty);
+                        mockNetwork.SetupGet(x => x.NetworkId)
+                            .Returns(Guid.NewGuid().ToString());
+
+                        return mockNetwork.Object;
+                    }
+                );
 
             _mockNetworkGatewayFactory = new Mock<INetworkGatewayFactory>();
             _mockNetworkGatewayFactory.Setup(x => x.GetNetworkGateway(It.IsAny<Type>()))
@@ -398,6 +422,38 @@ public class GuestEnvironmentFixtureTests
                     ),
                     Times.Once
                 );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenServiceHasANetworkAlias_ExpectServiceToBeConnectedToTheNetwork()
+        {
+            // Arrange
+            var fixture = new RunSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            // Act
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+#nullable disable warnings
+            _mockNetworkGateway.Verify(
+                    method => method.ConnectServiceAsync(
+                        It.Is<IContainerNetwork>(network => network.NetworkId == fixture.Network1.NetworkId),
+                        It.Is<IContainerService>(container => container.ContainerId == fixture.AlpineContainer.ContainerId),
+                        It.Is<NetworkAliasAttribute>(alias => alias.Alias == "alpine.example.com" && alias.IsExternalNetwork == false),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+            _mockNetworkGateway.Verify(
+                    method => method.ConnectServiceAsync(
+                        It.Is<IContainerNetwork>(network => network.NetworkId == fixture.Network2.NetworkId),
+                        It.Is<IContainerService>(container => container.ContainerId == fixture.RedisContainer.ContainerId),
+                        It.Is<NetworkAliasAttribute>(alias => alias.Alias == "redis.example.com" && alias.IsExternalNetwork == true),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+#nullable enable warnings
         }
     }
 }

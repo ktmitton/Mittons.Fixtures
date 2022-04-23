@@ -40,16 +40,23 @@ namespace Mittons.Fixtures.Containers.Gateways
 
                 var networkId = process.StandardOutput.ReadLine();
 
-                return new ContainerNetwork(networkId);
+                return new ContainerNetwork(networkId, string.Empty);
             }
         }
 
+        /// <inheritdoc/>
         public async Task RemoveNetworkAsync(IContainerNetwork network, CancellationToken cancellationToken)
         {
             using (var process = new DockerProcess($"network rm {network.NetworkId}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        /// <inheritdoc/>
+        public Task ConnectServiceAsync(IContainerNetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

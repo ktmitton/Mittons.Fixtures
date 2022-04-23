@@ -15,4 +15,9 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.3" />
+  </ItemGroup>
+
 </Project>

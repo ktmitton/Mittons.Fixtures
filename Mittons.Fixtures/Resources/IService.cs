@@ -14,35 +14,48 @@ namespace Mittons.Fixtures.Resources
     public interface IServiceGateway<TService> where TService : IService
     {
         /// <summary>
-        /// Gets all known <see cref="Mittons.Fixtures.Resources.IServiceResource">resources</see> monitored by a Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// Creates an instance of an <see cref="Mittons.Fixtures.Resources.IService"/>.
         /// </summary>
-        /// <param name="service">
-        /// The <see cref="Mittons.Fixtures.Resources.IService"/> for which resource details should be retrieved.
+        /// <param name="attributes">
+        /// The <see cref="System.Attribute">Attributes</see> defining the parameters of the <see cref="Mittons.Fixtures.Resources.IService"/>.
         /// </param>
         /// <param name="cancellationToken">
         /// The cancellation token to cancel the operation.
         /// </param>
-        /// <returns>
-        /// All known resources being monitored by the Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
-        /// </returns>
-        /// <value>
-        /// The returned resources are typically used by the Host to communicate with the Guest <see cref="Mittons.Fixtures.Resources.IService"/>.
-        /// </value>
         /// <exception cref="System.OperationCanceledException">If the <see cref="Mittons.Fixtures.Resources.IServiceGateway"/> supports it, this exception may be thrown if the <paramref name="cancellationToken"/> is cancelled before the operation can complete.</exception>
         /// <remarks>
-        /// These can represent asynchronous communication mechanisms such as monitoring a file for changes or more synchronous request-respones channels such as http connections.
+        /// The provided <see cref="Mittons.Fixtures.Resources.IService"/> should not be intialized yet, and should contain all details needed by the <see cref="Mittons.Fixtures.Resources.IServiceGateway"/> to create a new instance.
         /// </remarks>
-        Task<IEnumerable<IServiceResource>> GetServiceResources(TService service, CancellationToken cancellationToken);
+        Task<TService> CreateServiceAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Stops and removes an <see cref="Mittons.Fixtures.Resources.IService"/>.
+        /// </summary>
+        /// <param name="service">
+        /// The <see cref="Mittons.Fixtures.Resources.IService"/> that should be stopped and removed from the Host system.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to cancel the operation.
+        /// </param>
+        /// <exception cref="System.OperationCanceledException">If the <see cref="Mittons.Fixtures.Resources.IServiceGateway"/> supports it, this exception may be thrown if the <paramref name="cancellationToken"/> is cancelled before the operation can complete.</exception>
+        /// <remarks>
+        /// This operation will remove the <see cref="Mittons.Fixtures.Resources.IService"/> and release all resources it held on the Host system.
+        /// </remarks>
+        Task RemoveServiceAsync(TService service, CancellationToken cancellationToken);
     }
 
     public interface IService : IAsyncLifetime
     {
-        IEnumerable<IServiceResource> ServiceAccessPoints { get; }
+        IEnumerable<Attribute> Attributes { get; }
+
+        IEnumerable<IServiceResource> ServiceResources { get; }
     }
 
     public interface IDockerService : IService
     {
         string Id { get; }
+
+        string ContainerId { get; }
     }
 
     /// <summary>

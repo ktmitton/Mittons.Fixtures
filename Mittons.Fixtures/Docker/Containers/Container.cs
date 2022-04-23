@@ -15,7 +15,11 @@ namespace Mittons.Fixtures.Docker.Containers
     {
         public string Id { get; private set; }
 
-        public IEnumerable<IServiceResource> ServiceAccessPoints { get; private set; }
+        public IEnumerable<IServiceResource> ServiceResources { get; private set; }
+
+        public IEnumerable<Attribute> Attributes { get; }
+
+        public string ContainerId { get; }
 
         protected readonly IContainerGateway _containerGateway;
 
@@ -33,23 +37,30 @@ namespace Mittons.Fixtures.Docker.Containers
 
         private readonly bool _teardownOnComplete;
 
+        public Container(string containerId, IEnumerable<IServiceResource> serviceResources)
+        {
+            ContainerId = containerId;
+            ServiceResources = serviceResources;
+        }
+
         public Container(IContainerGateway containerGateway, INetworkGateway networkGateway, Guid instanceId, IEnumerable<Attribute> attributes)
         {
-            _containerGateway = containerGateway;
+            Attributes = attributes;
+            // _containerGateway = containerGateway;
 
-            _networkGateway = networkGateway;
+            // _networkGateway = networkGateway;
 
-            _instanceId = instanceId;
+            // _instanceId = instanceId;
 
-            _imageName = attributes.OfType<ImageAttribute>().Single().Name;
+            // _imageName = attributes.OfType<ImageAttribute>().Single().Name;
 
-            _command = attributes.OfType<CommandAttribute>().SingleOrDefault()?.Value ?? string.Empty;
+            // _command = attributes.OfType<CommandAttribute>().SingleOrDefault()?.Value ?? string.Empty;
 
-            _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
+            // _options = attributes.OfType<IOptionAttribute>().SelectMany(x => x.Options).ToArray();
 
-            _networks = attributes.OfType<NetworkAliasAttribute>();
+            // _networks = attributes.OfType<NetworkAliasAttribute>();
 
-            _teardownOnComplete = attributes.OfType<RunAttribute>().SingleOrDefault()?.TeardownOnComplete ?? true;
+            // _teardownOnComplete = attributes.OfType<RunAttribute>().SingleOrDefault()?.TeardownOnComplete ?? true;
         }
 
         /// <inheritdoc/>
@@ -59,7 +70,7 @@ namespace Mittons.Fixtures.Docker.Containers
         public virtual async Task InitializeAsync(CancellationToken cancellationToken)
         {
             Id = await _containerGateway.RunAsync(_imageName, _command, _options, cancellationToken).ConfigureAwait(false);
-            ServiceAccessPoints = await _containerGateway.GetServiceResources(this, cancellationToken).ConfigureAwait(false);
+            // ServiceResources = await _containerGateway.Get(this, cancellationToken).ConfigureAwait(false);
 
             await EnsureHealthyAsync(cancellationToken).ConfigureAwait(false);
 

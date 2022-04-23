@@ -31,20 +31,13 @@ namespace Mittons.Fixtures
 
         private readonly List<IService> _services;
 
+        private readonly List<INetwork> _networks;
+
         private readonly Attribute[] _environmentAttributes;
 
         private readonly IServiceGatewayFactory _serviceGatewayFactory;
 
-        /// <summary>
-        /// The default constructor for a new instance of the Guest environment.
-        /// </summary>
-        /// <remarks>
-        /// This will create the Guest environment using the default <see cref="Mittons.Fixtures.IServiceGatewayFactory"/>.
-        /// </remarks>
-        public GuestEnvironmentFixture()
-            : this(new DefaultServiceGatewayFactory())
-        {
-        }
+        private readonly INetworkGatewayFactory _networkGatewayFactory;
 
         /// <summary>
         /// A constructor for a new instance of the Guest environment with custom parameters.
@@ -55,15 +48,19 @@ namespace Mittons.Fixtures
         /// <remarks>
         /// This allows consumers to provide their own implementation of <see cref="Mittons.Fixtures.IServiceGatewayFactory"/> if the default factory does not provide the desired functionality.
         /// </remarks>
-        public GuestEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory)
+        public GuestEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory = null, INetworkGatewayFactory networkGatewayFactory = null)
         {
-            _serviceGatewayFactory = serviceGatewayFactory;
+            _serviceGatewayFactory = serviceGatewayFactory ?? new DefaultServiceGatewayFactory();
+
+            _networkGatewayFactory = networkGatewayFactory ?? new DefaultNetworkGatewayFactory();
 
             var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
 
             _environmentAttributes = environmentAttributes.OfType<RunAttribute>().Any() ? environmentAttributes : environmentAttributes.Concat(new[] { new RunAttribute() }).ToArray();
 
             _services = new List<IService>();
+
+            _networks = new List<INetwork>();
         }
 
         /// <inheritdoc/>
@@ -80,6 +77,18 @@ namespace Mittons.Fixtures
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             var run = _environmentAttributes.OfType<RunAttribute>().Single();
+
+            foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(INetwork).IsAssignableFrom(x.PropertyType)))
+            {
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+
+                var networkGateway = _networkGatewayFactory.GetNetworkGateway(propertyInfo.PropertyType);
+
+                var network = await networkGateway.CreateNetworkAsync(attributes, cancellationToken).ConfigureAwait(false);
+
+                propertyInfo.SetValue(this, network);
+                _networks.Add(network);
+            }
 
             foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType)))
             {
@@ -133,6 +142,33 @@ namespace Mittons.Fixtures
 
                 public async Task RemoveServiceAsync(IService service, CancellationToken cancellationToken)
                     => await _baseGateway.RemoveServiceAsync((T)service, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private class DefaultNetworkGatewayFactory : INetworkGatewayFactory
+        {
+            public INetworkGateway<INetwork> GetNetworkGateway(Type networkType)
+            {
+                var networkGatewayType = typeof(GuestEnvironmentFixture).Assembly.GetTypes().First(x => x.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(INetworkGateway<>) && i.GenericTypeArguments.Any(z => z == networkType)));
+
+                var baseGateway = Activator.CreateInstance(networkGatewayType);
+
+                var decoratorGateway = typeof(NetworkGatewayDecorator<>).MakeGenericType(networkType);
+
+                return (INetworkGateway<INetwork>)Activator.CreateInstance(decoratorGateway, new object[] { baseGateway });
+            }
+
+            private class NetworkGatewayDecorator<T> : INetworkGateway<INetwork> where T : INetwork
+            {
+                private readonly INetworkGateway<T> _baseGateway;
+
+                public NetworkGatewayDecorator(INetworkGateway<T> baseGateway)
+                {
+                    _baseGateway = baseGateway;
+                }
+
+                public async Task<INetwork> CreateNetworkAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
+                    => await _baseGateway.CreateNetworkAsync(attributes, cancellationToken).ConfigureAwait(false);
             }
         }
     }

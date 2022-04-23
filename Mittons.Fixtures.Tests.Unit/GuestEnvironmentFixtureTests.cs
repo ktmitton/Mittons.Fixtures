@@ -95,27 +95,35 @@ public class GuestEnvironmentFixtureTests
 
     public class InitializeTests
     {
-        [Network("network1")]
-        [Network("network2")]
         private class RunNotSetEnvironmentFixture : GuestEnvironmentFixture
         {
+            [Network("network1")]
+            public IContainerNetwork? Netowrk1 { get; set; }
+
+            [Network("network2")]
+            public IContainerNetwork? Network2 { get; set; }
+
             [Image("alpine:3.15")]
             public IContainerService? AlpineContainer { get; set; }
 
             [Image("redis:alpine")]
             public IContainerService? RedisContainer { get; set; }
 
-            public RunNotSetEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory)
-                : base(serviceGatewayFactory)
+            public RunNotSetEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory, INetworkGatewayFactory networkGatewayFactory)
+                : base(serviceGatewayFactory, networkGatewayFactory)
             {
             }
         }
 
         [Run("test")]
-        [Network("network1")]
-        [Network("network2")]
         private class RunSetEnvironmentFixture : GuestEnvironmentFixture
         {
+            [Network("network1")]
+            public IContainerNetwork? Netowrk1 { get; set; }
+
+            [Network("network2")]
+            public IContainerNetwork? Network2 { get; set; }
+
             [Image("alpine:3.15")]
             public IContainerService? AlpineContainer { get; set; }
 
@@ -123,8 +131,8 @@ public class GuestEnvironmentFixtureTests
             [Command("test command")]
             public IContainerService? RedisContainer { get; set; }
 
-            public RunSetEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory)
-                : base(serviceGatewayFactory)
+            public RunSetEnvironmentFixture(IServiceGatewayFactory serviceGatewayFactory, INetworkGatewayFactory networkGatewayFactory)
+                : base(serviceGatewayFactory, networkGatewayFactory)
             {
             }
         }
@@ -133,6 +141,14 @@ public class GuestEnvironmentFixtureTests
 
         private readonly string _releaseId;
 
+        private readonly Mock<IServiceGateway<IService>> _mockServiceGateway;
+
+        private readonly Mock<IServiceGatewayFactory> _mockServiceGatewayFactory;
+
+        private readonly Mock<INetworkGateway<INetwork>> _mockNetworkGateway;
+
+        private readonly Mock<INetworkGatewayFactory> _mockNetworkGatewayFactory;
+
         public InitializeTests()
         {
             _buildId = Guid.NewGuid().ToString();
@@ -140,21 +156,115 @@ public class GuestEnvironmentFixtureTests
 
             _releaseId = Guid.NewGuid().ToString();
             Environment.SetEnvironmentVariable("RELEASE_RELEASEID", _releaseId);
+
+            _mockServiceGateway = new Mock<IServiceGateway<IService>>();
+            _mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Mock.Of<IContainerService>());
+
+            _mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
+            _mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
+                .Returns(_mockServiceGateway.Object);
+
+            _mockNetworkGateway = new Mock<INetworkGateway<INetwork>>();
+            _mockNetworkGateway.Setup(x => x.CreateNetworkAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => Mock.Of<IContainerNetwork>());
+
+            _mockNetworkGatewayFactory = new Mock<INetworkGatewayFactory>();
+            _mockNetworkGatewayFactory.Setup(x => x.GetNetworkGateway(It.IsAny<Type>()))
+                .Returns(_mockNetworkGateway.Object);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenFixtureContainsNetworks_ExpectNetworksToBeCreated()
+        {
+            // Arrange
+            var fixture = new RunNotSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            // Act
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            Assert.NotNull(fixture.Netowrk1);
+            Assert.NotNull(fixture.Network2);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenInitializedWithoutRunDetails_ExpectNetworksToUseDefaultRunDetails()
+        {
+            // Arrange
+            var fixture = new RunNotSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            // Act
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            _mockNetworkGateway.Verify(
+                    method => method.CreateNetworkAsync(
+                        It.Is<IEnumerable<Attribute>>(
+                            attribute => attribute.OfType<RunAttribute>().Any(run => run.Id == RunAttribute.DefaultId)
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Exactly(2)
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenFixtureHasStaticRunDetails_ExpectNetworksToUseStaticRunDetails()
+        {
+            // Arrange
+            var fixture = new RunSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            // Act
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            _mockNetworkGateway.Verify(
+                    method => method.CreateNetworkAsync(
+                        It.Is<IEnumerable<Attribute>>(
+                            attribute => attribute.OfType<RunAttribute>().Any(run => run.Id == "test")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Exactly(2)
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenNetworksHaveAttributes_ExpectNetworksToBeWithAttributes()
+        {
+            // Arrange
+            var fixture = new RunSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
+
+            // Act
+            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
+
+            // Assert
+            _mockNetworkGateway.Verify(
+                    method => method.CreateNetworkAsync(
+                        It.Is<IEnumerable<Attribute>>(
+                            attribute => attribute.OfType<NetworkAttribute>().Any(network => network.Name == "network1")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+            _mockNetworkGateway.Verify(
+                    method => method.CreateNetworkAsync(
+                        It.Is<IEnumerable<Attribute>>(
+                            attribute => attribute.OfType<NetworkAttribute>().Any(network => network.Name == "network2")
+                        ),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
         }
 
         [Fact]
         public async Task InitializeAsync_WhenFixtureContainsServices_ExpectServicesToBeCreated()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new RunNotSetEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new RunNotSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             // Act
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
@@ -168,21 +278,13 @@ public class GuestEnvironmentFixtureTests
         public async Task InitializeAsync_WhenInitializedWithoutRunDetails_ExpectServicesToUseDefaultRunDetails()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new RunNotSetEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new RunNotSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             // Act
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            mockServiceGateway.Verify(
+            _mockServiceGateway.Verify(
                     method => method.CreateServiceAsync(
                         It.Is<IEnumerable<Attribute>>(
                             attribute => attribute.OfType<RunAttribute>().Any(run => run.Id == RunAttribute.DefaultId)
@@ -197,21 +299,13 @@ public class GuestEnvironmentFixtureTests
         public async Task InitializeAsync_WhenFixtureHasStaticRunDetails_ExpectServicesToUseStaticRunDetails()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new RunSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             // Act
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            mockServiceGateway.Verify(
+            _mockServiceGateway.Verify(
                     method => method.CreateServiceAsync(
                         It.Is<IEnumerable<Attribute>>(
                             attribute => attribute.OfType<RunAttribute>().Any(run => run.Id == "test")
@@ -223,53 +317,16 @@ public class GuestEnvironmentFixtureTests
         }
 
         [Fact]
-        public async Task InitializeAsync_WhenFixtureHasExtraAttributes_ExpectServicesToBeCreatedWithoutTheExtraAttributes()
-        {
-            // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
-
-            // Act
-            await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
-
-            // Assert
-            mockServiceGateway.Verify(
-                    method => method.CreateServiceAsync(
-                        It.Is<IEnumerable<Attribute>>(
-                            attribute => attribute.OfType<NetworkAttribute>().Any()
-                        ),
-                        It.IsAny<CancellationToken>()
-                    ),
-                    Times.Never
-                );
-        }
-
-        [Fact]
         public async Task InitializeAsync_WhenServiceHasAttributes_ExpectServicesToBeWithAttributes()
         {
             // Arrange
-            var mockServiceGateway = new Mock<IServiceGateway<IService>>();
-            mockServiceGateway.Setup(x => x.CreateServiceAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => Mock.Of<IContainerService>());
-
-            var mockServiceGatewayFactory = new Mock<IServiceGatewayFactory>();
-            mockServiceGatewayFactory.Setup(x => x.GetServiceGateway(It.IsAny<Type>()))
-                .Returns(mockServiceGateway.Object);
-
-            var fixture = new RunSetEnvironmentFixture(mockServiceGatewayFactory.Object);
+            var fixture = new RunSetEnvironmentFixture(_mockServiceGatewayFactory.Object, _mockNetworkGatewayFactory.Object);
 
             // Act
             await fixture.InitializeAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Assert
-            mockServiceGateway.Verify(
+            _mockServiceGateway.Verify(
                     method => method.CreateServiceAsync(
                         It.Is<IEnumerable<Attribute>>(
                             attribute => attribute.OfType<ImageAttribute>().Any(image => image.Name == "alpine:3.15")
@@ -278,7 +335,7 @@ public class GuestEnvironmentFixtureTests
                     ),
                     Times.Once
                 );
-            mockServiceGateway.Verify(
+            _mockServiceGateway.Verify(
                     method => method.CreateServiceAsync(
                         It.Is<IEnumerable<Attribute>>(
                             attribute => attribute.OfType<ImageAttribute>().Any(image => image.Name == "redis:alpine") && attribute.OfType<CommandAttribute>().Any(command => command.Value == "test command")

@@ -121,6 +121,8 @@ namespace Mittons.Fixtures.Containers.Gateways
                 return ports.Select(x =>
                 {
                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
+                    var temp1 = new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}");
+                    var temp2 = new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}");
 
                     return new Resource(
                         new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),

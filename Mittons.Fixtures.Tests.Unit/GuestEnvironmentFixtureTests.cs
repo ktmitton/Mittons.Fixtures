@@ -222,7 +222,7 @@ public class GuestEnvironmentFixtureTests
                 .ReturnsAsync((IEnumerable<Attribute> attributes, CancellationToken cancellationToken) =>
                     {
                         var mockService = new Mock<IContainerService>();
-                        mockService.SetupGet(x => x.ContainerId)
+                        mockService.SetupGet(x => x.ServiceId)
                             .Returns(Guid.NewGuid().ToString());
 
                         return mockService.Object;
@@ -438,7 +438,7 @@ public class GuestEnvironmentFixtureTests
             _mockNetworkGateway.Verify(
                     method => method.ConnectServiceAsync(
                         It.Is<IContainerNetwork>(network => network.NetworkId == fixture.Network1.NetworkId),
-                        It.Is<IContainerService>(container => container.ContainerId == fixture.AlpineContainer.ContainerId),
+                        It.Is<IContainerService>(container => container.ServiceId == fixture.AlpineContainer.ServiceId),
                         It.Is<NetworkAliasAttribute>(alias => alias.Alias == "alpine.example.com" && alias.IsExternalNetwork == false),
                         It.IsAny<CancellationToken>()
                     ),
@@ -447,7 +447,7 @@ public class GuestEnvironmentFixtureTests
             _mockNetworkGateway.Verify(
                     method => method.ConnectServiceAsync(
                         It.Is<IContainerNetwork>(network => network.NetworkId == fixture.Network2.NetworkId),
-                        It.Is<IContainerService>(container => container.ContainerId == fixture.RedisContainer.ContainerId),
+                        It.Is<IContainerService>(container => container.ServiceId == fixture.RedisContainer.ServiceId),
                         It.Is<NetworkAliasAttribute>(alias => alias.Alias == "redis.example.com" && alias.IsExternalNetwork == true),
                         It.IsAny<CancellationToken>()
                     ),

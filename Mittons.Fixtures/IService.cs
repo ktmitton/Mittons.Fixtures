@@ -10,6 +10,8 @@ namespace Mittons.Fixtures
     /// </remarks>
     public interface IService
     {
+        string ServiceId { get; }
+
         /// <summary>
         /// Gets the <see cref="Mittons.Fixtures.IResource">IResources</see> exposed by the <see cref="Mittons.Fixtures.IService"/>.
         /// </summary>

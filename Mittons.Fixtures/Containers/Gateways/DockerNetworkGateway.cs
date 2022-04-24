@@ -54,9 +54,17 @@ namespace Mittons.Fixtures.Containers.Gateways
         }
 
         /// <inheritdoc/>
-        public Task ConnectServiceAsync(IContainerNetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken)
+        public async Task ConnectServiceAsync(IContainerNetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (!(service is IContainerService))
+            {
+                throw new NotSupportedException($"Services of type [{service.GetType()}] are not supported by [{this.GetType()}].");
+            }
+
+            using (var process = new DockerProcess($"network connect --alias {alias.Alias} {network.NetworkId} {service.ServiceId}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }

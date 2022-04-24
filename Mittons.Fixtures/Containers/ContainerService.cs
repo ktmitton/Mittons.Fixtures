@@ -6,11 +6,11 @@ namespace Mittons.Fixtures.Containers
     {
         public IEnumerable<IResource> Resources { get; private set; }
 
-        public string ContainerId { get; }
+        public string ServiceId { get; }
 
-        public ContainerService(string containerId, IEnumerable<IResource> resources)
+        public ContainerService(string serviceId, IEnumerable<IResource> resources)
         {
-            ContainerId = containerId;
+            ServiceId = serviceId;
             Resources = resources;
         }
     }

@@ -58,7 +58,7 @@ public class DockerServiceGatewayTests
 
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken);
 
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Act
             await serviceGateway.RemoveServiceAsync(service, _cancellationToken).ConfigureAwait(false);
@@ -67,7 +67,7 @@ public class DockerServiceGatewayTests
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"ps -a --filter id={service.ContainerId} --format \"{{{{.ID}}}}\"";
+                process.StartInfo.Arguments = $"ps -a --filter id={service.ServiceId} --format \"{{{{.ID}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -121,13 +121,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{json .Config.Healthcheck}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -149,13 +149,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{json .Config.Healthcheck}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -177,13 +177,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Labels}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{json .Config.Labels}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -222,13 +222,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{json .Config.Healthcheck}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -326,13 +326,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{.Config.Image}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{.Config.Image}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -360,13 +360,13 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{json .Config.Cmd}}}}\"";
+                process.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{json .Config.Cmd}}}}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -394,7 +394,7 @@ public class DockerServiceGatewayTests
 
             // Act
             var service = await serviceGateway.CreateServiceAsync(attributes, _cancellationToken).ConfigureAwait(false);
-            _containerIds.Add(service.ContainerId);
+            _containerIds.Add(service.ServiceId);
 
             // Assert
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -404,7 +404,7 @@ public class DockerServiceGatewayTests
                 using (var portProcess = new Process())
                 {
                     portProcess.StartInfo.FileName = "docker";
-                    portProcess.StartInfo.Arguments = $"port {service.ContainerId} {port}";
+                    portProcess.StartInfo.Arguments = $"port {service.ServiceId} {port}";
                     portProcess.StartInfo.UseShellExecute = false;
                     portProcess.StartInfo.RedirectStandardOutput = true;
 
@@ -423,7 +423,7 @@ public class DockerServiceGatewayTests
                 using (var ipProcess = new Process())
                 {
                     ipProcess.StartInfo.FileName = "docker";
-                    ipProcess.StartInfo.Arguments = $"inspect {service.ContainerId} --format \"{{{{.NetworkSettings.IPAddress}}}}\"";
+                    ipProcess.StartInfo.Arguments = $"inspect {service.ServiceId} --format \"{{{{.NetworkSettings.IPAddress}}}}\"";
                     ipProcess.StartInfo.UseShellExecute = false;
                     ipProcess.StartInfo.RedirectStandardOutput = true;
 

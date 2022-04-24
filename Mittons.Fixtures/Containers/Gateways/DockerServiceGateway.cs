@@ -89,7 +89,7 @@ namespace Mittons.Fixtures.Containers.Gateways
         /// <inheritdoc/>
         public async Task RemoveServiceAsync(IContainerService service, CancellationToken cancellationToken)
         {
-            using (var process = new DockerProcess($"rm --force {service.ContainerId}"))
+            using (var process = new DockerProcess($"rm --force {service.ServiceId}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }

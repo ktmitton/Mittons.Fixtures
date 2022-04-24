@@ -101,7 +101,7 @@ namespace Mittons.Fixtures.Containers.Gateways
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                return await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+                return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
             }
         }
 

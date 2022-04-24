@@ -101,7 +101,7 @@ namespace Mittons.Fixtures.Containers.Gateways
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                return await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+                return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
             }
         }
 
@@ -121,15 +121,6 @@ namespace Mittons.Fixtures.Containers.Gateways
                 return ports.Select(x =>
                 {
                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
-                    try
-                    {
-                        var temp1 = new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}");
-                        var temp2 = new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}");
-                    }
-                    catch
-                    {
-                        throw new Exception($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}");
-                    }
 
                     return new Resource(
                         new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),

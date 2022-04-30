@@ -1,7 +1,9 @@
+using System;
+
 namespace Mittons.Fixtures.Containers
 {
     /// <inheritdoc/>
-    public interface IContainerService : IService
+    public interface IContainerService : IService, IAsyncDisposable
     {
     }
 }

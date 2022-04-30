@@ -1,43 +1,47 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Attributes;
 
 namespace Mittons.Fixtures.Containers
 {
-    internal class ContainerService : IContainerService
+    public class ContainerService : IContainerService
     {
         public IEnumerable<IResource> Resources { get; private set; }
 
-        public string ServiceId { get; }
+        public string ServiceId { get; private set; }
 
-        private Func<IContainerService, Task> _disposeCallback;
+        private readonly IContainerGateway _containerGateway;
 
-        public ContainerService()
+        private bool _teardownOnDispose;
+
+        public ContainerService(IContainerGateway containerGateway)
         {
+            _containerGateway = containerGateway;
         }
 
-        public ContainerService(string serviceId, IEnumerable<IResource> resources, Func<IContainerService, Task> disposeCallback)
+        public ValueTask DisposeAsync()
         {
-            ServiceId = serviceId;
-            Resources = resources;
-
-            _disposeCallback = disposeCallback;
+            return new ValueTask(_teardownOnDispose ? _containerGateway.RemoveContainerAsync(default, default) : Task.CompletedTask);
         }
 
-        public async ValueTask DisposeAsync()
+        public async Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
         {
-            await _disposeCallback(this);
-        }
+            var run = attributes.OfType<RunAttribute>().Single();
 
-        public Task InitializeAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            _teardownOnDispose = run.TeardownOnComplete;
 
-        public Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            ServiceId = await _containerGateway.CreateContainerAsync(
+                    new Dictionary<string, string>
+                    {
+                        { "mittons.fixtures.run.id", run.Id }
+                    },
+                    cancellationToken
+                );
+
+            Resources = Enumerable.Empty<IResource>();
         }
     }
 }

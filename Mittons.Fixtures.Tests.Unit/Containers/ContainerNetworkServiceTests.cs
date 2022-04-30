@@ -94,7 +94,7 @@ public class ContainerNetworkServiceTests
             await service.DisposeAsync();
 
             // Assert
-            mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+            mockNetworkGateway.Verify(x => x.RemoveNetworkAsync(service.ServiceId, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

@@ -118,11 +118,11 @@ namespace Mittons.Fixtures
             {
                 var service = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
-                // var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+                var attributes = new[] { run };
 
                 propertyInfo.SetValue(this, service);
 
-                // await ((IService)network).InitializeAsync(attributes, cancellationToken);
+                await ((IService)service).InitializeAsync(attributes, cancellationToken);
             }
 
             // foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType)))

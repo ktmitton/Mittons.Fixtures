@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Mittons.Fixtures.Core.Models;
 
-namespace Mittons.Fixtures.Attributes
+namespace Mittons.Fixtures.Core.Attributes
 {
     public interface IOptionAttribute
     {

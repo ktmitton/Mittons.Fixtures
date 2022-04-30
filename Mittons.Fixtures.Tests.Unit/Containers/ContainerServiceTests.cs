@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Mittons.Fixtures.Attributes;
-using Mittons.Fixtures.Containers;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
+using Mittons.Fixtures.Core.Attributes;
 using Moq;
 using Xunit;
 

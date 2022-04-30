@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers.Services;
+using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Services;
 
 namespace Mittons.Fixtures.Core

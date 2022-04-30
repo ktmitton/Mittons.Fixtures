@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Attributes
+namespace Mittons.Fixtures.Core.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = false)]
     public class NetworkAttribute : Attribute

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Mittons.Fixtures.Attributes;
+using Mittons.Fixtures.Core.Attributes;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Core.Attributes;

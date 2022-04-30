@@ -1,7 +1,7 @@
 using System;
 using Mittons.Fixtures.Core.Services;
 
-namespace Mittons.Fixtures.Attributes
+namespace Mittons.Fixtures.Core.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true)]
     public class NetworkAliasAttribute : Attribute

@@ -1,7 +1,7 @@
 using System;
 using Mittons.Fixtures.Core.Extensions;
 
-namespace Mittons.Fixtures.Attributes
+namespace Mittons.Fixtures.Core.Attributes
 {
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
     public class RunAttribute : Attribute

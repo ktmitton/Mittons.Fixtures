@@ -1,5 +1,5 @@
 using System;
-using Mittons.Fixtures.Extensions;
+using Mittons.Fixtures.Core.Extensions;
 
 namespace Mittons.Fixtures.Attributes
 {

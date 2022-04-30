@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mittons.Fixtures.Core.Models;
 
-namespace Mittons.Fixtures.Extensions
+namespace Mittons.Fixtures.Core.Extensions
 {
     /// <summary>
     /// Extensions methods for <see cref="IEnumerable"/>.

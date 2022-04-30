@@ -1,7 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 
-namespace Mittons.Fixtures.Extensions
+namespace Mittons.Fixtures.Core.Extensions
 {
     public static class StringExtensions
     {

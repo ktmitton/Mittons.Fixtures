@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Mittons.Fixtures.Models;
+using Mittons.Fixtures.Core.Models;
 
 namespace Mittons.Fixtures.Attributes
 {

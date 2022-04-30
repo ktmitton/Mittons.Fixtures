@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Core.Resources;
 
 namespace Mittons.Fixtures.Containers.Services
 {

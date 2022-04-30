@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures
+namespace Mittons.Fixtures.Core.Resources
 {
     /// <summary>
     /// Represents details needed for the Host environment to communicate with the Guest <see cref="Mittons.Fixtures.Resources.IService"/>.

@@ -1,5 +1,5 @@
 using System;
-using Mittons.Fixtures.Models;
+using Mittons.Fixtures.Core.Models;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Unit.Core.Models;

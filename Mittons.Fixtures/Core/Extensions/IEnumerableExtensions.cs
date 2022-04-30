@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Mittons.Fixtures.Models;
+using Mittons.Fixtures.Core.Models;
 
 namespace Mittons.Fixtures.Extensions
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mittons.Fixtures.Models
+namespace Mittons.Fixtures.Core.Models
 {
     /// <summary>
     /// A docker option used to further configure a command.

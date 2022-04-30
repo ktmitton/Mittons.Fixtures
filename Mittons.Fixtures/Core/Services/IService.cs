@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Core.Resources;
 
 namespace Mittons.Fixtures.Core.Services
 {

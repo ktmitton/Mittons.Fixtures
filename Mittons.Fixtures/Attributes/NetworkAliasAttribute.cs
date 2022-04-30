@@ -11,6 +11,8 @@ namespace Mittons.Fixtures.Attributes
 
         public bool IsExternalNetwork { get; }
 
+        internal INetworkService Network { get; set; }
+
         public NetworkAliasAttribute(string networkName, string alias)
             : this(networkName, alias, false)
         {

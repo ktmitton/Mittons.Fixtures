@@ -11,14 +11,11 @@ using Mittons.Fixtures.Exceptions.Containers;
 using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;
 
-namespace Mittons.Fixtures.Containers.Gateways
+namespace Mittons.Fixtures.Containers.Docker.Gateways
 {
-    public class DockerServiceGateway : IServiceGateway<IContainerService>
+    internal static class DockerServiceGateway
     {
-        /// <inheritdoc/>
-        /// <exception cref="Mittons.Fixtures.Exceptions.Containers.ImageNameMissingException">Thrown when no <see cref="Mittons.Fixtures.Docker.Attributes.ImageAttribute"/> has been provided.</exception>
-        /// <exception cref="Mittons.Fixtures.Exceptions.Containers.MultipleImageNamesProvidedException">Thrown when multiple <see cref="Mittons.Fixtures.Docker.Attributes.ImageAttribute"/> have been provided.</exception>
-        public async Task<IContainerService> CreateServiceAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
+        internal static async Task<string> CreateServiceAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
         {
             var image = attributes.OfType<ImageAttribute>().ToArray();
 
@@ -82,12 +79,13 @@ namespace Mittons.Fixtures.Containers.Gateways
 
                 var containerId = process.StandardOutput.ReadLine();
 
-                return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken).ConfigureAwait(false));
+                return containerId;
+
+                // return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken).ConfigureAwait(false), container => RemoveServiceAsync(container, CancellationToken.None));
             }
         }
 
-        /// <inheritdoc/>
-        public async Task RemoveServiceAsync(IContainerService service, CancellationToken cancellationToken)
+        internal static async Task RemoveServiceAsync(IContainerService service, CancellationToken cancellationToken)
         {
             using (var process = new DockerProcess($"rm --force {service.ServiceId}"))
             {
@@ -95,7 +93,7 @@ namespace Mittons.Fixtures.Containers.Gateways
             }
         }
 
-        private async Task<string> GetServiceIpAddress(string containerId, CancellationToken cancellationToken)
+        private static async Task<string> GetServiceIpAddress(string containerId, CancellationToken cancellationToken)
         {
             using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{.NetworkSettings.IPAddress}}}}\""))
             {
@@ -105,7 +103,7 @@ namespace Mittons.Fixtures.Containers.Gateways
             }
         }
 
-        private async Task<IEnumerable<IResource>> GetServiceResourcesAsync(string containerId, CancellationToken cancellationToken)
+        internal static async Task<IEnumerable<IResource>> GetServiceResourcesAsync(string containerId, CancellationToken cancellationToken)
         {
             var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
 

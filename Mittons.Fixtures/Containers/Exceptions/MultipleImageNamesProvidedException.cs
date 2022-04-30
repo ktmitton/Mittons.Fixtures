@@ -1,6 +1,6 @@
 using System;
 
-namespace Mittons.Fixtures.Exceptions.Containers
+namespace Mittons.Fixtures.Containers.Exceptions
 {
     public class MultipleImageNamesProvidedException : Exception
     {

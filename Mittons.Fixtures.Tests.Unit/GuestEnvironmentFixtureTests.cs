@@ -30,12 +30,15 @@ public class GuestEnvironmentFixtureTests
         [Network("PrimaryNetwork")]
         public IContainerNetworkService PrimaryContainerNetwork { get; set; }
 
-        public List<Mock<INetworkService>> Services { get; }
+        [AllowNull]
+        public IContainerService PrimaryContainer { get; set; }
+
+        public List<Mock<IService>> Services { get; }
 
         public TestGuestEnvironmentFixture(bool clearRegistrations, bool addMockRegistrations)
             : base()
         {
-            Services = new List<Mock<INetworkService>>();
+            Services = new List<Mock<IService>>();
 
             if (clearRegistrations)
             {
@@ -51,7 +54,19 @@ public class GuestEnvironmentFixtureTests
                         mockNetwork.SetupGet(x => x.ServiceId)
                             .Returns($"Test-{Guid.NewGuid()}");
 
-                        Services.Add(mockNetwork.As<INetworkService>());
+                        Services.Add(mockNetwork.As<IService>());
+
+                        return mockNetwork.Object;
+                    });
+
+                base._serviceCollection.AddTransient<IContainerService>(
+                    (_) =>
+                    {
+                        var mockNetwork = new Mock<IContainerService>();
+                        // mockNetwork.SetupGet(x => x.ServiceId)
+                        //     .Returns($"Test-{Guid.NewGuid()}");
+
+                        // Services.Add(mockNetwork.As<IService>());
 
                         return mockNetwork.Object;
                     });
@@ -153,7 +168,18 @@ public class GuestEnvironmentFixtureTests
     public class ServiceProviderTests
     {
         [Fact]
-        public async Task InitializeAsync_WhenAContainerNetworkIsRequestedWithDefaultRegistrations_ExpectNetworkToBeResolved()
+        public async Task InitializeAsync_WhenAFixtureIsInitializedWithNoRegistrations_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var fixture = new TestGuestEnvironmentFixture(clearRegistrations: true, addMockRegistrations: false);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.InitializeAsync());
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenAContainerNetworkServiceIsRequestedWithDefaultRegistrations_ExpectServiceToBeResolved()
         {
             // Arrange
             var fixture = new TestGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: false);
@@ -165,21 +191,10 @@ public class GuestEnvironmentFixtureTests
             Assert.NotNull(fixture.PrimaryContainerNetwork);
         }
 
-        [Fact]
-        public async Task InitializeAsync_WhenAContainerNetworkIsRequestedWithNoRegistrations_ExpectAnExceptionToBeThrown()
-        {
-            // Arrange
-            var fixture = new TestGuestEnvironmentFixture(clearRegistrations: true, addMockRegistrations: false);
-
-            // Act
-            // Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.InitializeAsync());
-        }
-
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task InitializeAsync_WhenAContainerNetworkIsRequestedWithCustomRegistrations_ExpectNetworkToBeResolved(bool clearRegistrations)
+        public async Task InitializeAsync_WhenAContainerNetworkServiceIsRequestedWithCustomRegistrations_ExpectServiceToBeResolved(bool clearRegistrations)
         {
             // Arrange
             var fixture = new TestGuestEnvironmentFixture(clearRegistrations: clearRegistrations, addMockRegistrations: true);
@@ -190,6 +205,19 @@ public class GuestEnvironmentFixtureTests
             // Assert
             Assert.NotNull(fixture.PrimaryContainerNetwork);
             Assert.StartsWith("Test-", fixture.PrimaryContainerNetwork.ServiceId);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenAContainerServiceIsRequestedWithDefaultRegistrations_ExpectServiceToBeResolved()
+        {
+            // Arrange
+            var fixture = new TestGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: false);
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.NotNull(fixture.PrimaryContainer);
         }
     }
     //     public class DisposeTests

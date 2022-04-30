@@ -50,6 +50,7 @@ namespace Mittons.Fixtures
         {
             _serviceCollection = new ServiceCollection();
             _serviceCollection.AddSingleton<IContainerNetworkService, ContainerNetworkService>();
+            _serviceCollection.AddSingleton<IContainerService, ContainerService>();
             //_serviceCollection.AddSingleton<INetworkGateway<IContainerNetwork>, DockerNetworkGateway>();
         }
 
@@ -100,7 +101,9 @@ namespace Mittons.Fixtures
 
             _serviceProvider = _serviceCollection.BuildServiceProvider();
 
-            foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
+            var services = this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType));
+
+            foreach (var propertyInfo in services.Where(x => typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
             {
                 var network = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
@@ -109,6 +112,17 @@ namespace Mittons.Fixtures
                 propertyInfo.SetValue(this, network);
 
                 await ((IService)network).InitializeAsync(attributes, cancellationToken);
+            }
+
+            foreach (var propertyInfo in services.Where(x => !typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
+            {
+                var service = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
+
+                // var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+
+                propertyInfo.SetValue(this, service);
+
+                // await ((IService)network).InitializeAsync(attributes, cancellationToken);
             }
 
             // foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType)))

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers.Attributes;
+using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Exceptions.Containers;
 using Mittons.Fixtures.Extensions;
 using Mittons.Fixtures.Models;

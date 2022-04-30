@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Mittons.Fixtures.Attributes;
 using Mittons.Fixtures.Containers;
+using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Containers.Services;
 using Moq;
 using Xunit;
 

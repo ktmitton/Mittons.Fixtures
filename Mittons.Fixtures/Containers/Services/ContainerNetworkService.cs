@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Attributes;
+using Mittons.Fixtures.Containers.Gateways;
 
-namespace Mittons.Fixtures.Containers
+namespace Mittons.Fixtures.Containers.Services
 {
     public class ContainerNetworkService : IContainerNetworkService
     {

@@ -1,4 +1,4 @@
-namespace Mittons.Fixtures.Containers
+namespace Mittons.Fixtures.Containers.Services
 {
     /// <inheritdoc/>
     /// <remarks>

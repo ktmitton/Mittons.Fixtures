@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mittons.Fixtures.Containers
+namespace Mittons.Fixtures.Containers.Gateways
 {
     public interface IContainerNetworkGateway
     {

@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Mittons.Fixtures.Attributes;
-using Mittons.Fixtures.Containers;
 using Mittons.Fixtures.Containers.Services;
+using Mittons.Fixtures.Core.Services;
 
-namespace Mittons.Fixtures
+namespace Mittons.Fixtures.Core
 {
     /// <summary>
     /// An abstract base class from which Guest environments will be defined for testing.

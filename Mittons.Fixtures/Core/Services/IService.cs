@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mittons.Fixtures
+namespace Mittons.Fixtures.Core.Services
 {
     /// <summary>
     /// Represents details describing the capabilities of an <see cref="Mittons.Fixtures.IService"/>.

@@ -2,7 +2,7 @@ using System;
 using Mittons.Fixtures.Models;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit.Models;
+namespace Mittons.Fixtures.Tests.Unit.Core.Models;
 
 public class OptionTests
 {

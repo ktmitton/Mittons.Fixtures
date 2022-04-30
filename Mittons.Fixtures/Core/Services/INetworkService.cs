@@ -1,4 +1,4 @@
-namespace Mittons.Fixtures
+namespace Mittons.Fixtures.Core.Services
 {
     /// <summary>
     /// Represents details describing the capabilities of an <see cref="Mittons.Fixtures.INetworkService"/>.

@@ -1,4 +1,5 @@
 using System;
+using Mittons.Fixtures.Core.Services;
 
 namespace Mittons.Fixtures.Attributes
 {

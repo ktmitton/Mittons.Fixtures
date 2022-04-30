@@ -6,13 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Mittons.Fixtures.Attributes;
-using Mittons.Fixtures.Containers;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
+using Mittons.Fixtures.Core;
+using Mittons.Fixtures.Core.Services;
 using Moq;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit;
+namespace Mittons.Fixtures.Tests.Unit.Core;
 
 public class GuestEnvironmentFixtureTests
 {

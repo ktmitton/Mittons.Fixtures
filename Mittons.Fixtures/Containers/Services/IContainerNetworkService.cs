@@ -1,3 +1,5 @@
+using Mittons.Fixtures.Core.Services;
+
 namespace Mittons.Fixtures.Containers.Services
 {
     /// <inheritdoc/>

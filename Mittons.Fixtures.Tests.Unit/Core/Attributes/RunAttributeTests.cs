@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Mittons.Fixtures.Attributes;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit.Attributes;
+namespace Mittons.Fixtures.Tests.Unit.Core.Attributes;
 
 public class RunAttributeTests
 {

@@ -4,8 +4,7 @@ namespace Mittons.Fixtures.Containers
     /// <remarks>
     /// This type of <see cref="Mittons.Fixtures.INetwork"/> is capable of connecting instances of <see cref="Mittons.Fixtures.Containers.IContainerService"/>
     /// </remarks>
-    public interface IContainerNetwork : INetwork
+    public interface IContainerNetworkService : INetworkService
     {
-        string NetworkId { get; }
     }
 }

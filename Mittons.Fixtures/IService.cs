@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mittons.Fixtures
 {
@@ -8,7 +11,7 @@ namespace Mittons.Fixtures
     /// <remarks>
     /// The details typically include methods through which the Host environment can communicate with the Guest <see cref="Mittons.Fixtures.IService"/>.
     /// </remarks>
-    public interface IService
+    public interface IService : IAsyncDisposable
     {
         string ServiceId { get; }
 
@@ -25,5 +28,7 @@ namespace Mittons.Fixtures
         /// A <see cref="Mittons.Fixtures.IResource"/> is typically used by the Host to communicate with the Guest <see cref="Mittons.Fixtures.IService"/>.
         /// </value>
         IEnumerable<IResource> Resources { get; }
+
+        Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken);
     }
 }

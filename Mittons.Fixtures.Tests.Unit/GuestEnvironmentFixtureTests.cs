@@ -10,7 +10,7 @@ using Mittons.Fixtures.Containers;
 using Moq;
 using Xunit;
 
-namespace Mittons.Fixtures.Tests.Unit.Docker.Fixtures;
+namespace Mittons.Fixtures.Tests.Unit;
 
 public class GuestEnvironmentFixtureTests
 {
@@ -27,10 +27,8 @@ public class GuestEnvironmentFixtureTests
     private class TestGuestEnvironmentFixture : GuestEnvironmentFixture
     {
         [AllowNull]
+        [Network("PrimaryNetwork")]
         public IContainerNetworkService PrimaryContainerNetwork { get; set; }
-
-        [AllowNull]
-        public IContainerNetworkService SecondaryContainerNetwork { get; set; }
 
         public List<Mock<INetworkService>> Services { get; }
 
@@ -58,6 +56,8 @@ public class GuestEnvironmentFixtureTests
                         return mockNetwork.Object;
                     });
             }
+
+            base._serviceCollection.AddSingleton<IContainerNetworkGateway>(_ => Mock.Of<IContainerNetworkGateway>());
         }
     }
 

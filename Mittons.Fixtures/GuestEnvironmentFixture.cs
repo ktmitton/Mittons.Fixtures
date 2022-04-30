@@ -96,7 +96,7 @@ namespace Mittons.Fixtures
         {
             var environmentAttributes = Attribute.GetCustomAttributes(this.GetType());
 
-            var runAttribute = environmentAttributes.OfType<RunAttribute>().FirstOrDefault() ?? new RunAttribute();
+            var run = environmentAttributes.OfType<RunAttribute>().FirstOrDefault() ?? new RunAttribute();
 
             _serviceProvider = _serviceCollection.BuildServiceProvider();
 
@@ -104,9 +104,11 @@ namespace Mittons.Fixtures
             {
                 var network = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+
                 propertyInfo.SetValue(this, network);
 
-                await ((IService)network).InitializeAsync(new[] { runAttribute }, cancellationToken);
+                await ((IService)network).InitializeAsync(attributes, cancellationToken);
             }
 
             // foreach (var propertyInfo in this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType)))

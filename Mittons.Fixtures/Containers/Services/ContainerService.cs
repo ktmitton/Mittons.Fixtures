@@ -43,7 +43,7 @@ namespace Mittons.Fixtures.Containers.Services
                     cancellationToken
                 ).ConfigureAwait(false);
 
-            Resources = Enumerable.Empty<IResource>();
+            Resources = await _containerGateway.GetAvailableResourcesAsync(ServiceId, cancellationToken).ConfigureAwait(false);
 
             var networkAliases = attributes.OfType<NetworkAliasAttribute>();
 

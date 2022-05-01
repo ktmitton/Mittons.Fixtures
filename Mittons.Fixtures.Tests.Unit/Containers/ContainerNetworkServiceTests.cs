@@ -287,15 +287,13 @@ public class ContainerNetworkServiceTests
             await Assert.ThrowsAsync<NotSupportedException>(() => network.ConnectAsync(networkAliasAttribute, cancellationToken));
         }
 
-        [Fact]
-        public async Task ConnectAsync_WhenConnectingACompatibleService_ExpectTheServiceToBeConnected()
+        [Theory]
+        [InlineData("Service1", "Network1", "primary.example.com")]
+        [InlineData("SecondaryService", "SecondaryNetwork", "secondary.example.com")]
+        public async Task ConnectAsync_WhenConnectingACompatibleService_ExpectTheServiceToBeConnected(string expectedContainerId, string expectedNetworkId, string expectedAlias)
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
-
-            var expectedContainerId = "Service1";
-            var expectedNetworkId = "Network1";
-            var expectedAlias = "primary.example.com";
 
             var mockService = Mock.Of<IContainerService>(x => x.ServiceId == expectedContainerId);
 
@@ -349,6 +347,28 @@ public class ContainerNetworkServiceTests
 
             // Assert
             mockNetworkGateway.Verify(x => x.ConnectAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), cancellationToken), Times.Once);
+        }
+    }
+
+    public class ResourceTests
+    {
+        [Fact]
+        public async Task InitializeAsync_WhenServiceIsInitialized_ExpectResourcesToBeEmpty()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockNetworkGateway = new Mock<IContainerNetworkGateway>();
+
+            var service = new ContainerNetworkService(mockNetworkGateway.Object);
+
+            var attributes = new Attribute[] { new NetworkAttribute("PrimaryNetwork"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            Assert.Empty(service.Resources);
         }
     }
 }

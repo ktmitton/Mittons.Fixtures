@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core.Attributes;
+using Mittons.Fixtures.Core.Resources;
 using Mittons.Fixtures.Core.Services;
 using Moq;
 using Xunit;
@@ -99,7 +100,7 @@ public class ContainerServiceTests
         }
 
         [Fact]
-        public async Task DisposeAsync_WhenRunShouldNotTearServicesDownAfterCompletion_ExpectNetworkToNotBeRemoved()
+        public async Task DisposeAsync_WhenRunShouldNotTearServicesDownAfterCompletion_ExpectServiceToNotBeRemoved()
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -219,6 +220,53 @@ public class ContainerServiceTests
 
             // Assert
             mockNetwork.Verify(x => x.ConnectAsync(It.IsAny<NetworkAliasAttribute>(), cancellationToken), Times.Once);
+        }
+    }
+
+    public class ResourceTests
+    {
+        [Fact]
+        public async Task InitializeAsync_WhenServiceIsInitialized_ExpectResourcesToBeSet()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var expectedResources = new List<IResource> { Mock.Of<IResource>() };
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+            mockContainerGateway.Setup(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResources);
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            Assert.Equal(expectedResources, service.Resources);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenGettingResources_ExpectTheProvidedCancellationTokenToBeUsed()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var expectedResources = new List<IResource> { Mock.Of<IResource>() };
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), cancellationToken));
         }
     }
 }

@@ -21,8 +21,11 @@ public class DockerCleanupFixture : IAsyncLifetime
     public Task InitializeAsync()
         => Task.CompletedTask;
 
-    public Task DisposeAsync()
-        => Task.WhenAll(_containerIds.Select(x => RemoveContainer(x)).ToList());
+    public async Task DisposeAsync()
+    {
+        await Task.WhenAll(_containerIds.Select(x => RemoveContainer(x)));
+        await Task.WhenAll(_networkIds.Select(x => RemoveNetwork(x)));
+    }
 
     public void AddContainer(string containerId)
         => _containerIds.Add(containerId);
@@ -40,5 +43,20 @@ public class DockerCleanupFixture : IAsyncLifetime
 
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
+    }
+
+    private async Task RemoveNetwork(string networkId)
+    {
+        using var process = new Process();
+        process.StartInfo.FileName = "docker";
+        process.StartInfo.Arguments = $"network rm {networkId}";
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+
+        process.Start();
+        await process.WaitForExitAsync().ConfigureAwait(false);
+        // var temp = process.StandardOutput.ReadToEnd();
+        // Assert.Equal(string.Empty, temp);
+        // var a = 1;
     }
 }

@@ -25,6 +25,37 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        public async Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)
+        {
+            var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
+                var hostHostname = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
+
+                return ports.Select(x =>
+                {
+                    var guestPortDetails = x.Key.Split('/');
+                    var guestPort = guestPortDetails.First();
+                    var guestScheme = guestPortDetails.Last();
+                    var guestHostname = "localhost";
+
+                    var hostPortDetails = x.Value.First();
+                    var hostPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPortDetails.HostPort : guestPort;
+
+                    return new Resource(
+                        new Uri($"{guestScheme}://{guestHostname}:{guestPort}"),
+                        new Uri($"{guestScheme}://{hostHostname}:{hostPort}")
+                    );
+                }).ToArray();
+            }
+        }
+
         public async Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken)
         {
             using (var process = new DockerProcess($"rm --force {containerId}"))
@@ -40,31 +71,6 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-            }
-        }
-
-        public async Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)
-        {
-            var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
-
-            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
-            {
-                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
-
-                var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
-                var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
-
-                return ports.Select(x =>
-                {
-                    var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
-
-                    return new Resource(
-                        new Uri($"{x.Key.Split('/').Last()}://localhost:{x.Key.Split('/').First()}"),
-                        new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}")
-                    );
-                }).ToArray();
             }
         }
 

@@ -26,6 +26,21 @@ namespace Mittons.Fixtures.Containers.Services
             _containerNetworkGateway = containerNetworkGateway;
         }
 
+        public ValueTask DisposeAsync()
+        {
+            return new ValueTask(_teardownOnDispose ? _containerNetworkGateway.RemoveNetworkAsync(default, default) : Task.CompletedTask);
+        }
+
+        public Task ConnectAsync(NetworkAliasAttribute networkAlias, CancellationToken cancellationToken)
+        {
+            if (!(networkAlias.ConnectedService is IContainerService))
+            {
+                throw new NotSupportedException($"ContainerNetworkService does not support connecting {networkAlias.ConnectedService.GetType()} services.");
+            }
+
+            return _containerNetworkGateway.ConnectAsync(ServiceId, networkAlias.ConnectedService.ServiceId, networkAlias.Alias, cancellationToken);
+        }
+
         /// <exception cref="System.InvalidOperationException">Thrown when <paramref name="attributes"/> does not contain exactly one instance of <see cref="Mittons.Fixtures.Attributes.RunAttribure"/>.</exception>
         /// <exception cref="System.InvalidOperationException">Thrown when <paramref name="attributes"/> does not contain exactly one instance of <see cref="Mittons.Fixtures.Attributes.NetworkAttribute"/>.</exception>
         /// <exception cref="System.ArgumentException">Thrown when the <see cref="Mittons.Fixtures.Attributes.NetworkAttribute"/> in <paramref name="attributes"/> contains an invalid network name.</exception>
@@ -54,21 +69,6 @@ namespace Mittons.Fixtures.Containers.Services
                 ).ConfigureAwait(false);
 
             Resources = Enumerable.Empty<IResource>();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return new ValueTask(_teardownOnDispose ? _containerNetworkGateway.RemoveNetworkAsync(default, default) : Task.CompletedTask);
-        }
-
-        public Task ConnectAsync(NetworkAliasAttribute networkAlias, CancellationToken cancellationToken)
-        {
-            if (!(networkAlias.ConnectedService is IContainerService))
-            {
-                throw new NotSupportedException($"ContainerNetworkService does not support connecting {networkAlias.ConnectedService.GetType()} services.");
-            }
-
-            return _containerNetworkGateway.ConnectAsync(ServiceId, networkAlias.ConnectedService.ServiceId, networkAlias.Alias, cancellationToken);
         }
     }
 }

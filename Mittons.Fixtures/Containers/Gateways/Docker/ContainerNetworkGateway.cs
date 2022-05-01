@@ -1,96 +1,72 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Mittons.Fixtures.Containers.Gateways;
 
 namespace Mittons.Fixtures.Containers.Gateways.Docker
 {
     internal class ContainerNetworkGateway : IContainerNetworkGateway
     {
-        public Task ConnectAsync(string networkId, string containerId, string alias, CancellationToken cancellationToken)
+        public async Task ConnectAsync(string networkId, string containerId, string alias, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            using (var process = new DockerProcess($"network connect --alias {alias} {networkId} {containerId}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task<string> CreateNetworkAsync(string name, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        public async Task<string> CreateNetworkAsync(string name, Dictionary<string, string> labels, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var networkName = $"{name}-{Guid.NewGuid()}";
+
+            var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
+
+            using (var process = new DockerProcess($"network create {labelOptions} {networkName}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var networkId = process.StandardOutput.ReadLine();
+
+                return networkId;
+            }
         }
 
-        public Task RemoveNetworkAsync(string networkId, CancellationToken cancellationToken)
+        public async Task RemoveNetworkAsync(string networkId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var connectedContainerIds = await GetConnectedContainersAsync(networkId, cancellationToken).ConfigureAwait(false);
+
+            await Task.WhenAll(connectedContainerIds.Select(x => DisconnectContainerAsync(networkId, x, cancellationToken))).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"network rm {networkId}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<IEnumerable<string>> GetConnectedContainersAsync(string networkId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"network inspect {networkId} --format \"{{{{json .Containers}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                var containers = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(output);
+
+                return containers.Select(x => x.Key);
+            }
+        }
+
+        private async Task DisconnectContainerAsync(string networkId, string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"network disconnect --force {networkId} {containerId}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+            }
         }
     }
 }
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading;
-// using System.Threading.Tasks;
-// using Mittons.Fixtures.Attributes;
-// using Mittons.Fixtures.Exceptions;
-// using Mittons.Fixtures.Extensions;
-// using Mittons.Fixtures.Models;
-
-// namespace Mittons.Fixtures.Containers.Gateways
-// {
-//     public class DockerNetworkGateway : INetworkGateway<IContainerNetwork>
-//     {
-//         /// <inheritdoc/>
-//         public async Task<IContainerNetwork> CreateNetworkAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
-//         {
-//             var networks = attributes.OfType<NetworkAttribute>().ToArray();
-
-//             if (networks.Length == 0)
-//             {
-//                 throw new NetworkNameMissingException();
-//             }
-//             else if (networks.Length > 1)
-//             {
-//                 throw new MultipleNetworkNamesProvidedException();
-//             }
-
-//             var networkName = $"{networks.First().Name}-{Guid.NewGuid()}";
-
-//             var options = new List<Option>();
-
-//             var run = attributes.OfType<RunAttribute>().Single();
-
-//             options.Add(new Option { Name = "--label", Value = $"mittons.fixtures.run.id={run.Id}" });
-
-//             using (var process = new DockerProcess($"network create {options.ToExecutionParametersFormattedString()} {networkName}"))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-//                 var networkId = process.StandardOutput.ReadLine();
-
-//                 return new ContainerNetwork(networkId, string.Empty);
-//             }
-//         }
-
-//         /// <inheritdoc/>
-//         public async Task RemoveNetworkAsync(IContainerNetwork network, CancellationToken cancellationToken)
-//         {
-//             using (var process = new DockerProcess($"network rm {network.NetworkId}"))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-//             }
-//         }
-
-//         /// <inheritdoc/>
-//         public async Task ConnectServiceAsync(IContainerNetwork network, IService service, NetworkAliasAttribute alias, CancellationToken cancellationToken)
-//         {
-//             if (!(service is IContainerService))
-//             {
-//                 throw new NotSupportedException($"Services of type [{service.GetType()}] are not supported by [{this.GetType()}].");
-//             }
-
-//             using (var process = new DockerProcess($"network connect --alias {alias.Alias} {network.NetworkId} {service.ServiceId}"))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-//             }
-//         }
-//     }
-// }

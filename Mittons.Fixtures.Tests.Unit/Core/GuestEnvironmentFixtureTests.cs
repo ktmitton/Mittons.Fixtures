@@ -27,6 +27,28 @@ public class GuestEnvironmentFixtureTests
         }
     }
 
+    private class DuplicateNetworkGuestEnvironmentFixture : TestGuestEnvironmentFixture
+    {
+        [AllowNull]
+        [Network("PrimaryNetwork")]
+        public IContainerNetworkService TertiaryNetwork { get; set; }
+
+        public DuplicateNetworkGuestEnvironmentFixture(bool clearRegistrations, bool addMockRegistrations) : base(clearRegistrations, addMockRegistrations)
+        {
+        }
+    }
+
+    private class InvalidNetworkedServiceGuestEnvironmentFixture : TestGuestEnvironmentFixture
+    {
+        [AllowNull]
+        [NetworkAlias("TertiaryNetwork", "tertiary.example.com")]
+        public IContainerService TertiaryContainer { get; set; }
+
+        public InvalidNetworkedServiceGuestEnvironmentFixture(bool clearRegistrations, bool addMockRegistrations) : base(clearRegistrations, addMockRegistrations)
+        {
+        }
+    }
+
     private class TestGuestEnvironmentFixture : GuestEnvironmentFixture
     {
         [AllowNull]
@@ -34,7 +56,16 @@ public class GuestEnvironmentFixtureTests
         public IContainerNetworkService PrimaryContainerNetwork { get; set; }
 
         [AllowNull]
+        [Network("SecondaryNetwork")]
+        public IContainerNetworkService SecondaryContainerNetwork { get; set; }
+
+        [AllowNull]
+        [NetworkAlias("PrimaryNetwork", "secondary.example.com")]
         public IContainerService PrimaryContainer { get; set; }
+
+        [AllowNull]
+        [NetworkAlias("SecondaryNetwork", "secondary.example.com")]
+        public IContainerService SecondaryContainer { get; set; }
 
         public List<Mock<IService>> Services { get; }
 
@@ -53,7 +84,19 @@ public class GuestEnvironmentFixtureTests
                 base._serviceCollection.AddTransient<IContainerNetworkService>(
                     (_) =>
                     {
+                        var networkName = Guid.NewGuid().ToString();
+
                         var mockNetwork = new Mock<IContainerNetworkService>();
+                        mockNetwork.Setup(x => x.InitializeAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                            .Callback<IEnumerable<Attribute>, CancellationToken>(
+                                    (attributes, cancellationToken) =>
+                                    {
+                                        networkName = attributes.OfType<NetworkAttribute>().First().Name;
+                                    }
+                                );
+                        mockNetwork.SetupGet(x => x.Name)
+                            .Returns(() => networkName);
+
                         mockNetwork.SetupGet(x => x.ServiceId)
                             .Returns($"Test-{Guid.NewGuid()}");
 
@@ -65,13 +108,11 @@ public class GuestEnvironmentFixtureTests
                 base._serviceCollection.AddTransient<IContainerService>(
                     (_) =>
                     {
-                        var mockNetwork = new Mock<IContainerService>();
-                        // mockNetwork.SetupGet(x => x.ServiceId)
-                        //     .Returns($"Test-{Guid.NewGuid()}");
+                        var mockContainer = new Mock<IContainerService>();
 
-                        // Services.Add(mockNetwork.As<IService>());
+                        Services.Add(mockContainer.As<IService>());
 
-                        return mockNetwork.Object;
+                        return mockContainer.Object;
                     });
             }
 
@@ -266,6 +307,51 @@ public class GuestEnvironmentFixtureTests
 
             // Assert
             Assert.False(string.IsNullOrWhiteSpace(fixture.PrimaryContainer.ServiceId));
+        }
+    }
+
+    public class NetworkTests
+    {
+        [Fact]
+        public async Task InitializeAsync_WhenTwoNetworksHaveTheSameName_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            var fixture = new DuplicateNetworkGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: true);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => fixture.InitializeAsync(cancellationToken));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenANetworkedServiceIsCreatedForAValidNetwork_ExpectNetworkToBeProvidedToTheService()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            var fixture = new TestGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: true);
+
+            // Act
+            await fixture.InitializeAsync(cancellationToken);
+
+            // Assert
+            var primaryContainerService = fixture.Services.First(x => x.Object == fixture.PrimaryContainer);
+            primaryContainerService.Verify(x => x.InitializeAsync(It.Is<IEnumerable<Attribute>>(attributes => attributes.OfType<NetworkAliasAttribute>().Any(alias => alias.NetworkService == fixture.PrimaryContainerNetwork)), It.IsAny<CancellationToken>()), Times.Once);
+
+            var secondaryContainerService = fixture.Services.First(x => x.Object == fixture.SecondaryContainer);
+            secondaryContainerService.Verify(x => x.InitializeAsync(It.Is<IEnumerable<Attribute>>(attributes => attributes.OfType<NetworkAliasAttribute>().Any(alias => alias.NetworkService == fixture.SecondaryContainerNetwork)), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenANetworkedServiceIsCreatedForAnInvalidNetwork_ExpectAnErrorToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            var fixture = new InvalidNetworkedServiceGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: true);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => fixture.InitializeAsync(cancellationToken));
         }
     }
 }

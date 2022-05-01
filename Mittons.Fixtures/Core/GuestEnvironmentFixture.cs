@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,22 +49,31 @@ namespace Mittons.Fixtures.Core
 
             var services = this.GetType().GetProperties().Where(x => typeof(IService).IsAssignableFrom(x.PropertyType));
 
+            var networks = new Dictionary<string, INetworkService>();
+
             foreach (var propertyInfo in services.Where(x => typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
             {
-                var network = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
+                var network = (INetworkService)_serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
+                await network.InitializeAsync(attributes, cancellationToken);
+
                 propertyInfo.SetValue(this, network);
 
-                await ((IService)network).InitializeAsync(attributes, cancellationToken);
+                networks.Add(network.Name, network);
             }
 
             foreach (var propertyInfo in services.Where(x => !typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
             {
                 var service = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
-                var attributes = new[] { run };
+                var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
+
+                foreach (var attribute in attributes.OfType<NetworkAliasAttribute>())
+                {
+                    attribute.SetNetworkService(networks[attribute.NetworkName]);
+                }
 
                 propertyInfo.SetValue(this, service);
 

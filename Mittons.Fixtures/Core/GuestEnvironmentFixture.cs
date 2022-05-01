@@ -57,7 +57,7 @@ namespace Mittons.Fixtures.Core
 
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
-                await network.InitializeAsync(attributes, cancellationToken);
+                await network.InitializeAsync(attributes, cancellationToken).ConfigureAwait(false);
 
                 propertyInfo.SetValue(this, network);
 
@@ -78,7 +78,7 @@ namespace Mittons.Fixtures.Core
 
                 propertyInfo.SetValue(this, service);
 
-                await service.InitializeAsync(attributes, cancellationToken);
+                await service.InitializeAsync(attributes, cancellationToken).ConfigureAwait(false);
             }
         }
     }

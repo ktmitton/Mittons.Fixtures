@@ -51,7 +51,7 @@ namespace Mittons.Fixtures.Containers.Services
                         { "mittons.fixtures.run.id", run.Id }
                     },
                     cancellationToken
-                );
+                ).ConfigureAwait(false);
 
             Resources = Enumerable.Empty<IResource>();
         }

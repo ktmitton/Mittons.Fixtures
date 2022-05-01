@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -153,7 +155,7 @@ public class DockerContainerGatewayTests
         {
             // Arrange
             var imageName = "redis:alpine";
-            var port = "6379";
+            var port = 6379;
             var labels = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new DockerContainerGateway();
@@ -177,6 +179,93 @@ public class DockerContainerGatewayTests
 
                 Assert.Matches(@"^.*:\d+$", portDetails);
             }
+        }
+    }
+
+    public class ResourceTests : ContainerTestSuite
+    {
+        [Theory]
+        [InlineData("tcp", 6379)]
+        [InlineData("tcp", 80)]
+        [InlineData("tcp", 443)]
+        [InlineData("tcp", 22)]
+        [InlineData("udp", 2834)]
+        public async Task GetAvailableResourcesAsync_WhenAnImageNameHasAnExposedPort_ExpectThePortToBeAddedAsAResource(string scheme, int guestPort)
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new DockerContainerGateway();
+
+            var expectedGuestUriBuilder = new UriBuilder();
+            expectedGuestUriBuilder.Scheme = scheme;
+            expectedGuestUriBuilder.Host = "localhost";
+            expectedGuestUriBuilder.Port = guestPort;
+
+            var expectedHostUriBuilder = new UriBuilder();
+            expectedHostUriBuilder.Scheme = scheme;
+
+            var containerId = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"run -d -p 6379/tcp -p 80/tcp -p 443/tcp -p 22/tcp -p 2834/udp redis:alpine";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty;
+            }
+
+            _containerIds.Add(containerId);
+
+            // Act
+            var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                expectedHostUriBuilder.Host = "localhost";
+
+                using (var portProcess = new Process())
+                {
+                    portProcess.StartInfo.FileName = "docker";
+                    portProcess.StartInfo.Arguments = $"port {containerId} {guestPort}/{scheme}";
+                    portProcess.StartInfo.UseShellExecute = false;
+                    portProcess.StartInfo.RedirectStandardOutput = true;
+
+                    portProcess.Start();
+                    await portProcess.WaitForExitAsync().ConfigureAwait(false);
+
+                    var portDetails = (await portProcess.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty).Split(":");
+
+                    Assert.Equal(2, portDetails.Length);
+
+                    expectedHostUriBuilder.Port = int.Parse(portDetails[1]);
+                }
+            }
+            else
+            {
+                using (var ipProcess = new Process())
+                {
+                    ipProcess.StartInfo.FileName = "docker";
+                    ipProcess.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{.NetworkSettings.IPAddress}}}}\"";
+                    ipProcess.StartInfo.UseShellExecute = false;
+                    ipProcess.StartInfo.RedirectStandardOutput = true;
+
+                    ipProcess.Start();
+                    await ipProcess.WaitForExitAsync().ConfigureAwait(false);
+
+                    expectedHostUriBuilder.Host = await ipProcess.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                }
+
+                expectedHostUriBuilder.Port = guestPort;
+            }
+
+            Assert.Contains(resources, x => x.GuestUri == expectedGuestUriBuilder.Uri && x.HostUri == expectedHostUriBuilder.Uri);
         }
     }
 }

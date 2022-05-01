@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Mittons.Fixtures.Containers.Docker.Gateways;
+using Mittons.Fixtures.Containers.Gateways.Docker;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
 
-public class DockerContainerGatewayTests
+public class ContainerGatewayTests
 {
     public class ImageTests : IClassFixture<DockerCleanupFixture>
     {
@@ -29,7 +29,7 @@ public class DockerContainerGatewayTests
             // Arrange
             var labels = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
-            var gateway = new DockerContainerGateway();
+            var gateway = new ContainerGateway();
 
             // Act
             var containerId = await gateway.CreateContainerAsync(expectedImageName, new Dictionary<string, string>(), cancellationToken).ConfigureAwait(false);
@@ -74,7 +74,7 @@ public class DockerContainerGatewayTests
                 { "myotherlabel", "myothervalue" }
             };
             var cancellationToken = new CancellationTokenSource().Token;
-            var gateway = new DockerContainerGateway();
+            var gateway = new ContainerGateway();
 
             // Act
             var containerId = await gateway.CreateContainerAsync(imageName, expectedLabels, cancellationToken).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public class DockerContainerGatewayTests
             var imageName = "alpine:3.15";
             var labels = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
-            var gateway = new DockerContainerGateway();
+            var gateway = new ContainerGateway();
 
             var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken).ConfigureAwait(false);
 
@@ -159,7 +159,7 @@ public class DockerContainerGatewayTests
             var port = 6379;
             var labels = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
-            var gateway = new DockerContainerGateway();
+            var gateway = new ContainerGateway();
 
             // Act
             var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken).ConfigureAwait(false);
@@ -204,7 +204,7 @@ public class DockerContainerGatewayTests
             // Arrange
             var labels = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
-            var gateway = new DockerContainerGateway();
+            var gateway = new ContainerGateway();
 
             var expectedGuestUriBuilder = new UriBuilder();
             expectedGuestUriBuilder.Scheme = scheme;

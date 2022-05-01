@@ -1,3 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Gateways;
+
+namespace Mittons.Fixtures.Containers.Gateways.Docker
+{
+    internal class ContainerNetworkGateway : IContainerNetworkGateway
+    {
+        public Task ConnectAsync(string networkId, string containerId, string alias, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> CreateNetworkAsync(string name, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveNetworkAsync(string networkId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
 // using System;
 // using System.Collections.Generic;
 // using System.Linq;

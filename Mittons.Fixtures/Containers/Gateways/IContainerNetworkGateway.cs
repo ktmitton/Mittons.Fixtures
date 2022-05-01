@@ -6,10 +6,10 @@ namespace Mittons.Fixtures.Containers.Gateways
 {
     public interface IContainerNetworkGateway
     {
+        Task ConnectAsync(string networkId, string containerId, string alias, CancellationToken cancellationToken);
+
         Task<string> CreateNetworkAsync(string name, Dictionary<string, string> labels, CancellationToken cancellationToken);
 
         Task RemoveNetworkAsync(string networkId, CancellationToken cancellationToken);
-
-        Task ConnectAsync(string networkId, string containerId, string alias, CancellationToken cancellationToken);
     }
 }

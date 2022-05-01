@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core;
@@ -61,10 +62,12 @@ public class GuestEnvironmentFixtureTests
 
         [AllowNull]
         [NetworkAlias("PrimaryNetwork", "secondary.example.com")]
+        [Image("alpine")]
         public IContainerService PrimaryContainer { get; set; }
 
         [AllowNull]
         [NetworkAlias("SecondaryNetwork", "secondary.example.com")]
+        [Image("alpine")]
         public IContainerService SecondaryContainer { get; set; }
 
         public List<Mock<IService>> Services { get; }
@@ -130,7 +133,7 @@ public class GuestEnvironmentFixtureTests
                     _ =>
                     {
                         var mockGateway = new Mock<IContainerGateway>();
-                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
+                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
                             .ReturnsAsync(Guid.NewGuid().ToString());
 
                         return mockGateway.Object;

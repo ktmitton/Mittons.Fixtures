@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core.Attributes;
@@ -29,7 +30,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute(expectedRunId) };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(expectedRunId) };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -37,6 +38,7 @@ public class ContainerServiceTests
             // Assert
             mockContainerGateway.Verify(
                     x => x.CreateContainerAsync(
+                        It.IsAny<string>(),
                         It.Is<Dictionary<string, string>>(y => y.Any(z => z.Key == "mittons.fixtures.run.id" && z.Value == expectedRunId)),
                         It.IsAny<CancellationToken>()
                     ),
@@ -54,7 +56,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = Enumerable.Empty<Attribute>();
+            var attributes = new Attribute[] { new ImageAttribute("TestImage") };
 
             // Act
             // Assert
@@ -71,7 +73,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute("Run 1"), new RunAttribute("Run 2") };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute("Run 1"), new RunAttribute("Run 2") };
 
             // Act
             // Assert
@@ -88,7 +90,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute(true) };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(true) };
 
             await service.InitializeAsync(attributes, cancellationToken);
 
@@ -109,7 +111,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute(false) };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(false) };
 
             await service.InitializeAsync(attributes, cancellationToken);
 
@@ -132,18 +134,80 @@ public class ContainerServiceTests
             var cancellationToken = new CancellationTokenSource().Token;
 
             var mockContainerGateway = new Mock<IContainerGateway>();
-            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
+            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedContainerId);
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute() };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
             Assert.Equal(expectedContainerId, service.ServiceId);
+        }
+
+        [Theory]
+        [InlineData("TestImage")]
+        [InlineData("Image2")]
+        public async Task InitializeAsync_WhenAnImageAttributeIsProvided_ExpectTheServiceToBeTaggedCreatedForTheImage(string expectedImageName)
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute(expectedImageName), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(
+                    x => x.CreateContainerAsync(
+                        expectedImageName,
+                        It.IsAny<Dictionary<string, string>>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenNoImageAttributeIsProvided_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute() };
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.InitializeAsync(attributes, cancellationToken));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenMultipleImageAttributesAreProvided_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("Image1"), new ImageAttribute("Image2"), new RunAttribute() };
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.InitializeAsync(attributes, cancellationToken));
         }
 
         [Fact]
@@ -156,13 +220,13 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute() };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<Dictionary<string, string>>(), cancellationToken), Times.Once);
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), cancellationToken), Times.Once);
         }
     }
 
@@ -186,7 +250,7 @@ public class ContainerServiceTests
                 ConnectedService = service
             };
 
-            var attributes = new Attribute[] { new RunAttribute(), networkAliasAttribute };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), networkAliasAttribute };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -213,7 +277,7 @@ public class ContainerServiceTests
                 ConnectedService = service
             };
 
-            var attributes = new Attribute[] { new RunAttribute(), networkAliasAttribute };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), networkAliasAttribute };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -239,7 +303,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute() };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -260,7 +324,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute() };
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);

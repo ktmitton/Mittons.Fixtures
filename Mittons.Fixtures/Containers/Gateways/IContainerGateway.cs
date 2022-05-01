@@ -7,7 +7,7 @@ namespace Mittons.Fixtures.Containers.Gateways
 {
     public interface IContainerGateway
     {
-        Task<string> CreateContainerAsync(Dictionary<string, string> labels, CancellationToken cancellationToken);
+        Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, CancellationToken cancellationToken);
 
         Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken);
 

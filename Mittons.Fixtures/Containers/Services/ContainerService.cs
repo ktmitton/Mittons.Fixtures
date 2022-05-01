@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
@@ -35,7 +36,10 @@ namespace Mittons.Fixtures.Containers.Services
 
             _teardownOnDispose = run.TeardownOnComplete;
 
+            var image = attributes.OfType<ImageAttribute>().Single();
+
             ServiceId = await _containerGateway.CreateContainerAsync(
+                    image.Name,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }

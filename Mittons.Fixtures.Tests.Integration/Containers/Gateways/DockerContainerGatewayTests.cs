@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
@@ -13,38 +12,15 @@ namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
 
 public class DockerContainerGatewayTests
 {
-    public abstract class ContainerTestSuite : IAsyncLifetime
+    public class ImageTests : IClassFixture<DockerCleanupFixture>
     {
-        protected readonly List<string> _containerIds;
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
 
-        public ContainerTestSuite()
+        public ImageTests(DockerCleanupFixture dockerCleanupFixture)
         {
-            _containerIds = new List<string>();
+            _dockerCleanupFixture = dockerCleanupFixture;
         }
 
-        public Task DisposeAsync()
-            => Task.WhenAll(_containerIds.Select(x => RemoveContainer(x)).ToList());
-
-        private async Task RemoveContainer(string containerId)
-        {
-            using var process = new Process();
-            process.StartInfo.FileName = "docker";
-            process.StartInfo.Arguments = $"rm --force {containerId}";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-
-            process.Start();
-            await process.WaitForExitAsync().ConfigureAwait(false);
-        }
-
-        public Task InitializeAsync()
-        {
-            return Task.CompletedTask;
-        }
-    }
-
-    public class ImageTests : ContainerTestSuite
-    {
         [Theory]
         [InlineData("alpine:3.14")]
         [InlineData("alpine:3.15")]
@@ -56,8 +32,9 @@ public class DockerContainerGatewayTests
             var gateway = new DockerContainerGateway();
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(expectedImageName, new Dictionary<string, string>(), cancellationToken);
-            _containerIds.Add(containerId);
+            var containerId = await gateway.CreateContainerAsync(expectedImageName, new Dictionary<string, string>(), cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
             using (var process = new Process())
@@ -77,10 +54,17 @@ public class DockerContainerGatewayTests
         }
     }
 
-    public class LabelsTests : ContainerTestSuite
+    public class LabelsTests : IClassFixture<DockerCleanupFixture>
     {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public LabelsTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
         [Fact]
-        public async Task CreateContainerAsync_WhenAnImageNameIsProvided_ExpectTheStartedContainerToUseTheImage()
+        public async Task CreateContainerAsync_WhenLabelsAreProvided_ExpectTheStartedContainerToHaveTheLabelsApplied()
         {
             // Arrange
             var imageName = "alpine:3.15";
@@ -93,8 +77,9 @@ public class DockerContainerGatewayTests
             var gateway = new DockerContainerGateway();
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, expectedLabels, cancellationToken);
-            _containerIds.Add(containerId);
+            var containerId = await gateway.CreateContainerAsync(imageName, expectedLabels, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
             using (var process = new Process())
@@ -114,8 +99,15 @@ public class DockerContainerGatewayTests
         }
     }
 
-    public class LifetimeTests : ContainerTestSuite
+    public class LifetimeTests : IClassFixture<DockerCleanupFixture>
     {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public LifetimeTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
         [Fact]
         public async Task RemoveContainerAsync_WhenAnImageNameIsProvided_ExpectTheStartedContainerToUseTheImage()
         {
@@ -125,8 +117,9 @@ public class DockerContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new DockerContainerGateway();
 
-            var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken);
-            _containerIds.Add(containerId);
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
 
             // Act
             await gateway.RemoveContainerAsync(containerId, cancellationToken);
@@ -143,13 +136,21 @@ public class DockerContainerGatewayTests
                 await process.WaitForExitAsync().ConfigureAwait(false);
 
                 var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
                 Assert.Empty(output);
             }
         }
     }
 
-    public class PortTests : ContainerTestSuite
+    public class PortTests : IClassFixture<DockerCleanupFixture>
     {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public PortTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
         [Fact]
         public async Task CreateContainerAsync_WhenAnImageNameHasAnExposedPort_ExpectThePortToBePublished()
         {
@@ -161,8 +162,9 @@ public class DockerContainerGatewayTests
             var gateway = new DockerContainerGateway();
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken);
-            _containerIds.Add(containerId);
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
             using (var portProcess = new Process())
@@ -182,8 +184,15 @@ public class DockerContainerGatewayTests
         }
     }
 
-    public class ResourceTests : ContainerTestSuite
+    public class ResourceTests : IClassFixture<DockerCleanupFixture>
     {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public ResourceTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
         [Theory]
         [InlineData("tcp", 6379)]
         [InlineData("tcp", 80)]
@@ -220,7 +229,7 @@ public class DockerContainerGatewayTests
                 containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty;
             }
 
-            _containerIds.Add(containerId);
+            _dockerCleanupFixture.AddContainer(containerId);
 
             // Act
             var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);

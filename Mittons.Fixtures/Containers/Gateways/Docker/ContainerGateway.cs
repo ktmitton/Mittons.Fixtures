@@ -11,7 +11,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 {
     internal class ContainerGateway : IContainerGateway
     {
-        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, CancellationToken cancellationToken)
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 

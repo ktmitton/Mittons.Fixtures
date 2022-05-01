@@ -38,12 +38,15 @@ namespace Mittons.Fixtures.Containers.Services
 
             var image = attributes.OfType<ImageAttribute>().Single();
 
+            var command = attributes.OfType<CommandAttribute>().SingleOrDefault();
+
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }
                     },
+                    command.Value,
                     cancellationToken
                 ).ConfigureAwait(false);
 

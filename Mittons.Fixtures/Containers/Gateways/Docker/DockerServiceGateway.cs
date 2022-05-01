@@ -1,152 +1,173 @@
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Runtime.InteropServices;
-// using System.Text.Json;
-// using System.Threading;
-// using System.Threading.Tasks;
-// using Mittons.Fixtures.Attributes;
-// using Mittons.Fixtures.Containers.Attributes;
-// using Mittons.Fixtures.Containers.Services;
-// using Mittons.Fixtures.Exceptions.Containers;
-// using Mittons.Fixtures.Extensions;
-// using Mittons.Fixtures.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Core.Resources;
 
-// namespace Mittons.Fixtures.Containers.Docker.Gateways
-// {
-//     internal static class DockerServiceGateway
-//     {
-//         internal static async Task<string> CreateServiceAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
-//         {
-//             var image = attributes.OfType<ImageAttribute>().ToArray();
+namespace Mittons.Fixtures.Containers.Docker.Gateways
+{
+    internal class DockerContainerGateway : IContainerGateway
+    {
+        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, CancellationToken cancellationToken)
+        {
+            var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 
-//             if (image.Length == 0)
-//             {
-//                 throw new ImageNameMissingException();
-//             }
-//             else if (image.Length > 1)
-//             {
-//                 throw new MultipleImageNamesProvidedException();
-//             }
+            using (var process = new DockerProcess($"run -d -P {labelOptions} {imageName}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-//             var command = string.Join(" ", attributes.OfType<CommandAttribute>().Select(x => x.Value));
+                var containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
 
-//             var options = new List<Option>();
+                return containerId;
+            }
+        }
 
-//             var healthCheck = attributes.OfType<HealthCheckAttribute>().FirstOrDefault();
+        public async Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"rm --force {containerId}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
 
-//             if (!(healthCheck is null))
-//             {
-//                 if (healthCheck.Disabled)
-//                 {
-//                     options.Add(new Option { Name = "--no-healthcheck", Value = string.Empty });
-//                 }
-//                 else
-//                 {
-//                     if (!string.IsNullOrWhiteSpace(healthCheck.Command))
-//                     {
-//                         options.Add(new Option { Name = "--health-cmd", Value = healthCheck.Command });
-//                     }
+        public Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
 
-//                     if (healthCheck.Interval > 0)
-//                     {
-//                         options.Add(new Option { Name = "--health-interval", Value = $"{healthCheck.Interval}s" });
-//                     }
+        // internal static async Task<string> CreateServiceAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
+        // {
+        //     var image = attributes.OfType<ImageAttribute>().ToArray();
 
-//                     if (healthCheck.Timeout > 0)
-//                     {
-//                         options.Add(new Option { Name = "--health-timeout", Value = $"{healthCheck.Timeout}s" });
-//                     }
+        //     if (image.Length == 0)
+        //     {
+        //         throw new ImageNameMissingException();
+        //     }
+        //     else if (image.Length > 1)
+        //     {
+        //         throw new MultipleImageNamesProvidedException();
+        //     }
 
-//                     if (healthCheck.StartPeriod > 0)
-//                     {
-//                         options.Add(new Option { Name = "--health-start-period", Value = $"{healthCheck.StartPeriod}s" });
-//                     }
+        //     var command = string.Join(" ", attributes.OfType<CommandAttribute>().Select(x => x.Value));
 
-//                     if (healthCheck.Retries > 0)
-//                     {
-//                         options.Add(new Option { Name = "--health-retries", Value = healthCheck.Retries.ToString() });
-//                     }
-//                 }
-//             }
+        //     var options = new List<Option>();
 
-//             var run = attributes.OfType<RunAttribute>().Single();
+        //     var healthCheck = attributes.OfType<HealthCheckAttribute>().FirstOrDefault();
 
-//             options.Add(new Option { Name = "--label", Value = $"mittons.fixtures.run.id={run.Id}" });
+        //     if (!(healthCheck is null))
+        //     {
+        //         if (healthCheck.Disabled)
+        //         {
+        //             options.Add(new Option { Name = "--no-healthcheck", Value = string.Empty });
+        //         }
+        //         else
+        //         {
+        //             if (!string.IsNullOrWhiteSpace(healthCheck.Command))
+        //             {
+        //                 options.Add(new Option { Name = "--health-cmd", Value = healthCheck.Command });
+        //             }
 
-//             using (var process = new DockerProcess($"run -d -P {options.ToExecutionParametersFormattedString()} {image.First().Name} {command}"))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+        //             if (healthCheck.Interval > 0)
+        //             {
+        //                 options.Add(new Option { Name = "--health-interval", Value = $"{healthCheck.Interval}s" });
+        //             }
 
-//                 var containerId = process.StandardOutput.ReadLine();
+        //             if (healthCheck.Timeout > 0)
+        //             {
+        //                 options.Add(new Option { Name = "--health-timeout", Value = $"{healthCheck.Timeout}s" });
+        //             }
 
-//                 return containerId;
+        //             if (healthCheck.StartPeriod > 0)
+        //             {
+        //                 options.Add(new Option { Name = "--health-start-period", Value = $"{healthCheck.StartPeriod}s" });
+        //             }
 
-//                 // return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken).ConfigureAwait(false), container => RemoveServiceAsync(container, CancellationToken.None));
-//             }
-//         }
+        //             if (healthCheck.Retries > 0)
+        //             {
+        //                 options.Add(new Option { Name = "--health-retries", Value = healthCheck.Retries.ToString() });
+        //             }
+        //         }
+        //     }
 
-//         internal static async Task RemoveServiceAsync(IContainerService service, CancellationToken cancellationToken)
-//         {
-//             using (var process = new DockerProcess($"rm --force {service.ServiceId}"))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-//             }
-//         }
+        //     var run = attributes.OfType<RunAttribute>().Single();
 
-//         private static async Task<string> GetServiceIpAddress(string containerId, CancellationToken cancellationToken)
-//         {
-//             using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{.NetworkSettings.IPAddress}}}}\""))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+        //     options.Add(new Option { Name = "--label", Value = $"mittons.fixtures.run.id={run.Id}" });
 
-//                 return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-//             }
-//         }
+        //     using (var process = new DockerProcess($"run -d -P {options.ToExecutionParametersFormattedString()} {image.First().Name} {command}"))
+        //     {
+        //         await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-//         internal static async Task<IEnumerable<IResource>> GetServiceResourcesAsync(string containerId, CancellationToken cancellationToken)
-//         {
-//             var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
+        //         var containerId = process.StandardOutput.ReadLine();
 
-//             using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
-//             {
-//                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+        //         return containerId;
 
-//                 var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+        //         // return new ContainerService(containerId, await GetServiceResourcesAsync(containerId, cancellationToken).ConfigureAwait(false), container => RemoveServiceAsync(container, CancellationToken.None));
+        //     }
+        // }
 
-//                 var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
-//                 var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
+        // internal static async Task RemoveServiceAsync(IContainerService service, CancellationToken cancellationToken)
+        // {
+        //     using (var process = new DockerProcess($"rm --force {service.ServiceId}"))
+        //     {
+        //         await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+        //     }
+        // }
 
-//                 return ports.Select(x =>
-//                 {
-//                     var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
+        // private static async Task<string> GetServiceIpAddress(string containerId, CancellationToken cancellationToken)
+        // {
+        //     using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{.NetworkSettings.IPAddress}}}}\""))
+        //     {
+        //         await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-//                     return new Resource(
-//                         new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),
-//                         new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}")
-//                     );
-//                 }).ToArray();
-//             }
-//         }
+        //         return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+        //     }
+        // }
 
-//         private class Port
-//         {
-//             public string HostIp { get; set; }
+        // internal static async Task<IEnumerable<IResource>> GetServiceResourcesAsync(string containerId, CancellationToken cancellationToken)
+        // {
+        //     var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
 
-//             public string HostPort { get; set; }
-//         }
+        //     using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
+        //     {
+        //         await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-//         private class Resource : IResource
-//         {
-//             public Uri GuestUri { get; }
+        //         var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
-//             public Uri HostUri { get; }
+        //         var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
+        //         var publicHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
 
-//             public Resource(Uri guestUri, Uri hostUri)
-//             {
-//                 GuestUri = guestUri;
-//                 HostUri = hostUri;
-//             }
-//         }
-//     }
-// }
+        //         return ports.Select(x =>
+        //         {
+        //             var publicPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? x.Value.First().HostPort : x.Key.Split('/').First();
+
+        //             return new Resource(
+        //                 new Uri($"{x.Key.Split('/').Last()}://127.0.0.1:{x.Key.Split('/').First()}"),
+        //                 new Uri($"{x.Key.Split('/').Last()}://{publicHost}:{publicPort}")
+        //             );
+        //         }).ToArray();
+        //     }
+        // }
+
+        // private class Port
+        // {
+        //     public string HostIp { get; set; }
+
+        //     public string HostPort { get; set; }
+        // }
+
+        // private class Resource : IResource
+        // {
+        //     public Uri GuestUri { get; }
+
+        //     public Uri HostUri { get; }
+
+        //     public Resource(Uri guestUri, Uri hostUri)
+        //     {
+        //         GuestUri = guestUri;
+        //         HostUri = hostUri;
+        //     }
+        // }
+    }
+}

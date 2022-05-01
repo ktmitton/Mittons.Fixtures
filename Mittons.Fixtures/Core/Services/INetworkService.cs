@@ -1,3 +1,7 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Mittons.Fixtures.Core.Attributes;
+
 namespace Mittons.Fixtures.Core.Services
 {
     /// <summary>
@@ -9,5 +13,7 @@ namespace Mittons.Fixtures.Core.Services
     public interface INetworkService : IService
     {
         string Name { get; }
+
+        Task ConnectAsync(NetworkAliasAttribute networkAlias, CancellationToken cancellationToken);
     }
 }

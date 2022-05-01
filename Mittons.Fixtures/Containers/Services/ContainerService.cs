@@ -44,6 +44,13 @@ namespace Mittons.Fixtures.Containers.Services
                 );
 
             Resources = Enumerable.Empty<IResource>();
+
+            var networkAliases = attributes.OfType<NetworkAliasAttribute>();
+
+            foreach (var alias in networkAliases)
+            {
+                await alias.NetworkService.ConnectAsync(alias, cancellationToken);
+            }
         }
     }
 }

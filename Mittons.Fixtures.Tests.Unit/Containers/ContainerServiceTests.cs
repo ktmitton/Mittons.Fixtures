@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Gateways;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core.Attributes;
+using Mittons.Fixtures.Core.Services;
 using Moq;
 using Xunit;
 
@@ -161,6 +162,63 @@ public class ContainerServiceTests
 
             // Assert
             mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<Dictionary<string, string>>(), cancellationToken), Times.Once);
+        }
+    }
+
+    public class ConnectedServiceTests
+    {
+        [Fact]
+        public async Task InitializeAsync_WhenTheContainerHasANetworkAlias_ExpectTheContainerToBeConnectedToTheNetwork()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var mockNetwork = new Mock<INetworkService>();
+
+            var networkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var attributes = new Attribute[] { new RunAttribute(), networkAliasAttribute };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockNetwork.Verify(x => x.ConnectAsync(networkAliasAttribute, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenTheContainerHasANetworkAlias_ExpectTheProvidedCancellationTokenToBeUsed()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var mockNetwork = new Mock<INetworkService>();
+
+            var networkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var attributes = new Attribute[] { new RunAttribute(), networkAliasAttribute };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockNetwork.Verify(x => x.ConnectAsync(It.IsAny<NetworkAliasAttribute>(), cancellationToken), Times.Once);
         }
     }
 }

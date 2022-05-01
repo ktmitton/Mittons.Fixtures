@@ -60,5 +60,15 @@ namespace Mittons.Fixtures.Containers.Services
         {
             return new ValueTask(_teardownOnDispose ? _containerNetworkGateway.RemoveNetworkAsync(default, default) : Task.CompletedTask);
         }
+
+        public Task ConnectAsync(NetworkAliasAttribute networkAlias, CancellationToken cancellationToken)
+        {
+            if (!(networkAlias.ConnectedService is IContainerService))
+            {
+                throw new NotSupportedException($"ContainerNetworkService does not support connecting {networkAlias.ConnectedService.GetType()} services.");
+            }
+
+            return _containerNetworkGateway.ConnectAsync(ServiceId, networkAlias.ConnectedService.ServiceId, networkAlias.Alias, cancellationToken);
+        }
     }
 }

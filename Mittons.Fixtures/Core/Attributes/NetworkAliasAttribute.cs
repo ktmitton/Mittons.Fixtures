@@ -12,7 +12,9 @@ namespace Mittons.Fixtures.Core.Attributes
 
         public bool IsExternalNetwork { get; }
 
-        public INetworkService NetworkService { get; private set; }
+        public INetworkService NetworkService { get; set; }
+
+        public IService ConnectedService { get; set; }
 
         public NetworkAliasAttribute(string networkName, string alias)
             : this(networkName, alias, false)
@@ -24,11 +26,6 @@ namespace Mittons.Fixtures.Core.Attributes
             NetworkName = networkName;
             Alias = alias;
             IsExternalNetwork = isExternalNetwork;
-        }
-
-        internal void SetNetworkService(INetworkService networkService)
-        {
-            NetworkService = networkService;
         }
     }
 }

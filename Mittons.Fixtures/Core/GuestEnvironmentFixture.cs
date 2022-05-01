@@ -66,18 +66,19 @@ namespace Mittons.Fixtures.Core
 
             foreach (var propertyInfo in services.Where(x => !typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
             {
-                var service = _serviceProvider.GetRequiredService(propertyInfo.PropertyType);
+                var service = (IService)_serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
                 var attributes = propertyInfo.GetCustomAttributes(false).OfType<Attribute>().Concat(new[] { run });
 
                 foreach (var attribute in attributes.OfType<NetworkAliasAttribute>())
                 {
-                    attribute.SetNetworkService(networks[attribute.NetworkName]);
+                    attribute.NetworkService = networks[attribute.NetworkName];
+                    attribute.ConnectedService = service;
                 }
 
                 propertyInfo.SetValue(this, service);
 
-                await ((IService)service).InitializeAsync(attributes, cancellationToken);
+                await service.InitializeAsync(attributes, cancellationToken);
             }
         }
     }

@@ -325,7 +325,7 @@ public class GuestEnvironmentFixtureTests
         }
 
         [Fact]
-        public async Task InitializeAsync_WhenANetworkedServiceIsCreatedForAValidNetwork_ExpectNetworkToBeProvidedToTheService()
+        public async Task InitializeAsync_WhenANetworkedServiceIsCreatedForAValidNetwork_ExpectNetworkToBeSetInTheAttribute()
         {
             // Arrange
             var cancellationToken = new CancellationToken();
@@ -340,6 +340,24 @@ public class GuestEnvironmentFixtureTests
 
             var secondaryContainerService = fixture.Services.First(x => x.Object == fixture.SecondaryContainer);
             secondaryContainerService.Verify(x => x.InitializeAsync(It.Is<IEnumerable<Attribute>>(attributes => attributes.OfType<NetworkAliasAttribute>().Any(alias => alias.NetworkService == fixture.SecondaryContainerNetwork)), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenANetworkedServiceIsCreated_ExpectServiceToBeSetInTheAttribute()
+        {
+            // Arrange
+            var cancellationToken = new CancellationToken();
+            var fixture = new TestGuestEnvironmentFixture(clearRegistrations: false, addMockRegistrations: true);
+
+            // Act
+            await fixture.InitializeAsync(cancellationToken);
+
+            // Assert
+            var primaryContainerService = fixture.Services.First(x => x.Object == fixture.PrimaryContainer);
+            primaryContainerService.Verify(x => x.InitializeAsync(It.Is<IEnumerable<Attribute>>(attributes => attributes.OfType<NetworkAliasAttribute>().Any(alias => alias.ConnectedService == fixture.PrimaryContainer)), It.IsAny<CancellationToken>()), Times.Once);
+
+            var secondaryContainerService = fixture.Services.First(x => x.Object == fixture.SecondaryContainer);
+            secondaryContainerService.Verify(x => x.InitializeAsync(It.Is<IEnumerable<Attribute>>(attributes => attributes.OfType<NetworkAliasAttribute>().Any(alias => alias.ConnectedService == fixture.SecondaryContainer)), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

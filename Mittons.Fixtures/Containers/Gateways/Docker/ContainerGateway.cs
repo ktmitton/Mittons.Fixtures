@@ -5,13 +5,14 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
 
 namespace Mittons.Fixtures.Containers.Gateways.Docker
 {
     internal class ContainerGateway : IContainerGateway
     {
-        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, CancellationToken cancellationToken)
+        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 

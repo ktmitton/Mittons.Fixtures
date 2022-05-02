@@ -34,7 +34,7 @@ public class ContainerGatewayTests
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(expectedImageName, labels, command, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(expectedImageName, labels, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -80,7 +80,7 @@ public class ContainerGatewayTests
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, expectedLabels, command, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, expectedLabels, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -121,7 +121,7 @@ public class ContainerGatewayTests
             var gateway = new ContainerGateway();
             var command = string.Empty;
 
-            var containerId = await gateway.CreateContainerAsync(imageName, labels, command, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -167,7 +167,7 @@ public class ContainerGatewayTests
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, labels, command, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -304,7 +304,7 @@ public class ContainerGatewayTests
             var gateway = new ContainerGateway();
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, labels, expectedCommand, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, expectedCommand, default, cancellationToken).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert

@@ -41,6 +41,7 @@ public class ContainerServiceTests
                         It.IsAny<string>(),
                         It.Is<Dictionary<string, string>>(y => y.Any(z => z.Key == "mittons.fixtures.run.id" && z.Value == expectedRunId)),
                         It.IsAny<string>(),
+                        It.IsAny<IHealthCheckDescription>(),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -135,7 +136,7 @@ public class ContainerServiceTests
             var cancellationToken = new CancellationTokenSource().Token;
 
             var mockContainerGateway = new Mock<IContainerGateway>();
-            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedContainerId);
 
             var service = new ContainerService(mockContainerGateway.Object);
@@ -172,6 +173,7 @@ public class ContainerServiceTests
                         expectedImageName,
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<string>(),
+                        It.IsAny<IHealthCheckDescription>(),
                         It.IsAny<CancellationToken>()
                     ),
                     Times.Once
@@ -228,7 +230,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), cancellationToken), Times.Once);
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
         }
     }
 
@@ -336,12 +338,107 @@ public class ContainerServiceTests
         }
     }
 
+    public class HealthCheckTests
+    {
+        [Theory]
+        [InlineData(false, "command", 1, 2, 3, 4)]
+        [InlineData(false, "other", 4, 3, 2, 1)]
+        [InlineData(true, "", 0, 0, 0, 0)]
+        public async Task InitializeAsync_WhenAHealthCheckIsProvided_ExpectTheContainerToBeCreatedWithTheHealthCheckParameters(
+            bool expectedDisabled,
+            string expectedCommand,
+            byte expectedInterval,
+            byte expectedTimeout,
+            byte expectedStartPeriod,
+            byte expectedRetries
+        )
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var healthCheckAttribute = new HealthCheckAttribute
+            {
+                Disabled = expectedDisabled,
+                Command = expectedCommand,
+                Interval = expectedInterval,
+                Timeout = expectedTimeout,
+                StartPeriod = expectedStartPeriod,
+                Retries = expectedRetries
+            };
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), healthCheckAttribute };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(
+                    x =>
+                    x.CreateContainerAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<Dictionary<string, string>>(),
+                        It.IsAny<string>(),
+                        It.Is<IHealthCheckDescription>(
+                            y =>
+                            y.Disabled == expectedDisabled &&
+                            y.Command == expectedCommand &&
+                            y.Interval == expectedInterval &&
+                            y.Timeout == expectedTimeout &&
+                            y.StartPeriod == expectedStartPeriod &&
+                            y.Retries == expectedRetries
+                        ),
+                        It.IsAny<CancellationToken>()
+                    )
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenMultipleHealthChecksAreProvided_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), new HealthCheckAttribute(), new HealthCheckAttribute() };
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.InitializeAsync(attributes, cancellationToken));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenNoHealthChecksAreProvided_ExpectTheContainerToBeCreatedWithoutACommand()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), default(IHealthCheckDescription), It.IsAny<CancellationToken>()));
+        }
+    }
+
     public class CommandTests
     {
         [Theory]
         [InlineData("echo hello")]
         [InlineData("echo goodbye")]
-        public async Task InitializeAsync_WhenACommandIsProvided_ExpecteTheContainerToBeCreatedWithTheCommand(string expectedCommand)
+        public async Task InitializeAsync_WhenACommandIsProvided_ExpectTheContainerToBeCreatedWithTheCommand(string expectedCommand)
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -356,7 +453,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), expectedCommand, It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), expectedCommand, It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -374,6 +471,25 @@ public class ContainerServiceTests
             // Act
             // Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => service.InitializeAsync(attributes, cancellationToken));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenNoCommandIsProvided_ExpectTheContainerToBeCreatedWithoutACommand()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), default(string), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
     }
 }

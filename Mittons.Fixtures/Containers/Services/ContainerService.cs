@@ -40,13 +40,16 @@ namespace Mittons.Fixtures.Containers.Services
 
             var command = attributes.OfType<CommandAttribute>().SingleOrDefault();
 
+            var healthCheckDescription = attributes.OfType<IHealthCheckDescription>().SingleOrDefault();
+
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }
                     },
-                    command.Value,
+                    command?.Value,
+                    healthCheckDescription,
                     cancellationToken
                 ).ConfigureAwait(false);
 

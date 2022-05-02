@@ -37,9 +37,94 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        public Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken)
+        private class HealthCheckReport
         {
-            throw new NotImplementedException();
+            public long Interval { get; set; }
+
+            public long StartPeriod { get; set; }
+
+            public byte Retries { get; set; }
+        }
+
+        private async Task<TimeSpan?> GetMinimumHealthCheckTimeSpanAsync(string containerId, CancellationToken cancellationToken)
+        {
+            long nanosecondModifier = 1000000000;
+
+            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .Config.Healthcheck}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var healthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                if (!(healthCheck is null))
+                {
+                    return TimeSpan.FromSeconds((healthCheck.StartPeriod / nanosecondModifier) + ((healthCheck.Interval / nanosecondModifier) * healthCheck.Retries));
+                }
+
+                return default(TimeSpan?);
+            }
+        }
+
+        private async Task<string> GetContainerStatusAsync(string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .State.Status}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+            }
+        }
+
+        private async Task<string> GetHealthStatusAsync(string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .State.Health.Status}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+            }
+        }
+
+        public async Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken)
+        {
+            var healthCheckTimeLimit = await GetMinimumHealthCheckTimeSpanAsync(containerId, cancellationToken);
+
+            var timeoutCancellationTokenSource = new CancellationTokenSource();
+            timeoutCancellationTokenSource.CancelAfter(healthCheckTimeLimit ?? TimeSpan.FromSeconds(5));
+
+            var linkedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
+
+            while (!linkedCancellationToken.IsCancellationRequested)
+            {
+                if (healthCheckTimeLimit.HasValue)
+                {
+                    var status = await GetHealthStatusAsync(containerId, cancellationToken);
+
+                    switch (status)
+                    {
+                        case "healthy":
+                            return;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    var status = await GetContainerStatusAsync(containerId, cancellationToken);
+
+                    switch (status)
+                    {
+                        case "running":
+                            return;
+                        default:
+                            break;
+                    }
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+                linkedCancellationToken.Token.ThrowIfCancellationRequested();
+            }
         }
 
         public async Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)

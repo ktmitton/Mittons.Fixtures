@@ -440,5 +440,98 @@ public class ContainerGatewayTests
                 Assert.Null(actualHealthCheck);
             }
         }
+
+        [Fact]
+        public async Task EnsureContainerIsHealthyAsync_WhenCancellationTokenIsCancelledBeforeHealthCheckPasses_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var gateway = new ContainerGateway();
+
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.Cancel();
+
+            var cancellationToken = cancellationTokenSource.Token;
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<TaskCanceledException>(() => gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken));
+        }
+
+        [Fact]
+        public async Task EnsureContainerIsHealthyAsync_WhenNoHealthCheckIsSetAndContainerIsNotRunningAfterDefaultTime_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() => gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken));
+        }
+
+        [Fact]
+        public async Task EnsureContainerIsHealthyAsync_WhenNoHealthCheckIsSetAndContainerIsRunningForDefaultTime_ExpectCheckToCompleteSuccessfully()
+        {
+            // Arrange
+            var imageName = "redis:alpine";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Act
+            // Assert
+            await gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken);
+        }
+
+        [Fact]
+        public async Task EnsureContainerIsHealthyAsync_WhenAHealthCheckIsSetAndTheContainerDoesNotBecomeHealthyBeforeTheHealthCheckLimit_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var imageName = "redis:alpine";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var healthCheck = new HealthCheckDescription(false, "exit 1", 1, 1, 1, 1);
+
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<OperationCanceledException>(() => gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken));
+        }
+
+        [Fact]
+        public async Task EnsureContainerIsHealthyAsync_WhenAHealthCheckIsSetAndTheContaineBecomesHealthyBeforeTheHealthCheckLimit_ExpectCheckToCompleteSuccessfully()
+        {
+            // Arrange
+            var imageName = "redis:alpine";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var healthCheck = new HealthCheckDescription(false, "exit 0", 1, 1, 1, 1);
+
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Act
+            // Assert
+            await gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken);
+        }
     }
 }

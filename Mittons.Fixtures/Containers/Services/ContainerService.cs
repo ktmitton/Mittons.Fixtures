@@ -53,6 +53,8 @@ namespace Mittons.Fixtures.Containers.Services
                     cancellationToken
                 ).ConfigureAwait(false);
 
+            await _containerGateway.EnsureContainerIsHealthyAsync(ServiceId, cancellationToken).ConfigureAwait(false);
+
             Resources = await _containerGateway.GetAvailableResourcesAsync(ServiceId, cancellationToken).ConfigureAwait(false);
 
             var networkAliases = attributes.OfType<NetworkAliasAttribute>();

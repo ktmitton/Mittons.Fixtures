@@ -37,6 +37,11 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        public Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)
         {
             var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);

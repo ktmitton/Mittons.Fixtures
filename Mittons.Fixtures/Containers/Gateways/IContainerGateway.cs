@@ -10,8 +10,10 @@ namespace Mittons.Fixtures.Containers.Gateways
     {
         Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
 
-        Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken);
+        Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken);
 
         Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken);
+
+        Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken);
     }
 }

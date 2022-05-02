@@ -491,5 +491,43 @@ public class ContainerServiceTests
             // Assert
             mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), default(IHealthCheckDescription), It.IsAny<CancellationToken>()));
         }
+
+        [Fact]
+        public async Task InitializeAsync_WhenCalled_ExpectCheckForPassingHealthCheck()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(x => x.EnsureContainerIsHealthyAsync(service.ServiceId, It.IsAny<CancellationToken>()));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenCheckingForAPassingHealthCheck_ExpectTheCancellationTokenToBePassedIn()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(x => x.EnsureContainerIsHealthyAsync(It.IsAny<string>(), cancellationToken));
+        }
     }
 }

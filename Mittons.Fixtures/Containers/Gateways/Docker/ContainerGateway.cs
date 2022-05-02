@@ -15,7 +15,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 
-            using (var process = new DockerProcess($"run -d -P {labelOptions} {imageName}"))
+            using (var process = new DockerProcess($"run -d -P {labelOptions} {imageName} {command}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 

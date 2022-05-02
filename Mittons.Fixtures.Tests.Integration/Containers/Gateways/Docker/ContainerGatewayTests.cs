@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
@@ -279,6 +280,50 @@ public class ContainerGatewayTests
             }
 
             Assert.Contains(resources, x => x.GuestUri == expectedGuestUriBuilder.Uri && x.HostUri == expectedHostUriBuilder.Uri);
+        }
+    }
+
+    public class CommandTests : IClassFixture<DockerCleanupFixture>
+    {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public CommandTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        [Theory]
+        [InlineData("echo hello")]
+        [InlineData("ls")]
+        public async Task CreateContainerAsync_WhenCalledWithACommand_ExpectTheContainerToBeStartedWithTheCommand(string expectedCommand)
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, expectedCommand, cancellationToken).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Cmd}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var output = JsonSerializer.Deserialize<string[]>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false)) ?? new string[0];
+
+                var actualCommand = string.Join(" ", output);
+
+                Assert.Equal(expectedCommand, actualCommand);
+            }
         }
     }
 }

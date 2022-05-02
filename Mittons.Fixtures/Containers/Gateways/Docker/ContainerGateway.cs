@@ -16,7 +16,18 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 
-            using (var process = new DockerProcess($"run -d -P {labelOptions} {imageName} {command}"))
+            var healthCheck = string.Empty;
+
+            if (healthCheckDescription?.Disabled ?? false)
+            {
+                healthCheck = "--no-healthcheck";
+            }
+            else if (!(healthCheckDescription is null))
+            {
+                healthCheck = $"--health-cmd \"{healthCheckDescription.Command}\" --health-interval \"{healthCheckDescription.Interval}s\" --health-timeout \"{healthCheckDescription.Timeout}s\" --health-start-period \"{healthCheckDescription.StartPeriod}s\" --health-retries \"{healthCheckDescription.Retries}\"";
+            }
+
+            using (var process = new DockerProcess($"run -d -P {labelOptions} {healthCheck} {imageName} {command}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 

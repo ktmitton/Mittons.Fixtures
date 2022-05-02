@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Gateways.Docker;
+using Mittons.Fixtures.Core.Attributes;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
@@ -323,6 +324,120 @@ public class ContainerGatewayTests
                 var actualCommand = string.Join(" ", output);
 
                 Assert.Equal(expectedCommand, actualCommand);
+            }
+        }
+    }
+
+    public class HealthCheckTests : IClassFixture<DockerCleanupFixture>
+    {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public HealthCheckTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        private record HealthCheckDescription(bool Disabled, string Command, byte Interval, byte Timeout, byte StartPeriod, byte Retries) : IHealthCheckDescription;
+
+        private record HealthCheckReport(string[] Test, long Interval, long Timeout, long StartPeriod, byte Retries);
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenCalledWithADisabledHealthCheck_ExpectTheContainerToHaveNoHealthCheck()
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), new HealthCheckDescription(true, "test", 1, 1, 1, 1), cancellationToken).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualHealthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                Assert.Equal("NONE", string.Join(" ", actualHealthCheck?.Test ?? new string[0]));
+            }
+        }
+
+        [Theory]
+        [InlineData("echo hello", 1, 1, 1, 1)]
+        [InlineData("ls", 2, 3, 4, 5)]
+        public async Task CreateContainerAsync_WhenCalledWithAnEnabledHealthCheck_ExpectTheContainerToUseTheHealthCheck(string expectedCommand, byte expectedInterval, byte expectedTimeout, byte expectedStartPeriod, byte expectedRetries)
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            long nanosecondModifier = 1000000000;
+
+            var healthCheck = new HealthCheckDescription(false, expectedCommand, expectedInterval, expectedTimeout, expectedStartPeriod, expectedRetries);
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), healthCheck, cancellationToken).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualHealthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                Assert.Equal($"CMD-SHELL {expectedCommand}", string.Join(" ", actualHealthCheck?.Test ?? new string[0]));
+                Assert.Equal(expectedInterval * nanosecondModifier, actualHealthCheck?.Interval);
+                Assert.Equal(expectedTimeout * nanosecondModifier, actualHealthCheck?.Timeout);
+                Assert.Equal(expectedStartPeriod * nanosecondModifier, actualHealthCheck?.StartPeriod);
+                Assert.Equal(expectedRetries, actualHealthCheck?.Retries);
+            }
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenCalledWithNoHealthCheck_ExpectTheContainerToHaveNoHealthCheck()
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync(imageName, labels, default(string), default(IHealthCheckDescription), cancellationToken).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Healthcheck}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualHealthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                Assert.Null(actualHealthCheck);
             }
         }
     }

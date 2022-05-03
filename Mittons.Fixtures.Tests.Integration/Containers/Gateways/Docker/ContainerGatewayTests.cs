@@ -225,7 +225,7 @@ public class ContainerGatewayTests
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"run -d -p 6379/tcp -p 80/tcp -p 443/tcp -p 22/tcp -p 2834/udp redis:alpine";
+                process.StartInfo.Arguments = $"run -d --health-cmd \"redis-cli ping\" --health-interval \"1s\" --health-timeout \"1s\" --health-start-period \"1s\" --health-retries 3 -p 6379/tcp -p 80/tcp -p 443/tcp -p 22/tcp -p 2834/udp redis:alpine";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -236,6 +236,8 @@ public class ContainerGatewayTests
             }
 
             _dockerCleanupFixture.AddContainer(containerId);
+
+            await gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken).ConfigureAwait(false);
 
             // Act
             var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);

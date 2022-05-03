@@ -31,7 +31,7 @@ public class GuestEnvironmentFixtureTests
     private class DuplicateNetworkGuestEnvironmentFixture : TestGuestEnvironmentFixture
     {
         [AllowNull]
-        [Network("PrimaryNetwork")]
+        [Service("PrimaryNetwork")]
         public IContainerNetworkService TertiaryNetwork { get; set; }
 
         public DuplicateNetworkGuestEnvironmentFixture(bool clearRegistrations, bool addMockRegistrations) : base(clearRegistrations, addMockRegistrations)
@@ -53,11 +53,11 @@ public class GuestEnvironmentFixtureTests
     private class TestGuestEnvironmentFixture : GuestEnvironmentFixture
     {
         [AllowNull]
-        [Network("PrimaryNetwork")]
+        [Service("PrimaryNetwork")]
         public IContainerNetworkService PrimaryContainerNetwork { get; set; }
 
         [AllowNull]
-        [Network("SecondaryNetwork")]
+        [Service("SecondaryNetwork")]
         public IContainerNetworkService SecondaryContainerNetwork { get; set; }
 
         [AllowNull]
@@ -94,7 +94,7 @@ public class GuestEnvironmentFixtureTests
                             .Callback<IEnumerable<Attribute>, CancellationToken>(
                                     (attributes, cancellationToken) =>
                                     {
-                                        networkName = attributes.OfType<NetworkAttribute>().First().Name;
+                                        networkName = attributes.OfType<ServiceAttribute>().First().Name;
                                     }
                                 );
                         mockNetwork.SetupGet(x => x.Name)

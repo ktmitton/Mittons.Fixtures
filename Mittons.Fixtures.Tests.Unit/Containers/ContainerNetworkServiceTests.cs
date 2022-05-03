@@ -28,7 +28,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute(expectedRunId) };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute(expectedRunId) };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -71,7 +71,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute("Run 1"), new RunAttribute("Run 2") };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute("Run 1"), new RunAttribute("Run 2") };
 
             // Act
             // Assert
@@ -88,7 +88,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute(true) };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute(true) };
 
             await service.InitializeAsync(attributes, cancellationToken);
 
@@ -109,7 +109,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute(false) };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute(false) };
 
             await service.InitializeAsync(attributes, cancellationToken);
 
@@ -137,7 +137,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -156,7 +156,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("Test"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -192,7 +192,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("Test1"), new NetworkAttribute("Test2"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("Test1"), new ServiceAttribute("Test2"), new RunAttribute() };
 
             // Act
             // Assert
@@ -212,7 +212,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute(networkName), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute(networkName), new RunAttribute() };
 
             // Act
             // Assert
@@ -231,7 +231,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute(networkName), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute(networkName), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -252,7 +252,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute(networkName), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute(networkName), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -303,7 +303,7 @@ public class ContainerNetworkServiceTests
 
             var network = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("PrimaryNetwork"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("PrimaryNetwork"), new RunAttribute() };
 
             await network.InitializeAsync(attributes, cancellationToken);
 
@@ -332,7 +332,7 @@ public class ContainerNetworkServiceTests
 
             var network = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("PrimaryNetwork"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("PrimaryNetwork"), new RunAttribute() };
 
             await network.InitializeAsync(attributes, cancellationToken);
 
@@ -362,7 +362,7 @@ public class ContainerNetworkServiceTests
 
             var service = new ContainerNetworkService(mockNetworkGateway.Object);
 
-            var attributes = new Attribute[] { new NetworkAttribute("PrimaryNetwork"), new RunAttribute() };
+            var attributes = new Attribute[] { new ServiceAttribute("PrimaryNetwork"), new RunAttribute() };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);

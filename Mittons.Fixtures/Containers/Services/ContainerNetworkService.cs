@@ -50,11 +50,11 @@ namespace Mittons.Fixtures.Containers.Services
 
             _teardownOnDispose = run.TeardownOnComplete;
 
-            var network = attributes.OfType<NetworkAttribute>().Single();
+            var network = attributes.OfType<ServiceAttribute>().Single();
 
             if (string.IsNullOrWhiteSpace(network.Name))
             {
-                throw new ArgumentException("Name cannot be null or whitespace.", "attributes{NetworkAttribute.Name}");
+                throw new ArgumentException("Name cannot be null or whitespace.", "attributes{ServiceAttribute.Name}");
             }
 
             Name = network.Name;

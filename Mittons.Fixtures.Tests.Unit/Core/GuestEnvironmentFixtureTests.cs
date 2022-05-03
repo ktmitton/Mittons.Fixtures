@@ -142,6 +142,86 @@ public class GuestEnvironmentFixtureTests
         }
     }
 
+    private class DependencyGuestEnvironmentFixture : GuestEnvironmentFixture
+    {
+        [AllowNull]
+        [ServiceDependency("SecondaryContainer")]
+        [Image("redis:alpine")]
+        public IContainerService PrimaryContainer { get; set; }
+
+        [AllowNull]
+        [Image("redis:alpine")]
+        public IContainerService SecondaryContainer { get; set; }
+
+        public List<string> ServiceNames { get; }
+
+        public DependencyGuestEnvironmentFixture()
+            : base()
+        {
+            ServiceNames = new List<string>();
+
+            base._serviceCollection.Clear();
+
+            base._serviceCollection.AddTransient<IContainerNetworkService>(
+                (_) =>
+                {
+                    var networkName = Guid.NewGuid().ToString();
+
+                    var mockNetwork = new Mock<IContainerNetworkService>();
+                    mockNetwork.Setup(x => x.InitializeAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                        .Callback<IEnumerable<Attribute>, CancellationToken>(
+                                (attributes, cancellationToken) =>
+                                {
+                                    networkName = attributes.OfType<ServiceAttribute>().First().Name;
+                                }
+                            );
+                    mockNetwork.SetupGet(x => x.Name)
+                        .Returns(() => networkName);
+
+                    mockNetwork.SetupGet(x => x.ServiceId)
+                        .Returns($"Test-{Guid.NewGuid()}");
+
+                    return mockNetwork.Object;
+                });
+
+            base._serviceCollection.AddTransient<IContainerService>(
+                (_) =>
+                {
+                    var mockContainer = new Mock<IContainerService>();
+                    mockContainer.Setup(x => x.InitializeAsync(It.IsAny<IEnumerable<Attribute>>(), It.IsAny<CancellationToken>()))
+                        .Callback<IEnumerable<Attribute>, CancellationToken>(
+                                (attributes, CancellationToken) =>
+                                {
+                                    ServiceNames.Add(attributes.OfType<ServiceAttribute>().FirstOrDefault()?.Name ?? string.Empty);
+                                }
+                            );
+
+                    return mockContainer.Object;
+                });
+
+            base._serviceCollection.AddSingleton<IContainerNetworkGateway>(
+                    _ =>
+                    {
+                        var mockGateway = new Mock<IContainerNetworkGateway>();
+                        mockGateway.Setup(x => x.CreateNetworkAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
+                            .ReturnsAsync(Guid.NewGuid().ToString());
+
+                        return mockGateway.Object;
+                    }
+                );
+            base._serviceCollection.AddSingleton<IContainerGateway>(
+                    _ =>
+                    {
+                        var mockGateway = new Mock<IContainerGateway>();
+                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+                            .ReturnsAsync(Guid.NewGuid().ToString());
+
+                        return mockGateway.Object;
+                    }
+                );
+        }
+    }
+
     public class RunTrackingTests
     {
         [Fact]
@@ -228,6 +308,23 @@ public class GuestEnvironmentFixtureTests
             {
                 service.Verify(x => x.DisposeAsync(), Times.Once);
             }
+        }
+    }
+
+    public class DependencyTests
+    {
+        [Fact]
+        public async Task InitializeAsync_WhenAServiceDependsOnAnotherService_ExpectDependentServiceToBeInitializedFirst()
+        {
+            // Arrange
+            var expectedServices = new[] { "SecondaryContainer", "PrimaryContainer" };
+            var fixture = new DependencyGuestEnvironmentFixture();
+
+            // Act
+            await fixture.InitializeAsync();
+
+            // Assert
+            Assert.Equal(expectedServices, fixture.ServiceNames);
         }
     }
 

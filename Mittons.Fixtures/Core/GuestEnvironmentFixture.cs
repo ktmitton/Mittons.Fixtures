@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Containers.Gateways.Docker;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Services;
@@ -27,6 +30,8 @@ namespace Mittons.Fixtures.Core
             _serviceCollection = new ServiceCollection();
             _serviceCollection.AddSingleton<IContainerNetworkService, ContainerNetworkService>();
             _serviceCollection.AddSingleton<IContainerService, ContainerService>();
+            _serviceCollection.AddSingleton<IContainerGateway, ContainerGateway>();
+            _serviceCollection.AddSingleton<IContainerNetworkGateway, ContainerNetworkGateway>();
         }
 
         public ValueTask DisposeAsync()
@@ -64,7 +69,10 @@ namespace Mittons.Fixtures.Core
                 networks.Add(network.Name, network);
             }
 
-            foreach (var propertyInfo in services.Where(x => !typeof(INetworkService).IsAssignableFrom(x.PropertyType)))
+            var servicePropertyInfos = services.Where(x => !typeof(INetworkService).IsAssignableFrom(x.PropertyType)).ToArray();
+            var dependencyGraph = new DependencyGraph<PropertyInfo>(servicePropertyInfos, x => x.Name, x => x.GetCustomAttributes(false).OfType<ServiceDependencyAttribute>().Select(y => y.Name));
+
+            foreach (var propertyInfo in dependencyGraph.CreateBuildOrder())
             {
                 var service = (IService)_serviceProvider.GetRequiredService(propertyInfo.PropertyType);
 
@@ -81,5 +89,44 @@ namespace Mittons.Fixtures.Core
                 await service.InitializeAsync(attributes, cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private Task<IService> CreateAndInitializeServiceAsync(PropertyInfo propertyInfo)
+        {
+            return Task.FromResult(default(IService));
+        }
     }
+
+    // public class DependencyGraph
+    // {
+    //     public class Node
+    //     {
+    //         public string Name { get; set; }
+
+    //         public List<Node> Depdencies { get; set; }
+    //     }
+
+    //     private readonly Dictionary<string, Node> _nodes;
+
+    //     public DependencyGraph(IEnumerable<KeyValuePair<string, string>> links)
+    //     {
+    //         foreach (var link in links)
+    //         {
+    //             if (!_nodes.ContainsKey(link.Value))
+    //             {
+    //                 _nodes[link.Value] = new Node { Name = link.Value, Depdencies = new List<Node>() };
+    //             }
+
+    //             if (!_nodes.ContainsKey(link.Key))
+    //             {
+    //                 _nodes[link.Key] = new Node { Name = link.Key, Depdencies = new List<Node>() };
+    //             }
+
+    //             if (!_nodes[link.Key].Depdencies.Any(x => x.Name == link.Value))
+    //             {
+    //                 _nodes[link.Key].Depdencies.Add(_nodes[link.Value]);
+    //             }
+    //         }
+    //         _nodes = new Dictionary<string, Node>();
+    //     }
+    // }
 }

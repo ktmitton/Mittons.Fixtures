@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Core.Attributes;
@@ -129,6 +130,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
         public async Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken)
         {
+            var portResources = await GetPortResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
+            var volumeResources = await GetVolumeResources(containerId, cancellationToken).ConfigureAwait(false);
+
+            return portResources.Concat(volumeResources).ToArray();
+        }
+
+        private async Task<IEnumerable<Resource>> GetPortResourcesAsync(string containerId, CancellationToken cancellationToken)
+        {
             var ipAddress = await GetServiceIpAddress(containerId, cancellationToken).ConfigureAwait(false);
 
             using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .NetworkSettings.Ports}}}}\""))
@@ -141,20 +150,65 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 var hostHostname = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
 
                 return ports.Select(x =>
-                {
-                    var guestPortDetails = x.Key.Split('/');
-                    var guestPort = guestPortDetails.First();
-                    var guestScheme = guestPortDetails.Last();
-                    var guestHostname = "localhost";
+                        {
+                            var guestPortDetails = x.Key.Split('/');
+                            var guestPort = guestPortDetails.First();
+                            var guestScheme = guestPortDetails.Last();
+                            var guestHostname = "localhost";
 
-                    var hostPortDetails = x.Value.First();
-                    var hostPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPortDetails.HostPort : guestPort;
+                            var hostPortDetails = x.Value.First();
+                            var hostPort = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? hostPortDetails.HostPort : guestPort;
 
-                    return new Resource(
-                        new Uri($"{guestScheme}://{guestHostname}:{guestPort}"),
-                        new Uri($"{guestScheme}://{hostHostname}:{hostPort}")
+                            return new Resource(
+                                new Uri($"{guestScheme}://{guestHostname}:{guestPort}"),
+                                new Uri($"{guestScheme}://{hostHostname}:{hostPort}")
+                            );
+                        }
                     );
-                }).ToArray();
+            }
+        }
+
+        private async Task<IEnumerable<Resource>> GetVolumeResources(string containerId, CancellationToken cancellationToken)
+        {
+            var volumes = await GetContainerVolumesAsync(containerId, cancellationToken).ConfigureAwait(false);
+            var volumeTasks = volumes.Select(x => GetResourceForVolumeAsync(containerId, x.Destination, cancellationToken)).ToArray();
+
+            await Task.WhenAll(volumeTasks).ConfigureAwait(false);
+
+            return volumeTasks.Select(x => x.Result);
+        }
+
+        private async Task<Resource> GetResourceForVolumeAsync(string containerId, string destination, CancellationToken cancellationToken)
+        {
+            var absolutePath = new Regex(@"^([\/\.])*(.*[^\/])[\/]?$").Replace(destination, "/$2");
+
+            using (var process = new DockerProcess($"exec --workdir / {containerId} stat -c \"%F\" \"{destination}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                if (output.Equals("directory"))
+                {
+                    absolutePath += "/";
+                }
+            }
+
+            return new Resource(
+                    new Uri($"file://{absolutePath}"),
+                    new Uri($"file://container.{containerId}{absolutePath}")
+                );
+        }
+
+        private async Task<Volume[]> GetContainerVolumesAsync(string containerId, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"inspect {containerId} --format \"{{{{json .Mounts}}}}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                return JsonSerializer.Deserialize<Volume[]>(output) ?? new Volume[0];
             }
         }
 
@@ -174,6 +228,11 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
                 return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
             }
+        }
+
+        private class Volume
+        {
+            public string Destination { get; set; }
         }
 
         private class Port

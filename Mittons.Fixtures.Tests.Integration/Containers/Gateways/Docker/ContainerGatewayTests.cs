@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -200,6 +201,51 @@ public class ContainerGatewayTests
         }
 
         [Theory]
+        [InlineData("/var/")]
+        [InlineData("/random/")]
+        [InlineData("/data/")]
+        [InlineData("/tmp/extension.txt")]
+        [InlineData("/tmp/noextension")]
+        public async Task GetAvailableResourcesAsync_WhenAnImageHasVolumes_ExpectTheVolumesToBeAddedAsResources(string resourcePath)
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var containerId = string.Empty;
+
+            var volumeOptions = new string[] { "--volume /var", "--volume random" };
+
+            var extensionFilename = Path.GetTempFileName();
+            var noExtensionFilename = Path.GetTempFileName();
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"run -d -p 6379/tcp --volume /var --volume random --volume \"{extensionFilename}:/tmp/extension.txt\" --volume \"{noExtensionFilename}:/tmp/noextension\"  redis:alpine";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty;
+            }
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            var expectedGuestUri = new Uri($"file://{resourcePath}");
+            var expectedHostUri = new Uri($"file://container.{containerId}{resourcePath}");
+
+            // Act
+            var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            Assert.Contains(resources, x => x.GuestUri == expectedGuestUri && x.HostUri == expectedHostUri);
+        }
+
+        [Theory]
         [InlineData("tcp", 6379)]
         [InlineData("tcp", 80)]
         [InlineData("tcp", 443)]
@@ -225,7 +271,7 @@ public class ContainerGatewayTests
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
-                process.StartInfo.Arguments = $"run -d --health-cmd \"redis-cli ping\" --health-interval \"1s\" --health-timeout \"1s\" --health-start-period \"1s\" --health-retries 3 -p 6379/tcp -p 80/tcp -p 443/tcp -p 22/tcp -p 2834/udp redis:alpine";
+                process.StartInfo.Arguments = $"run -d -p 6379/tcp -p 80/tcp -p 443/tcp -p 22/tcp -p 2834/udp redis:alpine";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.RedirectStandardOutput = true;
 
@@ -236,8 +282,6 @@ public class ContainerGatewayTests
             }
 
             _dockerCleanupFixture.AddContainer(containerId);
-
-            await gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken).ConfigureAwait(false);
 
             // Act
             var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);

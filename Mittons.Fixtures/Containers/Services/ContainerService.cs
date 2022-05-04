@@ -27,7 +27,7 @@ namespace Mittons.Fixtures.Containers.Services
 
         public ValueTask DisposeAsync()
         {
-            return new ValueTask(_teardownOnDispose ? _containerGateway.RemoveContainerAsync(default, default) : Task.CompletedTask);
+            return new ValueTask(_teardownOnDispose ? _containerGateway.RemoveContainerAsync(ServiceId, CancellationToken.None) : Task.CompletedTask);
         }
 
         public async Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)

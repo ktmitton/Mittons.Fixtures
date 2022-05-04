@@ -146,11 +146,13 @@ public class GuestEnvironmentFixtureTests
     {
         [AllowNull]
         [ServiceDependency("SecondaryContainer")]
+        [Service("PrimaryContainer")]
         [Image("redis:alpine")]
         public IContainerService PrimaryContainer { get; set; }
 
         [AllowNull]
         [Image("redis:alpine")]
+        [Service("SecondaryContainer")]
         public IContainerService SecondaryContainer { get; set; }
 
         public List<string> ServiceNames { get; }

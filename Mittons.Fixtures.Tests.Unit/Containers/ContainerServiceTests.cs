@@ -232,6 +232,29 @@ public class ContainerServiceTests
             // Assert
             mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
         }
+
+        [Fact]
+        public async Task DisposeAsync_WhenTheServiceIsDisposed_ExpectTheContainerToBeStopped()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("TestService");
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Act
+            await service.DisposeAsync();
+
+            // Assert
+            mockContainerGateway.Verify(x => x.RemoveContainerAsync(service.ServiceId, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 
     public class ConnectedServiceTests

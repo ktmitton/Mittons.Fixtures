@@ -6,7 +6,7 @@ namespace Mittons.Fixtures.Core.Attributes
     [AttributeUsage(System.AttributeTargets.Class, AllowMultiple = false)]
     public class RunAttribute : Attribute
     {
-        public static string DefaultId = Guid.NewGuid().ToString();
+        public static readonly string DefaultId = Guid.NewGuid().ToString();
 
         public string Id { get; }
 

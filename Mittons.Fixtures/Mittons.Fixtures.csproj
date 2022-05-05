@@ -3,16 +3,23 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Mittons.Fixtures</PackageId>
-    <PackageVersion>1.0.0-rc.3</PackageVersion>
+    <PackageVersion>1.0.0-prerelease.6</PackageVersion>
     <Authors>Kenneth Mitton</Authors>
     <Description>Provides fixtures for defining test environments used in integration/system/end-to-end testing.</Description>
     <Copyright>Copyright (c) Kenneth Mitton 2021</Copyright>
     <PackageProjectUrl>https://github.com/ktmitton/Mittons.Fixtures</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ktmitton/Mittons.Fixtures</RepositoryUrl>
     <RespositoryType>git</RespositoryType>
-    <PackageTags>testing;test;integration;system;end-to-end;environment;docker</PackageTags>
+    <PackageTags>testing;test;integration;system;end-to-end;environment;docker;containers</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+  </ItemGroup>
 
 </Project>

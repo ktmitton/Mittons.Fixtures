@@ -149,7 +149,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 var ports = JsonSerializer.Deserialize<Dictionary<string, Port[]>>(output) ?? new Dictionary<string, Port[]>();
                 var hostHostname = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "localhost" : ipAddress;
 
-                return ports.Select(x =>
+                return ports.Where(x => !(x.Value is null)).Select(x =>
                         {
                             var guestPortDetails = x.Key.Split('/');
                             var guestPort = guestPortDetails.First();

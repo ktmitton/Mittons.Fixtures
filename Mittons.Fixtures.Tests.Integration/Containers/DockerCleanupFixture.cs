@@ -37,7 +37,7 @@ public class DockerCleanupFixture : IAsyncLifetime
     {
         using var process = new Process();
         process.StartInfo.FileName = "docker";
-        process.StartInfo.Arguments = $"rm --force {containerId}";
+        process.StartInfo.Arguments = $"rm -v --force {containerId}";
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
 

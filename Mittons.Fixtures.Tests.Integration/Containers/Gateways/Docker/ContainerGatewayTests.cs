@@ -323,7 +323,7 @@ public class ContainerGatewayTests
         [InlineData("tcp", 443)]
         [InlineData("tcp", 22)]
         [InlineData("udp", 2834)]
-        public async Task GetAvailableResourcesAsync_WhenAnImageNameHasAnExposedPort_ExpectThePortToBeAddedAsAResource(string scheme, int guestPort)
+        public async Task GetAvailableResourcesAsync_WhenAContainerHasForwardedPorts_ExpectThePortsToBeAddedAsAResource(string scheme, int guestPort)
         {
             // Arrange
             var labels = new Dictionary<string, string>();
@@ -402,6 +402,38 @@ public class ContainerGatewayTests
             }
 
             Assert.Contains(resources, x => x.GuestUri == expectedGuestUriBuilder.Uri && x.HostUri == expectedHostUriBuilder.Uri);
+        }
+
+        [Fact]
+        public async Task GetAvailableResourcesAsync_WhenAContainerHasAnExposedButNotForwardedPorts_ExpectThePortToNotBeAddedAsAResource()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var containerId = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"run -d redis:alpine";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty;
+            }
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Act
+            var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            Assert.DoesNotContain(resources, x => x.GuestUri.Port == 6379);
         }
     }
 

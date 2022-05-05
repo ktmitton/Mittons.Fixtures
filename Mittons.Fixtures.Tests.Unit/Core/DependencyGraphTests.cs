@@ -107,7 +107,7 @@ public class DependencyGraphTests
     }
 
     [Fact]
-    public void Ctor_WhenADirectCircularDependencyIsDetected_ExpectExceptionToBeThrown()
+    public void CreateBuildOrder_WhenADirectCircularDependencyIsDetected_ExpectExceptionToBeThrown()
     {
         // Arrange
         var nodes = new List<Node>
@@ -118,9 +118,11 @@ public class DependencyGraphTests
             new Node("Node4", new string[] { "Node1" })
         };
 
+        var graph = new DependencyGraph<Node>(nodes, x => x.Name, x => x.Depndencies);
+
         // Act
         // Assert
-        Assert.Throws<ArgumentException>(() => new DependencyGraph<Node>(nodes, x => x.Name, x => x.Depndencies));
+        Assert.Throws<InvalidOperationException>(() => graph.CreateBuildOrder());
     }
 
     [Fact]
@@ -135,9 +137,11 @@ public class DependencyGraphTests
             new Node("Node4", new string[] { "Node2" })
         };
 
+        var graph = new DependencyGraph<Node>(nodes, x => x.Name, x => x.Depndencies);
+
         // Act
         // Assert
-        Assert.Throws<ArgumentException>(() => new DependencyGraph<Node>(nodes, x => x.Name, x => x.Depndencies));
+        Assert.Throws<InvalidOperationException>(() => graph.CreateBuildOrder());
     }
 
     [Fact]

@@ -30,8 +30,6 @@ namespace Mittons.Fixtures.Core
                     }
                 }
 
-                CheckForCircularDependency(name, dependencyNames);
-
                 if (!Nodes.ContainsKey(name))
                 {
                     Nodes[name] = new Node
@@ -70,26 +68,12 @@ namespace Mittons.Fixtures.Core
                 }
             }
 
+            if (nodes.Any())
+            {
+                throw new InvalidOperationException($"Circular dependencies detected for nodes {string.Join(",", nodes.Select(x => x.Name))}");
+            }
+
             return buildOrder;
-        }
-
-        private void CheckForCircularDependency(string nodeName, IEnumerable<string> dependencyNames)
-        {
-            if (!dependencyNames.Any())
-            {
-                return;
-            }
-
-            var grandchildren = Nodes.Where(x => dependencyNames.Contains(x.Key)).SelectMany(x => x.Value.Dependencies.Select(y => y.Name));//.SelectMany(x => x.Value.Dependencies.Select(y => y.Name));
-
-            var circularDependencies = grandchildren.Where(x => x.Contains(nodeName));
-
-            if (circularDependencies.Any())
-            {
-                throw new ArgumentException($"Circular dependency detected for nodeValues{{{nodeName}}} and {string.Join(",", circularDependencies.Select(x => $"nodeValues{{{x}}}"))}", $"nodeValues{{{nodeName}}}");
-            }
-
-            CheckForCircularDependency(nodeName, grandchildren);
         }
 
         public class Node

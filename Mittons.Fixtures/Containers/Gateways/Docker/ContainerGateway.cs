@@ -214,7 +214,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
         public async Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken)
         {
-            using (var process = new DockerProcess($"rm --force {containerId}"))
+            using (var process = new DockerProcess($"rm -v --force {containerId}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
             }

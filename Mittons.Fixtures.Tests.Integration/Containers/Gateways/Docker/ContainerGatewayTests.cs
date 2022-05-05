@@ -108,9 +108,81 @@ public class ContainerGatewayTests
     {
         private readonly DockerCleanupFixture _dockerCleanupFixture;
 
+        private record Volume(string Name);
+
         public LifetimeTests(DockerCleanupFixture dockerCleanupFixture)
         {
             _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        [Fact]
+        public async Task RemoveContainerAsync_WhenTheContainerHasUnnamedVolumes_ExpectTheVolumesToBeRemoved()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+
+            var containerId = string.Empty;
+
+            var volumeOptions = new string[] { "--volume /var", "--volume random" };
+
+            var extensionFilename = Path.GetTempFileName();
+            var noExtensionFilename = Path.GetTempFileName();
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"run -d --volume /var --volume random redis:alpine";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false) ?? string.Empty;
+            }
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            var volumeNames = Enumerable.Empty<string>();
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Mounts}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                volumeNames = JsonSerializer.Deserialize<IEnumerable<Volume>>(output)?.Select(x => x.Name) ?? Enumerable.Empty<string>();
+            }
+
+            // Act
+            await gateway.RemoveContainerAsync(containerId, cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            foreach (var name in volumeNames)
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "docker";
+                    process.StartInfo.Arguments = $"volume ls -q --filter Name={name}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+
+                    process.Start();
+                    await process.WaitForExitAsync().ConfigureAwait(false);
+
+                    var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                    Assert.Empty(output);
+                }
+            }
         }
 
         [Fact]

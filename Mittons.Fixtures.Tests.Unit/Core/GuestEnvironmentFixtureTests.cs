@@ -133,7 +133,7 @@ public class GuestEnvironmentFixtureTests
                     _ =>
                     {
                         var mockGateway = new Mock<IContainerGateway>();
-                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
                             .ReturnsAsync(Guid.NewGuid().ToString());
 
                         return mockGateway.Object;
@@ -215,7 +215,7 @@ public class GuestEnvironmentFixtureTests
                     _ =>
                     {
                         var mockGateway = new Mock<IContainerGateway>();
-                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+                        mockGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
                             .ReturnsAsync(Guid.NewGuid().ToString());
 
                         return mockGateway.Object;

@@ -13,6 +13,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             StartInfo.Arguments = arguments;
             StartInfo.UseShellExecute = false;
             StartInfo.RedirectStandardOutput = true;
+            StartInfo.RedirectStandardError = true;
             EnableRaisingEvents = true;
         }
 

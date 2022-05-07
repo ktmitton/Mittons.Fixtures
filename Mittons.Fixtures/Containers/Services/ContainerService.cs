@@ -44,6 +44,7 @@ namespace Mittons.Fixtures.Containers.Services
 
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
+                    image.PullOption,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }

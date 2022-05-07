@@ -359,6 +359,36 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        public Task CreateDirectoryAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteDirectoryAsync(string containerId, string path, bool recursive, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IFileResourceAdapter> GetFileAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IDirectoryResourceAdapter> GetDirectoryAsync(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         private class Volume
         {
             public string Destination { get; set; }

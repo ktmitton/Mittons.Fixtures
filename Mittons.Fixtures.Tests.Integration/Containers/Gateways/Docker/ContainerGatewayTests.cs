@@ -712,4 +712,455 @@ public class ContainerGatewayTests
             await gateway.EnsureContainerIsHealthyAsync(containerId, cancellationToken);
         }
     }
+
+    public class FileTests : IClassFixture<RedisContainerFixture>
+    {
+        private readonly RedisContainerFixture _redisContainerFixture;
+
+        public FileTests(RedisContainerFixture redisContainerFixture)
+        {
+            _redisContainerFixture = redisContainerFixture;
+        }
+
+        [Fact]
+        public async Task CreateFileAsync_WhenTheFileDoesNotExist_ExpectFileToBeCreated()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            // Act
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(0, process.ExitCode);
+            }
+        }
+
+        [Fact]
+        public async Task CreateFileAsync_WhenTheFileExists_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken));
+        }
+
+        [Fact]
+        public async Task CreateFileAsync_WhenThePathIncludesNewDirectories_ExpectFileToBeCreated()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}/{Guid.NewGuid()}/{Guid.NewGuid()}";
+
+            // Act
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(0, process.ExitCode);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteFileAsync_WhenTheFileDoesNotExist_ExpectFileToBeDeleted()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+
+            // Act
+            await containerGateway.DeleteFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+        }
+
+        [Fact]
+        public async Task DeleteFileAsync_WhenTheFileExists_ExpectNothingToHappen()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(0, process.ExitCode);
+            }
+
+            // Act
+            await containerGateway.DeleteFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            var result = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+        }
+
+        [Fact]
+        public async Task WriteFileAsync_WhenTheFileDoesNotExist_ExpectFileToBeWritten()
+        {
+            // Arrange
+            var expectedContents = "Hello, world";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+
+            // Act
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task WriteFileAsync_WhenTheFileExists_ExpectFileToBeOverwritten()
+        {
+            // Arrange
+            var expectedContents = "Hello, world";
+            var originalContents = "Oh no";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, originalContents, cancellationToken);
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var contents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(originalContents, contents);
+            }
+
+            // Act
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Assert
+            var result = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task WriteFileAsync_WhenTheFileIsForADirectoryThatDoesNotExist_ExpectFileToBeWritten()
+        {
+            // Arrange
+            var expectedContents = "Hello, world";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}/{Guid.NewGuid()}";
+
+            // Act
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Assert
+            var result = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task AppendFileAsync_WhenTheFileDoesNotExist_ExpectFileToBeWritten()
+        {
+            // Arrange
+            var expectedContents = "Hello, world";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+
+            // Act
+            await containerGateway.AppendFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task AppendFileAsync_WhenTheFileExists_ExpectFileToBeAppended()
+        {
+            // Arrange
+            var newContents = "Hello, world";
+            var originalContents = "Oh no";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+            var expectedContents = $"{originalContents}{newContents}";
+
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, originalContents, cancellationToken);
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var contents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(originalContents, contents);
+            }
+
+            // Act
+            await containerGateway.AppendFileAsync(_redisContainerFixture.ContainerId, path, newContents, cancellationToken);
+
+            // Assert
+            var result = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task AppendFileAsync_WhenTheFileIsForADirectoryThatDoesNotExist_ExpectFileToBeWritten()
+        {
+            // Arrange
+            var expectedContents = "Hello, world";
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}/{Guid.NewGuid()}";
+
+            // Act
+            await containerGateway.AppendFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Assert
+            var result = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} cat {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualContents = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+
+                Assert.Equal(expectedContents, actualContents);
+            }
+        }
+
+        [Fact]
+        public async Task ReadFileAsync_WhenTheFileDoesNotExist_ExpectFileToBeWritten()
+        {
+            // Arrange
+            var expectedContents = string.Empty;
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+
+            // Act
+            var actualContents = await containerGateway.ReadFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            Assert.Equal(expectedContents, actualContents);
+        }
+
+        [Fact]
+        public async Task ReadFileAsync_WhenTheFileExists_ExpectFileToBeAppended()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+            var expectedContents = "Hello, world";
+
+            await containerGateway.WriteFileAsync(_redisContainerFixture.ContainerId, path, expectedContents, cancellationToken);
+
+            // Act
+            var actualContents = await containerGateway.ReadFileAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            Assert.Equal(expectedContents, actualContents);
+        }
+    }
 }

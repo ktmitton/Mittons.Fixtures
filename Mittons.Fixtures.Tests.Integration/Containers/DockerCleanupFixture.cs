@@ -55,8 +55,5 @@ public class DockerCleanupFixture : IAsyncLifetime
 
         process.Start();
         await process.WaitForExitAsync().ConfigureAwait(false);
-        // var temp = process.StandardOutput.ReadToEnd();
-        // Assert.Equal(string.Empty, temp);
-        // var a = 1;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -279,29 +280,83 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             throw new NotImplementedException();
         }
 
-        public Task CreateFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        private async Task<bool> DoesFileSystemResourceExist(string containerId, string path, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var existsExitCode = 0;
+
+            using (var process = new DockerProcess($"exec {containerId} ls \"{path}\""))
+            {
+                return await process.RunProcessAsync(cancellationToken).ConfigureAwait(false) == existsExitCode;
+            }
         }
 
-        public Task DeleteFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        private async Task EnsureDirectoryExists(string containerId, string path, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var directoryPath = Path.GetDirectoryName(path).Replace("\\", "/");
+
+            if (!await DoesFileSystemResourceExist(containerId, directoryPath, cancellationToken))
+            {
+                using (var process = new DockerProcess($"exec {containerId} mkdir -p \"{directoryPath}\""))
+                {
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
-        public Task AppendFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        public async Task CreateFileAsync(string containerId, string path, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"File [{path}] already exists.");
+            }
+
+            await EnsureDirectoryExists(containerId, path, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"exec {containerId} touch \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        public async Task DeleteFileAsync(string containerId, string path, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            using (var process = new DockerProcess($"exec {containerId} rm \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task<string> ReadFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        public async Task AppendFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var originalContents = await ReadFileAsync(containerId, path, cancellationToken);
+
+            await WriteFileAsync(containerId, path, $"{originalContents}{contents}", cancellationToken);
+        }
+
+        public async Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        {
+            var localPath = Path.GetTempFileName();
+
+            File.WriteAllText(localPath, contents);
+
+            await EnsureDirectoryExists(containerId, path, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"cp \"{localPath}\" \"{containerId}:{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Delete(localPath);
+        }
+
+        public async Task<string> ReadFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"exec {containerId} cat {path}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                return await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+            }
         }
 
         private class Volume

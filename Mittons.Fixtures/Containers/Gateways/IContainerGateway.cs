@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
 
@@ -8,7 +9,7 @@ namespace Mittons.Fixtures.Containers.Gateways
 {
     public interface IContainerGateway
     {
-        Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
+        Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
 
         Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken);
 

@@ -6,14 +6,32 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
 
 namespace Mittons.Fixtures.Containers.Gateways.Docker
 {
+    internal class ProcessDebugger
+    {
+        public Stack<(string Arguments, string StandardOutput, string StandardError)> CallLog { get; } = new Stack<(string Arguments, string StandardOutput, string StandardError)>();
+
+        public void AddLog(string arguments, string standardOutput, string standardError)
+        {
+            CallLog.Push((arguments, standardOutput, standardError));
+        }
+    }
+
     internal class ContainerGateway : IContainerGateway
     {
-        public async Task<string> CreateContainerAsync(string imageName, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
+        private readonly ProcessDebugger _processDebugger;
+
+        public ContainerGateway(ProcessDebugger processDebugger = default)
+        {
+            _processDebugger = processDebugger;
+        }
+
+        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 
@@ -28,11 +46,18 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 healthCheck = $"--health-cmd \"{healthCheckDescription.Command}\" --health-interval \"{healthCheckDescription.Interval}s\" --health-timeout \"{healthCheckDescription.Timeout}s\" --health-start-period \"{healthCheckDescription.StartPeriod}s\" --health-retries \"{healthCheckDescription.Retries}\"";
             }
 
-            using (var process = new DockerProcess($"run -d -P {labelOptions} {healthCheck} {imageName} {command}"))
+            var arguments = $"run -d --pull {pullOption.ToString().ToLower()} -P {labelOptions} {healthCheck} {imageName} {command}";
+
+            using (var process = new DockerProcess(arguments))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                var containerId = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(arguments, standardOutput, standardError);
+
+                var containerId = Regex.Split(standardOutput, "[\r\n]+").First();
 
                 return containerId;
             }
@@ -72,7 +97,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+                try
+                {
+                    return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+                }
+                catch
+                {
+                    return string.Empty;
+                }
             }
         }
 
@@ -82,7 +114,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+                try
+                {
+                    return JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+                }
+                catch
+                {
+                    return string.Empty;
+                }
             }
         }
 

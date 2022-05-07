@@ -269,6 +269,41 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        public Task SetFileSystemResourceOwnerAsync(string containerId, string path, string owner, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetFileSystemResourcePermissionsAsync(string containerId, string path, string permissions, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AppendFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> ReadFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         private class Volume
         {
             public string Destination { get; set; }

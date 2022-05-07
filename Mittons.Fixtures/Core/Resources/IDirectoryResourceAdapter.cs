@@ -1,20 +1,21 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Mittons.Fixtures.Core.Resources
 {
     public interface IDirectoryResourceAdapter : IFileSystemResourceAdapter
     {
-        Task CreateAsync();
+        Task CreateAsync(CancellationToken cancellationToken);
 
-        Task DeleteAsync(bool recursive);
+        Task DeleteAsync(bool recursive, CancellationToken cancellationToken);
 
-        Task<IFileResourceAdapter> GetFileAsync(string path);
+        Task<IFileResourceAdapter> GetFileAsync(string path, CancellationToken cancellationToken);
 
-        Task<IDirectoryResourceAdapter> GetDirectoryAsync(string path);
+        Task<IDirectoryResourceAdapter> GetDirectoryAsync(string path, CancellationToken cancellationToken);
 
-        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories();
+        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(CancellationToken cancellationToken);
 
-        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateFiles();
+        Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(CancellationToken cancellationToken);
     }
 }

@@ -1402,7 +1402,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var results = await containerGateway.EnumerateDirectories(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateDirectoriesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Empty(results);
@@ -1432,7 +1432,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var results = await containerGateway.EnumerateDirectories(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateDirectoriesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Empty(results);
@@ -1452,7 +1452,7 @@ public class ContainerGatewayTests
             await containerGateway.CreateDirectoryAsync(_redisContainerFixture.ContainerId, subdirectoryPath2, cancellationToken);
 
             // Act
-            var results = await containerGateway.EnumerateDirectories(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateDirectoriesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Contains(results, x => x.Path == subdirectoryPath1);
@@ -1481,7 +1481,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateFilesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Empty(results);
@@ -1511,7 +1511,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateFilesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Empty(results);
@@ -1531,7 +1531,7 @@ public class ContainerGatewayTests
             await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, filePath2, cancellationToken);
 
             // Act
-            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+            var results = await containerGateway.EnumerateFilesAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
 
             // Assert
             Assert.Contains(results, x => x.Path == filePath1);

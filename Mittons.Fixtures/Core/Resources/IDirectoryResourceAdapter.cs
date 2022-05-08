@@ -10,12 +10,8 @@ namespace Mittons.Fixtures.Core.Resources
 
         Task DeleteAsync(bool recursive, CancellationToken cancellationToken);
 
-        Task<IFileResourceAdapter> GetFileAsync(string path, CancellationToken cancellationToken);
+        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(CancellationToken cancellationToken);
 
-        Task<IDirectoryResourceAdapter> GetDirectoryAsync(string path, CancellationToken cancellationToken);
-
-        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(CancellationToken cancellationToken);
-
-        Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(CancellationToken cancellationToken);
+        Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(CancellationToken cancellationToken);
     }
 }

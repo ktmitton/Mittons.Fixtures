@@ -35,8 +35,8 @@ namespace Mittons.Fixtures.Containers.Gateways
 
         Task DeleteDirectoryAsync(string containerId, string path, bool recursive, CancellationToken cancellationToken);
 
-        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(string containerId, string path, CancellationToken cancellationToken);
+        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(string containerId, string path, CancellationToken cancellationToken);
 
-        Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(string containerId, string path, CancellationToken cancellationToken);
+        Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(string containerId, string path, CancellationToken cancellationToken);
     }
 }

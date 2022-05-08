@@ -444,14 +444,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        public async Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(string containerId, string path, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(string containerId, string path, CancellationToken cancellationToken)
         {
             var children = await Enumerate(containerId, path, cancellationToken);
 
             return children.OfType<DirectoryResourceAdapter>();
         }
 
-        public async Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(string containerId, string path, CancellationToken cancellationToken)
+        public async Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(string containerId, string path, CancellationToken cancellationToken)
         {
             var children = await Enumerate(containerId, path, cancellationToken);
 

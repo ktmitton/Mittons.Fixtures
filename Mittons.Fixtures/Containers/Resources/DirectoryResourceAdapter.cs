@@ -14,6 +14,13 @@ namespace Mittons.Fixtures.Containers.Resources
 
         private readonly IContainerGateway _containerGateway;
 
+        public DirectoryResourceAdapter(IResource resource, IContainerGateway containerGateway)
+        {
+            _containerId = resource.GuestUri.Host.Split(new[] { '.' }, 2)[1];
+            Path = resource.GuestUri.AbsolutePath;
+            _containerGateway = containerGateway;
+        }
+
         public DirectoryResourceAdapter(string containerId, string path, IContainerGateway containerGateway)
         {
             _containerId = containerId;
@@ -22,43 +29,21 @@ namespace Mittons.Fixtures.Containers.Resources
         }
 
         public Task CreateAsync(CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+            => _containerGateway.CreateDirectoryAsync(_containerId, Path, cancellationToken);
 
         public Task DeleteAsync(bool recursive, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+            => _containerGateway.DeleteDirectoryAsync(_containerId, Path, recursive, cancellationToken);
 
-        public Task<IFileResourceAdapter> GetFileAsync(string path, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(CancellationToken cancellationToken)
+            => _containerGateway.EnumerateDirectoriesAsync(_containerId, Path, cancellationToken);
 
-        public Task<IDirectoryResourceAdapter> GetDirectoryAsync(string path, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectories(CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<IEnumerable<IFileResourceAdapter>> EnumerateFiles(CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task SetPermissionsAsync(string permissions, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+        public Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(CancellationToken cancellationToken)
+            => _containerGateway.EnumerateFilesAsync(_containerId, Path, cancellationToken);
 
         public Task SetOwnerAsync(string owner, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+            => _containerGateway.SetFileSystemResourceOwnerAsync(_containerId, Path, owner, cancellationToken);
+
+        public Task SetPermissionsAsync(string permissions, CancellationToken cancellationToken)
+            => _containerGateway.SetFileSystemResourcePermissionsAsync(_containerId, Path, permissions, cancellationToken);
     }
 }

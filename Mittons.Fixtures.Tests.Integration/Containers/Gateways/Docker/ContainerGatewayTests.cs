@@ -1439,7 +1439,7 @@ public class ContainerGatewayTests
         }
 
         [Fact]
-        public async Task EnumerateDirectories_WhenThereAreSubdirectoriesAndFiles_ExpectReturnSubdirectoriesAndFiles()
+        public async Task EnumerateDirectories_WhenThereAreSubdirectoriesAndFiles_ExpectReturnSubdirectories()
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -1457,6 +1457,85 @@ public class ContainerGatewayTests
             // Assert
             Assert.Contains(results, x => x.Path == subdirectoryPath1);
             Assert.Contains(results, x => x.Path == subdirectoryPath2);
+        }
+
+        [Fact]
+        public async Task EnumerateFiles_WhenDirectoryDoesNotExist_ExpectReturnEmptyEnumerable()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(1, process.ExitCode);
+            }
+
+            // Act
+            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task EnumerateFiles_WhenThereAreNoFiles_ExpectReturnEmptyEnumerable()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            await containerGateway.CreateDirectoryAsync(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_redisContainerFixture.ContainerId} ls -l {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                Assert.Equal(0, process.ExitCode);
+            }
+
+            // Act
+            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task EnumerateFiles_WhenThereAreFiles_ExpectReturnFiles()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+            var filePath1 = $"{path}/{Guid.NewGuid()}";
+            var filePath2 = $"{path}/{Guid.NewGuid()}";
+
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, filePath1, cancellationToken);
+            await containerGateway.CreateFileAsync(_redisContainerFixture.ContainerId, filePath2, cancellationToken);
+
+            // Act
+            var results = await containerGateway.EnumerateFiles(_redisContainerFixture.ContainerId, path, cancellationToken);
+
+            // Assert
+            Assert.Contains(results, x => x.Path == filePath1);
+            Assert.Contains(results, x => x.Path == filePath2);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Containers.Resources;
 using Mittons.Fixtures.Containers.Services;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
@@ -346,7 +347,7 @@ public class ContainerServiceTests
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
 
-            var expectedResources = new List<IResource> { Mock.Of<IResource>() };
+            var expectedResources = new List<IResource> { Mock.Of<IResource>(x => x.GuestUri == new Uri("file://container.1234/var/temp")) };
 
             var mockContainerGateway = new Mock<IContainerGateway>();
             mockContainerGateway.Setup(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -382,6 +383,66 @@ public class ContainerServiceTests
 
             // Assert
             mockContainerGateway.Verify(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), cancellationToken));
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenServiceHasFileResources_ExpectFileAdaptersToBeAvailable()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var expectedResources = new List<IResource>
+                {
+                    Mock.Of<IResource>(x => x.GuestUri == new Uri("file://container.1234/var/test.txt")),
+                    Mock.Of<IResource>(x => x.GuestUri == new Uri("file://container.1234/tmp/temp/text.tst"))
+                };
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+            mockContainerGateway.Setup(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResources);
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            var adapters = service.ResourceAdapters.OfType<FileResourceAdapter>();
+
+            Assert.Contains(adapters, x => x.Path == "/var/test.txt");
+            Assert.Contains(adapters, x => x.Path == "/tmp/temp/text.tst");
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenServiceHasDirectoryResources_ExpectFileAdaptersToBeAvailable()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var expectedResources = new List<IResource>
+                {
+                    Mock.Of<IResource>(x => x.GuestUri == new Uri("file://container.1234/var/test/")),
+                    Mock.Of<IResource>(x => x.GuestUri == new Uri("file://container.1234/tmp/temp/text/"))
+                };
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+            mockContainerGateway.Setup(x => x.GetAvailableResourcesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResources);
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute() };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            var adapters = service.ResourceAdapters.OfType<DirectoryResourceAdapter>();
+
+            Assert.Contains(adapters, x => x.Path == "/var/test/");
+            Assert.Contains(adapters, x => x.Path == "/tmp/temp/text/");
         }
     }
 

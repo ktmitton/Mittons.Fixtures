@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways;
+using Mittons.Fixtures.Containers.Resources;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
 
@@ -13,6 +14,8 @@ namespace Mittons.Fixtures.Containers.Services
     public class ContainerService : IContainerService
     {
         public IEnumerable<IResource> Resources { get; private set; }
+
+        public IEnumerable<IResourceAdapter> ResourceAdapters { get; private set; }
 
         public string ServiceId { get; private set; }
 
@@ -57,6 +60,11 @@ namespace Mittons.Fixtures.Containers.Services
             await _containerGateway.EnsureContainerIsHealthyAsync(ServiceId, cancellationToken).ConfigureAwait(false);
 
             Resources = await _containerGateway.GetAvailableResourcesAsync(ServiceId, cancellationToken).ConfigureAwait(false);
+
+            IEnumerable<IResourceAdapter> fileAdapters = Resources.Where(x => x.GuestUri.AbsolutePath.Last() != '/').Select(x => new FileResourceAdapter(x, _containerGateway)).ToList();
+            IEnumerable<IResourceAdapter> directoryAdapters = Resources.Where(x => x.GuestUri.AbsolutePath.Last() == '/').Select(x => new DirectoryResourceAdapter(x, _containerGateway)).ToList();
+
+            ResourceAdapters = fileAdapters.Concat(directoryAdapters);
 
             var networkAliases = attributes.OfType<NetworkAliasAttribute>();
 

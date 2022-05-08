@@ -30,6 +30,8 @@ namespace Mittons.Fixtures.Core.Services
         /// </value>
         IEnumerable<IResource> Resources { get; }
 
+        IEnumerable<IResourceAdapter> ResourceAdapters { get; }
+
         Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken);
     }
 }

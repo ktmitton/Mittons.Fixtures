@@ -17,6 +17,8 @@ namespace Mittons.Fixtures.Containers.Services
 
         public IEnumerable<IResource> Resources { get; private set; }
 
+        public IEnumerable<IResourceAdapter> ResourceAdapters { get; private set; }
+
         private readonly IContainerNetworkGateway _containerNetworkGateway;
 
         private bool _teardownOnDispose;
@@ -69,6 +71,8 @@ namespace Mittons.Fixtures.Containers.Services
                 ).ConfigureAwait(false);
 
             Resources = Enumerable.Empty<IResource>();
+
+            ResourceAdapters = Enumerable.Empty<IResourceAdapter>();
         }
     }
 }

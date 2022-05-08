@@ -16,5 +16,27 @@ namespace Mittons.Fixtures.Containers.Gateways
         Task<IEnumerable<IResource>> GetAvailableResourcesAsync(string containerId, CancellationToken cancellationToken);
 
         Task RemoveContainerAsync(string containerId, CancellationToken cancellationToken);
+
+        Task SetFileSystemResourceOwnerAsync(string containerId, string path, string owner, CancellationToken cancellationToken);
+
+        Task SetFileSystemResourcePermissionsAsync(string containerId, string path, string permissions, CancellationToken cancellationToken);
+
+        Task CreateFileAsync(string containerId, string path, CancellationToken cancellationToken);
+
+        Task DeleteFileAsync(string containerId, string path, CancellationToken cancellationToken);
+
+        Task AppendFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken);
+
+        Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken);
+
+        Task<string> ReadFileAsync(string containerId, string path, CancellationToken cancellationToken);
+
+        Task CreateDirectoryAsync(string containerId, string path, CancellationToken cancellationToken);
+
+        Task DeleteDirectoryAsync(string containerId, string path, bool recursive, CancellationToken cancellationToken);
+
+        Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(string containerId, string path, CancellationToken cancellationToken);
+
+        Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(string containerId, string path, CancellationToken cancellationToken);
     }
 }

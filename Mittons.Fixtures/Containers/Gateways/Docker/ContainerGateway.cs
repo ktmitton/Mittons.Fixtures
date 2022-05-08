@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -7,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Attributes;
+using Mittons.Fixtures.Containers.Resources;
 using Mittons.Fixtures.Core.Attributes;
 using Mittons.Fixtures.Core.Resources;
 
@@ -267,6 +269,209 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
                 return await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
             }
+        }
+
+        public async Task SetFileSystemResourceOwnerAsync(string containerId, string path, string owner, CancellationToken cancellationToken)
+        {
+            if (!await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"Resource [{path}] does not exist.");
+            }
+
+            using (var process = new DockerProcess($"exec {containerId} chown {owner} \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task SetFileSystemResourcePermissionsAsync(string containerId, string path, string permissions, CancellationToken cancellationToken)
+        {
+            if (!await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"Resource [{path}] does not exist.");
+            }
+
+            using (var process = new DockerProcess($"exec {containerId} chmod {permissions} \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<bool> DoesFileSystemResourceExist(string containerId, string path, CancellationToken cancellationToken)
+        {
+            var existsExitCode = 0;
+
+            using (var process = new DockerProcess($"exec {containerId} ls \"{path}\""))
+            {
+                return await process.RunProcessAsync(cancellationToken).ConfigureAwait(false) == existsExitCode;
+            }
+        }
+
+        private async Task EnsureDirectoryExists(string containerId, string path, CancellationToken cancellationToken)
+        {
+            var directoryPath = Path.GetDirectoryName(path).Replace("\\", "/");
+
+            if (!await DoesFileSystemResourceExist(containerId, directoryPath, cancellationToken))
+            {
+                using (var process = new DockerProcess($"exec {containerId} mkdir -p \"{directoryPath}\""))
+                {
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        public async Task CreateFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            if (await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"File [{path}] already exists.");
+            }
+
+            await EnsureDirectoryExists(containerId, path, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"exec {containerId} touch \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task DeleteFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"exec {containerId} rm \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task AppendFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        {
+            var originalContents = await ReadFileAsync(containerId, path, cancellationToken);
+
+            await WriteFileAsync(containerId, path, $"{originalContents}{contents}", cancellationToken);
+        }
+
+        public async Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
+        {
+            var localPath = Path.GetTempFileName();
+
+            File.WriteAllText(localPath, contents);
+
+            await EnsureDirectoryExists(containerId, path, cancellationToken).ConfigureAwait(false);
+
+            using (var process = new DockerProcess($"cp \"{localPath}\" \"{containerId}:{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Delete(localPath);
+        }
+
+        public async Task<string> ReadFileAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"exec {containerId} cat {path}"))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                return await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+            }
+        }
+
+        public async Task CreateDirectoryAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            if (await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"Directory [{path}] already exists.");
+            }
+
+            using (var process = new DockerProcess($"exec {containerId} mkdir -p \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        public async Task DeleteDirectoryAsync(string containerId, string path, bool recursive, CancellationToken cancellationToken)
+        {
+            if (recursive)
+            {
+                using (var process = new DockerProcess($"exec {containerId} rm -rf \"{path}\""))
+                {
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                using (var process = new DockerProcess($"exec {containerId} ls \"{path}\""))
+                {
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!string.IsNullOrWhiteSpace(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false)))
+                    {
+                        throw new InvalidOperationException($"Directory [{path}] has children, but recursive delete was not requested.");
+                    }
+                }
+
+                using (var process = new DockerProcess($"exec {containerId} rmdir \"{path}\""))
+                {
+                    await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task<bool> IsDirectory(string containerId, string path, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"exec --workdir / {containerId} stat -c \"%F\" \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var output = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                return output.Equals("directory");
+            }
+        }
+
+        private async Task<IEnumerable<IFileSystemResourceAdapter>> Enumerate(string containerId, string path, CancellationToken cancellationToken)
+        {
+            using (var process = new DockerProcess($"exec {containerId} ls -1 \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var adapters = new List<IFileSystemResourceAdapter>();
+
+                while (!process.StandardOutput.EndOfStream)
+                {
+                    var childPath = $"{path}/{await process.StandardOutput.ReadLineAsync().ConfigureAwait(false)}";
+
+                    if (await DoesFileSystemResourceExist(containerId, childPath, cancellationToken))
+                    {
+                        var isDirectory = await IsDirectory(containerId, childPath, cancellationToken).ConfigureAwait(false);
+
+                        if (isDirectory)
+                        {
+                            adapters.Add(new DirectoryResourceAdapter(containerId, childPath, this));
+                        }
+                        else
+                        {
+                            adapters.Add(new FileResourceAdapter(containerId, childPath, this));
+                        }
+                    }
+                }
+
+                return adapters;
+            }
+        }
+
+        public async Task<IEnumerable<IDirectoryResourceAdapter>> EnumerateDirectoriesAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            var children = await Enumerate(containerId, path, cancellationToken);
+
+            return children.OfType<DirectoryResourceAdapter>();
+        }
+
+        public async Task<IEnumerable<IFileResourceAdapter>> EnumerateFilesAsync(string containerId, string path, CancellationToken cancellationToken)
+        {
+            var children = await Enumerate(containerId, path, cancellationToken);
+
+            return children.OfType<FileResourceAdapter>();
         }
 
         private class Volume

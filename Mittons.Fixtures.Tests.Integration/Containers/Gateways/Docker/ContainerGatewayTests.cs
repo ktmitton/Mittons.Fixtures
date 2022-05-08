@@ -1632,5 +1632,38 @@ public class ContainerGatewayTests
             // Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => containerGateway.SetFileSystemResourcePermissionsAsync(_sftpContainerFixture.ContainerId, path, "777", cancellationToken));
         }
+
+        [Theory]
+        [InlineData("777")]
+        [InlineData("757")]
+        [InlineData("555")]
+        public async Task SetFileSystemResourcePermissionsAsync_WhenTheResourceDoesExists_ExpectThePermissionsToBeUpdated(string expectedPermissions)
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+            var containerGateway = new ContainerGateway();
+            var path = $"/tmp/{Guid.NewGuid()}";
+
+            await containerGateway.CreateFileAsync(_sftpContainerFixture.ContainerId, path, cancellationToken);
+
+            // Act
+            await containerGateway.SetFileSystemResourcePermissionsAsync(_sftpContainerFixture.ContainerId, path, expectedPermissions, cancellationToken);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"exec {_sftpContainerFixture.ContainerId} stat -c \"%a\" {path}";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                process.WaitForExit();
+
+                var actualPermissions = process.StandardOutput.ReadLine();
+
+                Assert.Equal(expectedPermissions, actualPermissions);
+            }
+        }
     }
 }

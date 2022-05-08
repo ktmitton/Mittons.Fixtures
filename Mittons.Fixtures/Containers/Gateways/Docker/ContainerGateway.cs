@@ -291,7 +291,10 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 throw new InvalidOperationException($"Resource [{path}] does not exist.");
             }
 
-            throw new NotImplementedException();
+            using (var process = new DockerProcess($"exec {containerId} chmod {permissions} \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task<bool> DoesFileSystemResourceExist(string containerId, string path, CancellationToken cancellationToken)

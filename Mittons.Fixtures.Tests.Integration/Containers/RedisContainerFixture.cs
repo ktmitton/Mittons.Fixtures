@@ -4,11 +4,11 @@ using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Containers;
 
-public class RedisContainerFixture : IAsyncLifetime
+public class SftpContainerFixture : IAsyncLifetime
 {
     public string ContainerId { get; private set; } = string.Empty;
 
-    public RedisContainerFixture()
+    public SftpContainerFixture()
     {
     }
 
@@ -17,7 +17,7 @@ public class RedisContainerFixture : IAsyncLifetime
         using (var process = new Process())
         {
             process.StartInfo.FileName = "docker";
-            process.StartInfo.Arguments = $"run -d redis:alpine";
+            process.StartInfo.Arguments = $"run -d atmoz/sftp:alpine guest:guest admin:admin other:other";
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
 

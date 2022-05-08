@@ -271,13 +271,26 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        public Task SetFileSystemResourceOwnerAsync(string containerId, string path, string owner, CancellationToken cancellationToken)
+        public async Task SetFileSystemResourceOwnerAsync(string containerId, string path, string owner, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (!await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"Resource [{path}] does not exist.");
+            }
+
+            using (var process = new DockerProcess($"exec {containerId} chown {owner} \"{path}\""))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        public Task SetFileSystemResourcePermissionsAsync(string containerId, string path, string permissions, CancellationToken cancellationToken)
+        public async Task SetFileSystemResourcePermissionsAsync(string containerId, string path, string permissions, CancellationToken cancellationToken)
         {
+            if (!await DoesFileSystemResourceExist(containerId, path, cancellationToken))
+            {
+                throw new InvalidOperationException($"Resource [{path}] does not exist.");
+            }
+
             throw new NotImplementedException();
         }
 

@@ -65,9 +65,11 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
+        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
+
+            var environmentVariableOptions = string.Join(" ", environmentVariables.Select(x => $"-e \"{x.Key}={x.Value}\""));
 
             var healthCheck = string.Empty;
 
@@ -80,7 +82,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 healthCheck = $"--health-cmd \"{healthCheckDescription.Command}\" --health-interval \"{healthCheckDescription.Interval}s\" --health-timeout \"{healthCheckDescription.Timeout}s\" --health-start-period \"{healthCheckDescription.StartPeriod}s\" --health-retries \"{healthCheckDescription.Retries}\"";
             }
 
-            var arguments = $"run -d -P {labelOptions} {healthCheck} {imageName} {command}";
+            var arguments = $"run -d -P {labelOptions} {environmentVariableOptions} {healthCheck} {imageName} {command}";
 
             if (PullOption.Always == pullOption || (PullOption.Missing == pullOption && !(await DoesImageExistLocally(imageName, cancellationToken).ConfigureAwait(false))))
             {

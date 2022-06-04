@@ -42,6 +42,8 @@ namespace Mittons.Fixtures.Containers.Services
 
             var healthCheckDescription = attributes.OfType<IHealthCheckDescription>().SingleOrDefault();
 
+            var environmentVariables = attributes.OfType<EnvironmentVariableAttribute>().ToDictionary(x => x.Key, x => x.Value);
+
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
                     image.PullOption,
@@ -49,6 +51,7 @@ namespace Mittons.Fixtures.Containers.Services
                     {
                         { "mittons.fixtures.run.id", run.Id }
                     },
+                    environmentVariables,
                     command?.Value,
                     healthCheckDescription,
                     cancellationToken

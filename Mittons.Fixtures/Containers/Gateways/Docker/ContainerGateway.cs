@@ -33,6 +33,38 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             _processDebugger = processDebugger;
         }
 
+        private async Task PullImageAsync(string imageName, CancellationToken cancellationToken)
+        {
+            var arguments = $"pull {imageName}";
+
+            using (var process = new DockerProcess(arguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(arguments, standardOutput, standardError);
+            }
+        }
+
+        private async Task<bool> DoesImageExistLocally(string imageName, CancellationToken cancellationToken)
+        {
+            var arguments = $"image list -q {imageName}";
+
+            using (var process = new DockerProcess(arguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(arguments, standardOutput, standardError);
+
+                return !string.IsNullOrWhiteSpace(standardOutput);
+            }
+        }
+
         public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
         {
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
@@ -48,7 +80,12 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 healthCheck = $"--health-cmd \"{healthCheckDescription.Command}\" --health-interval \"{healthCheckDescription.Interval}s\" --health-timeout \"{healthCheckDescription.Timeout}s\" --health-start-period \"{healthCheckDescription.StartPeriod}s\" --health-retries \"{healthCheckDescription.Retries}\"";
             }
 
-            var arguments = $"run -d --pull {pullOption.ToString().ToLower()} -P {labelOptions} {healthCheck} {imageName} {command}";
+            var arguments = $"run -d -P {labelOptions} {healthCheck} {imageName} {command}";
+
+            if (PullOption.Always == pullOption || (PullOption.Missing == pullOption && !(await DoesImageExistLocally(imageName, cancellationToken).ConfigureAwait(false))))
+            {
+                await PullImageAsync(imageName, cancellationToken).ConfigureAwait(false);
+            }
 
             using (var process = new DockerProcess(arguments))
             {

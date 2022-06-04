@@ -59,6 +59,234 @@ public class ContainerGatewayTests
         }
     }
 
+    public class PullTests : IClassFixture<DockerCleanupFixture>
+    {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public PullTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenOnlyPullingMissingImagesAndImageIsNotLocal_ExpectImageToBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            var expectedLogs = new string[]
+            {
+                "image list -q alpine:3.15",
+                "pull alpine:3.15",
+            };
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"image rm alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Missing, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Take(3).Reverse().Select(x => x.Arguments).ToArray();
+
+            Assert.Equal(3, actualLogs.Count());
+            Assert.Equal(expectedLogs[0], actualLogs[0]);
+            Assert.Equal(expectedLogs[1], actualLogs[1]);
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenOnlyPullingMissingImagesAndImageIsLocal_ExpectImageToNotBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            var expectedLogs = new string[]
+            {
+                "image list -q alpine:3.15"
+            };
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"pull alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Missing, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
+
+            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(expectedLogs[0], actualLogs[0]);
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenAlwaysPullingImagesAndImageIsNotLocal_ExpectImageToBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            var expectedLogs = new string[]
+            {
+                "pull alpine:3.15"
+            };
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"image rm alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Always, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
+
+            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(expectedLogs[0], actualLogs[0]);
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenAlwaysPullingImagesAndImageIsLocal_ExpectImageToBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            var expectedLogs = new string[]
+            {
+                "pull alpine:3.15"
+            };
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"pull alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Always, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
+
+            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(expectedLogs[0], actualLogs[0]);
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenNeverPullingImagesAndImageIsNotLocal_ExpectImageToNotBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"image rm alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Never, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Select(x => x.Arguments);
+
+            Assert.DoesNotContain("pull alpine:3.15", actualLogs);
+        }
+
+        [Fact]
+        public async Task CreateContainerAsync_WhenNeverPullingImagesAndImageIsLocal_ExpectImageToNotBePulled()
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var command = string.Empty;
+
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"pull alpine:3.15";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync("alpine:3.15", PullOption.Never, labels, command, default, cancellationToken).ConfigureAwait(false);
+
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Select(x => x.Arguments);
+
+            Assert.DoesNotContain("pull alpine:3.15", actualLogs);
+        }
+    }
+
     public class LabelsTests : IClassFixture<DockerCleanupFixture>
     {
         private readonly DockerCleanupFixture _dockerCleanupFixture;

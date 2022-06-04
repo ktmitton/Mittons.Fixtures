@@ -9,7 +9,7 @@ namespace Mittons.Fixtures.Containers.Gateways
 {
     public interface IContainerGateway
     {
-        Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
+        Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string hostname, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
 
         Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken);
 

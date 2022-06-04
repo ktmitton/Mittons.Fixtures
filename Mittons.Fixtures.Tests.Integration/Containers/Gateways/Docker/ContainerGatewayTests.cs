@@ -35,10 +35,11 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(expectedImageName, PullOption.Missing, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(expectedImageName, PullOption.Missing, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -81,10 +82,11 @@ public class ContainerGatewayTests
             };
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.14", PullOption.Missing, labels, expectedEnvironmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.14", PullOption.Missing, labels, expectedEnvironmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -125,6 +127,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             var expectedLogs = new string[]
@@ -145,7 +148,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Missing, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Missing, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -177,6 +180,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             var expectedLogs = new string[]
@@ -196,7 +200,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Missing, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Missing, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -227,6 +231,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             var expectedLogs = new string[]
@@ -246,7 +251,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Always, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Always, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -277,6 +282,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             var expectedLogs = new string[]
@@ -296,7 +302,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Always, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Always, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -327,6 +333,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             using (var process = new Process())
@@ -341,7 +348,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Never, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Never, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -371,6 +378,7 @@ public class ContainerGatewayTests
             var cancellationToken = new CancellationTokenSource().Token;
             var processDebugger = new ProcessDebugger();
             var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
             var command = string.Empty;
 
             using (var process = new Process())
@@ -385,7 +393,7 @@ public class ContainerGatewayTests
             }
 
             // Act
-            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Never, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync("alpine:3.13", PullOption.Never, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -429,10 +437,11 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, expectedLabels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, expectedLabels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -545,9 +554,10 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
             var command = string.Empty;
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -591,10 +601,11 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
             var command = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, command, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, command, default, cancellationToken).ConfigureAwait(false);
 
             _dockerCleanupFixture.AddContainer(containerId);
 
@@ -813,9 +824,10 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, expectedCommand, default, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, expectedCommand, default, cancellationToken).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
@@ -834,6 +846,50 @@ public class ContainerGatewayTests
                 var actualCommand = string.Join(" ", output);
 
                 Assert.Equal(expectedCommand, actualCommand);
+            }
+        }
+    }
+
+    public class HostnameTests : IClassFixture<DockerCleanupFixture>
+    {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public HostnameTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        [Theory]
+        [InlineData("host1")]
+        [InlineData("other-hostname")]
+        public async Task CreateContainerAsync_WhenCalledWithAHostname_ExpectTheContainerToBeStartedWithTheHostname(string expectedHostname)
+        {
+            // Arrange
+            var imageName = "alpine:3.15";
+            var labels = new Dictionary<string, string>();
+            var environmentVariables = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var gateway = new ContainerGateway();
+            var command = string.Empty;
+
+            // Act
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, expectedHostname, command, default, cancellationToken).ConfigureAwait(false);
+            _dockerCleanupFixture.AddContainer(containerId);
+
+            // Assert
+            using (var process = new Process())
+            {
+                process.StartInfo.FileName = "docker";
+                process.StartInfo.Arguments = $"inspect {containerId} --format \"{{{{json .Config.Hostname}}}}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+                await process.WaitForExitAsync().ConfigureAwait(false);
+
+                var actualHostname = JsonSerializer.Deserialize<string>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
+
+                Assert.Equal(expectedHostname, actualHostname);
             }
         }
     }
@@ -860,9 +916,10 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), new HealthCheckDescription(true, "test", 1, 1, 1, 1), cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), new HealthCheckDescription(true, "test", 1, 1, 1, 1), cancellationToken).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
@@ -893,13 +950,14 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             long nanosecondModifier = 1000000000;
 
             var healthCheck = new HealthCheckDescription(false, expectedCommand, expectedInterval, expectedTimeout, expectedStartPeriod, expectedRetries);
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), healthCheck, cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), healthCheck, cancellationToken).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
@@ -932,9 +990,10 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             // Act
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), default(IHealthCheckDescription), cancellationToken).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), default(IHealthCheckDescription), cancellationToken).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Assert
@@ -962,8 +1021,9 @@ public class ContainerGatewayTests
             var labels = new Dictionary<string, string>();
             var environmentVariables = new Dictionary<string, string>();
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             var cancellationTokenSource = new CancellationTokenSource();
@@ -985,8 +1045,9 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Act
@@ -1003,8 +1064,9 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), default(IHealthCheckDescription), CancellationToken.None).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Act
@@ -1021,10 +1083,11 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             var healthCheck = new HealthCheckDescription(false, "exit 1", 1, 1, 1, 1);
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Act
@@ -1041,10 +1104,11 @@ public class ContainerGatewayTests
             var environmentVariables = new Dictionary<string, string>();
             var cancellationToken = new CancellationTokenSource().Token;
             var gateway = new ContainerGateway();
+            var hostname = string.Empty;
 
             var healthCheck = new HealthCheckDescription(false, "exit 0", 1, 1, 1, 1);
 
-            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
+            var containerId = await gateway.CreateContainerAsync(imageName, PullOption.Missing, labels, environmentVariables, hostname, default(string), healthCheck, CancellationToken.None).ConfigureAwait(false);
             _dockerCleanupFixture.AddContainer(containerId);
 
             // Act

@@ -16,6 +16,44 @@ namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
 
 public class ContainerGatewayTests
 {
+    public class BuildTests : IClassFixture<DockerCleanupFixture>
+    {
+        private readonly DockerCleanupFixture _dockerCleanupFixture;
+
+        public BuildTests(DockerCleanupFixture dockerCleanupFixture)
+        {
+            _dockerCleanupFixture = dockerCleanupFixture;
+        }
+
+        [Theory]
+        [InlineData("path", "target", false, "context", "image", "arguments")]
+        [InlineData("other path", "other target", true, "other context", "other image", "other arguments")]
+        public async Task CreateContainerAsync_WhenAnImageNameIsProvided_ExpectTheStartedContainerToUseTheImage(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments)
+        {
+            // Arrange
+            var labels = new Dictionary<string, string>();
+            var environmentVariables = new Dictionary<string, string>();
+            var cancellationToken = new CancellationTokenSource().Token;
+            var processDebugger = new ProcessDebugger();
+            var gateway = new ContainerGateway(processDebugger);
+            var hostname = string.Empty;
+            var command = string.Empty;
+
+            var pullOption = pullDependencyImages ? "--pull" : string.Empty;
+
+            var expectedLog = $"build -f {dockerfilePath} --target {target} {pullOption} {arguments} -t {imageName} {context}";
+
+            // Act
+            await gateway.BuildImageAsync(dockerfilePath, target, pullDependencyImages, imageName, context, arguments, cancellationToken).ConfigureAwait(false);
+
+            // Assert
+            var actualLogs = processDebugger.CallLog.Take(3).Reverse().Select(x => x.Arguments).ToArray();
+
+            Assert.Single(actualLogs);
+            Assert.Equal(expectedLog, actualLogs.First());
+        }
+    }
+
     public class ImageTests : IClassFixture<DockerCleanupFixture>
     {
         private readonly DockerCleanupFixture _dockerCleanupFixture;

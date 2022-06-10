@@ -515,9 +515,21 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             return children.OfType<FileResourceAdapter>();
         }
 
-        public Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments, CancellationToken cancellationToken)
+        public async Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var pullOption = pullDependencyImages ? "--pull" : string.Empty;
+
+            var processArguments = $"build -f {dockerfilePath} --target {target} {pullOption} {arguments} -t {imageName} {context}";
+
+            using (var process = new DockerProcess(processArguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(processArguments, standardOutput, standardError);
+            }
         }
 
         private class Volume

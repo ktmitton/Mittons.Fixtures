@@ -11,7 +11,7 @@ namespace Mittons.Fixtures.Containers.Gateways
     {
         Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string hostname, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken);
 
-        Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string context, string arguments, CancellationToken cancellationToken);
+        Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments, CancellationToken cancellationToken);
 
         Task EnsureContainerIsHealthyAsync(string containerId, CancellationToken cancellationToken);
 

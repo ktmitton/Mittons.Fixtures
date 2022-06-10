@@ -32,6 +32,12 @@ namespace Mittons.Fixtures.Containers.Services
 
         public async Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
         {
+            var run = attributes.OfType<RunAttribute>().Single();
+
+            _teardownOnDispose = run.TeardownOnComplete;
+
+            var image = attributes.OfType<ImageAttribute>().Single();
+
             var build = attributes.OfType<BuildAttribute>().SingleOrDefault();
 
             if (!(build is null))
@@ -40,17 +46,12 @@ namespace Mittons.Fixtures.Containers.Services
                         build.DockerfilePath,
                         build.Target,
                         build.PullDependencyImages,
+                        image.Name,
                         build.Context,
                         build.Arguments,
                         cancellationToken
                     ).ConfigureAwait(false);
             }
-
-            var run = attributes.OfType<RunAttribute>().Single();
-
-            _teardownOnDispose = run.TeardownOnComplete;
-
-            var image = attributes.OfType<ImageAttribute>().Single();
 
             var command = attributes.OfType<CommandAttribute>().SingleOrDefault();
 

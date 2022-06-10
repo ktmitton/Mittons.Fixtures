@@ -19,9 +19,9 @@ public class ContainerServiceTests
     public class BuildTests
     {
         [Theory]
-        [InlineData("path", "target", false, "context", "arguments")]
-        [InlineData("other path", "other target", true, "other context", "other arguments")]
-        public async Task InitializeAsync_WhenABuildAttributeIsProvided_ExpectTheImageToBeBuilt(string dockerfilePath, string target, bool pullDependencyImages, string context, string arguments)
+        [InlineData("path", "target", false, "image", "context", "arguments")]
+        [InlineData("other path", "other target", true, "other image", "other context", "other arguments")]
+        public async Task InitializeAsync_WhenABuildAttributeIsProvided_ExpectTheImageToBeBuilt(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments)
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -30,7 +30,7 @@ public class ContainerServiceTests
 
             var service = new ContainerService(mockContainerGateway.Object);
 
-            var attributes = new Attribute[] { new RunAttribute(), new ImageAttribute("Image1"), new BuildAttribute(dockerfilePath, target, pullDependencyImages, context, arguments) };
+            var attributes = new Attribute[] { new RunAttribute(), new ImageAttribute(imageName), new BuildAttribute(dockerfilePath, target, pullDependencyImages, context, arguments) };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
@@ -41,6 +41,7 @@ public class ContainerServiceTests
                         dockerfilePath,
                         target,
                         pullDependencyImages,
+                        imageName,
                         context,
                         arguments,
                         It.IsAny<CancellationToken>()
@@ -70,6 +71,7 @@ public class ContainerServiceTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<bool>(),
+                        It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<CancellationToken>()

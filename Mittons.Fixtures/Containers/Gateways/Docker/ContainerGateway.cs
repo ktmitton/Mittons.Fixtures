@@ -515,6 +515,11 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             return children.OfType<FileResourceAdapter>();
         }
 
+        public Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string context, string arguments, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         private class Volume
         {
             public string Destination { get; set; }

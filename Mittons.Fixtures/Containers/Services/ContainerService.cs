@@ -32,6 +32,20 @@ namespace Mittons.Fixtures.Containers.Services
 
         public async Task InitializeAsync(IEnumerable<Attribute> attributes, CancellationToken cancellationToken)
         {
+            var build = attributes.OfType<BuildAttribute>().SingleOrDefault();
+
+            if (!(build is null))
+            {
+                await _containerGateway.BuildImageAsync(
+                        build.DockerfilePath,
+                        build.Target,
+                        build.PullDependencyImages,
+                        build.Context,
+                        build.Arguments,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+            }
+
             var run = attributes.OfType<RunAttribute>().Single();
 
             _teardownOnDispose = run.TeardownOnComplete;

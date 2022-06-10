@@ -16,6 +16,86 @@ namespace Mittons.Fixtures.Tests.Unit.Containers;
 
 public class ContainerServiceTests
 {
+    public class BuildTests
+    {
+        [Theory]
+        [InlineData("path", "target", false, "context", "arguments")]
+        [InlineData("other path", "other target", true, "other context", "other arguments")]
+        public async Task InitializeAsync_WhenABuildAttributeIsProvided_ExpectTheImageToBeBuilt(string dockerfilePath, string target, bool pullDependencyImages, string context, string arguments)
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute(), new ImageAttribute("Image1"), new BuildAttribute(dockerfilePath, target, pullDependencyImages, context, arguments) };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(
+                    x => x.BuildImageAsync(
+                        dockerfilePath,
+                        target,
+                        pullDependencyImages,
+                        context,
+                        arguments,
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Once
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenNoBuildAttributeIsProvided_ExpectTheImageToNotBeBuilt()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute(), new ImageAttribute("Image1") };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(
+                    x => x.BuildImageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                    Times.Never
+                );
+        }
+
+        [Fact]
+        public async Task InitializeAsync_WhenMultipleBuildAttributesAreProvided_ExpectAnExceptionToBeThrown()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var attributes = new Attribute[] { new RunAttribute(), new ImageAttribute("Image1"), new BuildAttribute(string.Empty, string.Empty, false, string.Empty, string.Empty), new BuildAttribute(string.Empty, string.Empty, false, string.Empty, string.Empty) };
+
+            // Act
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.InitializeAsync(attributes, cancellationToken));
+        }
+    }
+
     public class RunTrackingTests
     {
         [Theory]
@@ -156,7 +236,7 @@ public class ContainerServiceTests
         [Theory]
         [InlineData("TestImage")]
         [InlineData("Image2")]
-        public async Task InitializeAsync_WhenAnImageAttributeIsProvided_ExpectTheServiceToBeTaggedCreatedForTheImage(string expectedImageName)
+        public async Task InitializeAsync_WhenAnImageAttributeIsProvided_ExpectTheServiceToBeCreatedForTheImage(string expectedImageName)
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;

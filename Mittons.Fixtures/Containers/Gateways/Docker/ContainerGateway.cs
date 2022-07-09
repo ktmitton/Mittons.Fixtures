@@ -33,9 +33,45 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             _processDebugger = processDebugger;
         }
 
-        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
+        private async Task PullImageAsync(string imageName, CancellationToken cancellationToken)
         {
+            var arguments = $"pull {imageName}";
+
+            using (var process = new DockerProcess(arguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(arguments, standardOutput, standardError);
+            }
+        }
+
+        private async Task<bool> DoesImageExistLocally(string imageName, CancellationToken cancellationToken)
+        {
+            var arguments = $"image list -q {imageName}";
+
+            using (var process = new DockerProcess(arguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(arguments, standardOutput, standardError);
+
+                return !string.IsNullOrWhiteSpace(standardOutput);
+            }
+        }
+
+        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, string network, string networkAlias, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string hostname, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
+        {
+            var networkOptions = string.IsNullOrWhiteSpace(network) ? string.Empty : $"--network {network}";
+            var networkAliasOptions = string.IsNullOrWhiteSpace(networkAlias) ? string.Empty : $"--network-alias {networkAlias}";
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
+
+            var environmentVariableOptions = string.Join(" ", environmentVariables.Select(x => $"-e \"{x.Key}={x.Value}\""));
 
             var healthCheck = string.Empty;
 
@@ -48,14 +84,21 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 healthCheck = $"--health-cmd \"{healthCheckDescription.Command}\" --health-interval \"{healthCheckDescription.Interval}s\" --health-timeout \"{healthCheckDescription.Timeout}s\" --health-start-period \"{healthCheckDescription.StartPeriod}s\" --health-retries \"{healthCheckDescription.Retries}\"";
             }
 
-            var arguments = $"run -d --pull {pullOption.ToString().ToLower()} -P {labelOptions} {healthCheck} {imageName} {command}";
+            var hostnameOption = string.IsNullOrWhiteSpace(hostname) ? string.Empty : $"--hostname {hostname}";
+
+            var arguments = $"run -d -P {networkOptions} {networkAliasOptions} {labelOptions} {environmentVariableOptions} {hostnameOption} {healthCheck} {imageName} {command}";
+
+            if (PullOption.Always == pullOption || (PullOption.Missing == pullOption && !(await DoesImageExistLocally(imageName, cancellationToken).ConfigureAwait(false))))
+            {
+                await PullImageAsync(imageName, cancellationToken).ConfigureAwait(false);
+            }
 
             using (var process = new DockerProcess(arguments))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
 
                 _processDebugger?.AddLog(arguments, standardOutput, standardError);
 
@@ -472,6 +515,23 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             var children = await Enumerate(containerId, path, cancellationToken);
 
             return children.OfType<FileResourceAdapter>();
+        }
+
+        public async Task BuildImageAsync(string dockerfilePath, string target, bool pullDependencyImages, string imageName, string context, string arguments, CancellationToken cancellationToken)
+        {
+            var pullOption = pullDependencyImages ? "--pull" : string.Empty;
+
+            var processArguments = $"build -f {dockerfilePath} --quiet --target {target} {pullOption} {arguments} -t {imageName} {context}";
+
+            using (var process = new DockerProcess(processArguments))
+            {
+                await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
+
+                var standardOutput = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadToEndAsync().ConfigureAwait(false);
+
+                _processDebugger?.AddLog(processArguments, standardOutput, standardError);
+            }
         }
 
         private class Volume

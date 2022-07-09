@@ -38,17 +38,44 @@ namespace Mittons.Fixtures.Containers.Services
 
             var image = attributes.OfType<ImageAttribute>().Single();
 
+            var build = attributes.OfType<BuildAttribute>().SingleOrDefault();
+
+            if (!(build is null))
+            {
+                await _containerGateway.BuildImageAsync(
+                        build.DockerfilePath,
+                        build.Target,
+                        build.PullDependencyImages,
+                        image.Name,
+                        build.Context,
+                        build.Arguments,
+                        cancellationToken
+                    ).ConfigureAwait(false);
+            }
+
             var command = attributes.OfType<CommandAttribute>().SingleOrDefault();
 
             var healthCheckDescription = attributes.OfType<IHealthCheckDescription>().SingleOrDefault();
 
+            var environmentVariables = attributes.OfType<EnvironmentVariableAttribute>().ToDictionary(x => x.Key, x => x.Value);
+
+            var hostname = attributes.OfType<HostnameAttribute>().SingleOrDefault();
+
+            var networkAliases = attributes.OfType<NetworkAliasAttribute>();
+
+            var defaultNetwork = networkAliases.FirstOrDefault();
+
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
                     image.PullOption,
+                    defaultNetwork?.NetworkService.ServiceId,
+                    defaultNetwork?.Alias,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }
                     },
+                    environmentVariables,
+                    hostname?.Name,
                     command?.Value,
                     healthCheckDescription,
                     cancellationToken
@@ -58,9 +85,7 @@ namespace Mittons.Fixtures.Containers.Services
 
             Resources = await _containerGateway.GetAvailableResourcesAsync(ServiceId, cancellationToken).ConfigureAwait(false);
 
-            var networkAliases = attributes.OfType<NetworkAliasAttribute>();
-
-            foreach (var alias in networkAliases)
+            foreach (var alias in networkAliases.Skip(1))
             {
                 await alias.NetworkService.ConnectAsync(alias, cancellationToken).ConfigureAwait(false);
             }

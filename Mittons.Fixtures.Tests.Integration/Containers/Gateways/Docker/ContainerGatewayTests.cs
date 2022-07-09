@@ -47,10 +47,10 @@ public class ContainerGatewayTests
             await gateway.BuildImageAsync(dockerfilePath, target, pullDependencyImages, imageName, context, arguments, cancellationToken).ConfigureAwait(false);
 
             // Assert
-            var actualLogs = processDebugger.CallLog.Take(3).Reverse().Select(x => x.Arguments).ToArray();
+            var actualLogs = processDebugger.CallLog;
 
             Assert.Single(actualLogs);
-            Assert.Equal(expectedLog, actualLogs.First());
+            Assert.Equal(expectedLog, actualLogs.First().Arguments);
         }
     }
 

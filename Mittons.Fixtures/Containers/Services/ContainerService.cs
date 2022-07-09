@@ -61,9 +61,15 @@ namespace Mittons.Fixtures.Containers.Services
 
             var hostname = attributes.OfType<HostnameAttribute>().SingleOrDefault();
 
+            var networkAliases = attributes.OfType<NetworkAliasAttribute>();
+
+            var defaultNetwork = networkAliases.FirstOrDefault();
+
             ServiceId = await _containerGateway.CreateContainerAsync(
                     image.Name,
                     image.PullOption,
+                    defaultNetwork?.NetworkService.ServiceId,
+                    defaultNetwork?.Alias,
                     new Dictionary<string, string>
                     {
                         { "mittons.fixtures.run.id", run.Id }
@@ -79,9 +85,7 @@ namespace Mittons.Fixtures.Containers.Services
 
             Resources = await _containerGateway.GetAvailableResourcesAsync(ServiceId, cancellationToken).ConfigureAwait(false);
 
-            var networkAliases = attributes.OfType<NetworkAliasAttribute>();
-
-            foreach (var alias in networkAliases)
+            foreach (var alias in networkAliases.Skip(1))
             {
                 await alias.NetworkService.ConnectAsync(alias, cancellationToken).ConfigureAwait(false);
             }

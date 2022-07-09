@@ -42,7 +42,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
 
                 _processDebugger?.AddLog(arguments, standardOutput, standardError);
             }
@@ -57,7 +57,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
 
                 _processDebugger?.AddLog(arguments, standardOutput, standardError);
 
@@ -65,8 +65,10 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string hostname, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
+        public async Task<string> CreateContainerAsync(string imageName, PullOption pullOption, string network, string networkAlias, Dictionary<string, string> labels, Dictionary<string, string> environmentVariables, string hostname, string command, IHealthCheckDescription healthCheckDescription, CancellationToken cancellationToken)
         {
+            var networkOptions = string.IsNullOrWhiteSpace(network) ? string.Empty : $"--network {network}";
+            var networkAliasOptions = string.IsNullOrWhiteSpace(networkAlias) ? string.Empty : $"--network-alias {networkAlias}";
             var labelOptions = string.Join(" ", labels.Select(x => $"--label \"{x.Key}={x.Value}\""));
 
             var environmentVariableOptions = string.Join(" ", environmentVariables.Select(x => $"-e \"{x.Key}={x.Value}\""));
@@ -84,7 +86,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
             var hostnameOption = string.IsNullOrWhiteSpace(hostname) ? string.Empty : $"--hostname {hostname}";
 
-            var arguments = $"run -d -P {labelOptions} {environmentVariableOptions} {hostnameOption} {healthCheck} {imageName} {command}";
+            var arguments = $"run -d -P {networkOptions} {networkAliasOptions} {labelOptions} {environmentVariableOptions} {hostnameOption} {healthCheck} {imageName} {command}";
 
             if (PullOption.Always == pullOption || (PullOption.Missing == pullOption && !(await DoesImageExistLocally(imageName, cancellationToken).ConfigureAwait(false))))
             {
@@ -96,7 +98,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
                 var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadLineAsync().ConfigureAwait(false);
 
                 _processDebugger?.AddLog(arguments, standardOutput, standardError);
 
@@ -519,14 +521,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
         {
             var pullOption = pullDependencyImages ? "--pull" : string.Empty;
 
-            var processArguments = $"build -f {dockerfilePath} --target {target} {pullOption} {arguments} -t {imageName} {context}";
+            var processArguments = $"build -f {dockerfilePath} --quiet --target {target} {pullOption} {arguments} -t {imageName} {context}";
 
             using (var process = new DockerProcess(processArguments))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
 
-                var standardOutput = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
-                var standardError = await process.StandardOutput.ReadLineAsync().ConfigureAwait(false);
+                var standardOutput = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+                var standardError = await process.StandardError.ReadToEndAsync().ConfigureAwait(false);
 
                 _processDebugger?.AddLog(processArguments, standardOutput, standardError);
             }

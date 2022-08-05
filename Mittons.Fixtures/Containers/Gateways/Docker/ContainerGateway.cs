@@ -596,7 +596,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
             public override string ToString()
             {
-                return base.ToString();
+                return JsonSerializer.Serialize(this);
             }
 
             public static bool operator==(Resource left, IResource right)

@@ -109,6 +109,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        [Serializable]
         private sealed class HealthCheckReport
         {
             public long Interval { get; }

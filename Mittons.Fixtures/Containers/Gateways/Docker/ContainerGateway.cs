@@ -405,7 +405,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
         public async Task WriteFileAsync(string containerId, string path, string contents, CancellationToken cancellationToken)
         {
-            var localPath = Path.GetRandomFileName();
+            var localPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             File.WriteAllText(localPath, contents);
 

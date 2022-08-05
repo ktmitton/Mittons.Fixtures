@@ -525,8 +525,8 @@ public class ContainerGatewayTests
 
             var volumeOptions = new string[] { "--volume /var", "--volume random" };
 
-            var extensionFilename = Path.GetRandomFileName();
-            var noExtensionFilename = Path.GetRandomFileName();
+            var extensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var noExtensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             using (var process = new Process())
             {
@@ -692,8 +692,8 @@ public class ContainerGatewayTests
 
             var volumeOptions = new string[] { "--volume /var", "--volume random" };
 
-            var extensionFilename = Path.GetTempFileName();
-            var noExtensionFilename = Path.GetTempFileName();
+            var extensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var noExtensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
             using (var process = new Process())
             {

@@ -32,7 +32,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar-scanner
       - name: Install SonarCloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
+        shell: bash
         run: |
           mkdir ./.sonar/scanner
           dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
@@ -40,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
+        shell: bash
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"ktmitton_Mittons.Fixtures" /o:"ktmitton" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths=TestResults/*.trx /d:sonar.cs.opencover.reportsPaths=TestResults/*/coverage.opencover.xml /d:sonar.coverage.exclusions="**Tests.cs"
           dotnet build --configuration release

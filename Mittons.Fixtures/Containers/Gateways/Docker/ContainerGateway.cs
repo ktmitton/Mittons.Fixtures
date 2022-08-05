@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,6 +117,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
             public byte Retries { get; }
 
+            [JsonConstructor]
             public HealthCheckReport(long interval, long startPeriod, byte retries)
             {
                 Interval = interval;

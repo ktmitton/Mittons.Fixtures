@@ -543,14 +543,25 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
         private sealed class Volume
         {
-            public string Destination { get; set; }
+            public string Destination { get; }
+
+            public Volume(string destination)
+            {
+                Destination = destination;
+            }
         }
 
         private sealed class Port
         {
-            public string HostIp { get; set; }
+            public string HostIp { get; }
 
-            public string HostPort { get; set; }
+            public string HostPort { get; }
+
+            public Port(string hostIp, string hostPort)
+            {
+                HostIp = hostIp;
+                HostPort = hostPort;
+            }
         }
 
         private sealed class Resource : IResource

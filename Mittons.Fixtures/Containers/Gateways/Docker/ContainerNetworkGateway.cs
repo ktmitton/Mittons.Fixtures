@@ -53,7 +53,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
 
                 var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
 
-                var containers = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(output);
+                var containers = string.IsNullOrWhiteSpace(output) ? new Dictionary<string, Dictionary<string, string>>() : JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(output);
 
                 return containers.Select(x => x.Key);
             }
@@ -64,8 +64,6 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             using (var process = new DockerProcess($"network disconnect --force {networkId} {containerId}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
             }
         }
     }

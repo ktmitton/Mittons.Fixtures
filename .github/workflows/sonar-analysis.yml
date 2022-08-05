@@ -44,4 +44,5 @@ jobs:
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"ktmitton_Mittons.Fixtures" /o:"ktmitton" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build ./Mittons.Fixtures/Mittons.Fixtures.csproj
+          dotnet test ./Mittons.Fixtures.Tests.Unit/Mittons.Fixtures.Tests.Unit.csproj --verbosity normal
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"

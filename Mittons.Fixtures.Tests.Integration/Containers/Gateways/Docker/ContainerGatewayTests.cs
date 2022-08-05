@@ -692,8 +692,8 @@ public class ContainerGatewayTests
 
             var volumeOptions = new string[] { "--volume /var", "--volume random" };
 
-            var extensionFilename = Path.GetRandomFileName();
-            var noExtensionFilename = Path.GetRandomFileName();
+            var extensionFilename = Path.GetTempFileName();
+            var noExtensionFilename = Path.GetTempFileName();
 
             using (var process = new Process())
             {
@@ -719,7 +719,6 @@ public class ContainerGatewayTests
 
             // Assert
             Assert.Contains(expectedResource, resources.ToArray());
-            // Assert.Contains(resources, x => x.GuestUri == expectedGuestUri && x.HostUri == expectedHostUri);
         }
         private sealed class TestResource : IResource
         {

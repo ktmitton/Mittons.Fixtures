@@ -25,7 +25,7 @@ namespace Mittons.Fixtures.Core
 
         private ServiceProvider _serviceProvider;
 
-        public GuestEnvironmentFixture()
+        protected GuestEnvironmentFixture()
         {
             _serviceCollection = new ServiceCollection();
             _serviceCollection.AddTransient<IContainerNetworkService, ContainerNetworkService>();
@@ -88,11 +88,6 @@ namespace Mittons.Fixtures.Core
 
                 await service.InitializeAsync(attributes, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private Task<IService> CreateAndInitializeServiceAsync(PropertyInfo propertyInfo)
-        {
-            return Task.FromResult(default(IService));
         }
     }
 }

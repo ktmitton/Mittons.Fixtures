@@ -64,8 +64,6 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             using (var process = new DockerProcess($"network disconnect --force {networkId} {containerId}"))
             {
                 await process.RunProcessAsync(cancellationToken).ConfigureAwait(false);
-
-                var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
             }
         }
     }

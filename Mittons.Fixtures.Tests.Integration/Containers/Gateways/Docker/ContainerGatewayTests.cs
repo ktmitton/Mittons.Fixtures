@@ -204,7 +204,6 @@ public class ContainerGatewayTests
             // Assert
             var actualLogs = processDebugger.CallLog.Take(3).Reverse().Select(x => x.Arguments).ToArray();
 
-            //Assert.Equal(3, actualLogs.Count());
             Assert.Equal(expectedLogs[0], actualLogs[0]);
             Assert.Equal(expectedLogs[1], actualLogs[1]);
         }
@@ -256,7 +255,7 @@ public class ContainerGatewayTests
             // Assert
             var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
 
-            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(2, actualLogs.Length);
             Assert.Equal(expectedLogs[0], actualLogs[0]);
         }
 
@@ -307,7 +306,7 @@ public class ContainerGatewayTests
             // Assert
             var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
 
-            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(2, actualLogs.Length);
             Assert.Equal(expectedLogs[0], actualLogs[0]);
         }
 
@@ -358,7 +357,7 @@ public class ContainerGatewayTests
             // Assert
             var actualLogs = processDebugger.CallLog.Take(2).Reverse().Select(x => x.Arguments).ToArray();
 
-            Assert.Equal(2, actualLogs.Count());
+            Assert.Equal(2, actualLogs.Length);
             Assert.Equal(expectedLogs[0], actualLogs[0]);
         }
 
@@ -879,7 +878,7 @@ public class ContainerGatewayTests
                 process.Start();
                 await process.WaitForExitAsync().ConfigureAwait(false);
 
-                var output = JsonSerializer.Deserialize<string[]>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false)) ?? new string[0];
+                var output = JsonSerializer.Deserialize<string[]>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false)) ?? Array.Empty<string>();
 
                 var actualCommand = string.Join(" ", output);
 
@@ -973,7 +972,7 @@ public class ContainerGatewayTests
 
                 var actualHealthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
-                Assert.Equal("NONE", string.Join(" ", actualHealthCheck?.Test ?? new string[0]));
+                Assert.Equal("NONE", string.Join(" ", actualHealthCheck?.Test ?? Array.Empty<string>()));
             }
         }
 
@@ -1011,7 +1010,7 @@ public class ContainerGatewayTests
 
                 var actualHealthCheck = JsonSerializer.Deserialize<HealthCheckReport>(await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false));
 
-                Assert.Equal($"CMD-SHELL {expectedCommand}", string.Join(" ", actualHealthCheck?.Test ?? new string[0]));
+                Assert.Equal($"CMD-SHELL {expectedCommand}", string.Join(" ", actualHealthCheck?.Test ?? Array.Empty<string>()));
                 Assert.Equal(expectedInterval * nanosecondModifier, actualHealthCheck?.Interval);
                 Assert.Equal(expectedTimeout * nanosecondModifier, actualHealthCheck?.Timeout);
                 Assert.Equal(expectedStartPeriod * nanosecondModifier, actualHealthCheck?.StartPeriod);

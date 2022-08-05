@@ -108,13 +108,13 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        private class HealthCheckReport
+        private sealed class HealthCheckReport
         {
-            public long Interval { get; set; }
+            public long Interval { get; }
 
-            public long StartPeriod { get; set; }
+            public long StartPeriod { get; }
 
-            public byte Retries { get; set; }
+            public byte Retries { get; }
         }
 
         private async Task<TimeSpan?> GetMinimumHealthCheckTimeSpanAsync(string containerId, CancellationToken cancellationToken)
@@ -534,19 +534,19 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
-        private class Volume
+        private sealed class Volume
         {
             public string Destination { get; set; }
         }
 
-        private class Port
+        private sealed class Port
         {
             public string HostIp { get; set; }
 
             public string HostPort { get; set; }
         }
 
-        private class Resource : IResource
+        private sealed class Resource : IResource
         {
             public Uri GuestUri { get; }
 

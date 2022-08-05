@@ -575,6 +575,39 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 GuestUri = guestUri;
                 HostUri = hostUri;
             }
+
+            public override int GetHashCode()
+            {
+                int hashCode = 1817274570;
+                hashCode = hashCode * -1521134295 + EqualityComparer<Uri>.Default.GetHashCode(GuestUri);
+                hashCode = hashCode * -1521134295 + EqualityComparer<Uri>.Default.GetHashCode(HostUri);
+                return hashCode;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is IResource other)
+                {
+                    return !(other is null) && GuestUri == other.GuestUri && HostUri == other.HostUri;
+                }
+
+                return false;
+            }
+
+            public override string ToString()
+            {
+                return base.ToString();
+            }
+
+            public static bool operator==(Resource left, IResource right)
+            {
+                return (left is null && right is null) || (left?.Equals(right) ?? false);
+            }
+
+            public static bool operator!=(Resource left, IResource right)
+            {
+                return !(left == right);
+            }
         }
     }
 }

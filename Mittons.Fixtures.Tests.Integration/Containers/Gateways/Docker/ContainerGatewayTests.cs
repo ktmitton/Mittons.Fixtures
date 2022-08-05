@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Mittons.Fixtures.Containers.Attributes;
 using Mittons.Fixtures.Containers.Gateways.Docker;
 using Mittons.Fixtures.Core.Attributes;
+using Mittons.Fixtures.Core.Resources;
 using Xunit;
 
 namespace Mittons.Fixtures.Tests.Integration.Containers.Gateways;
@@ -711,14 +712,27 @@ public class ContainerGatewayTests
 
             var expectedGuestUri = new Uri($"file://{resourcePath}");
             var expectedHostUri = new Uri($"file://container.{containerId}{resourcePath}");
+            var expectedResource = new TestResource(expectedGuestUri, expectedHostUri);
 
             // Act
             var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
 
             // Assert
-            Assert.Contains(resources, x => x.GuestUri == expectedGuestUri && x.HostUri == expectedHostUri);
+            Assert.Contains(expectedResource, resources);
+            // Assert.Contains(resources, x => x.GuestUri == expectedGuestUri && x.HostUri == expectedHostUri);
         }
+        private sealed class TestResource : IResource
+        {
+            public Uri GuestUri { get; }
 
+            public Uri HostUri { get; }
+
+            public TestResource(Uri guestUri, Uri hostUri)
+            {
+                GuestUri = guestUri;
+                HostUri = hostUri;
+            }
+        }
         [Theory]
         [InlineData("tcp", 6379)]
         [InlineData("tcp", 80)]

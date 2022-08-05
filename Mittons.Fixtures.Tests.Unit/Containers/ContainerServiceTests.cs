@@ -418,6 +418,53 @@ public class ContainerServiceTests
     public class ConnectedServiceTests
     {
         [Fact]
+        public async Task InitializeAsync_WhenTheContainerHasANetworkAliasForThePrimarynetwork_ExpectTheContainerToInitializeConnected()
+        {
+            // Arrange
+            var cancellationToken = new CancellationTokenSource().Token;
+
+            var mockContainerGateway = new Mock<IContainerGateway>();
+
+            var service = new ContainerService(mockContainerGateway.Object);
+
+            var mockNetwork = new Mock<INetworkService>();
+
+            var primaryNetworkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var secondaryNetworkAliasAttribute = new NetworkAliasAttribute("SecondaryNetwork", "secondary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), primaryNetworkAliasAttribute, secondaryNetworkAliasAttribute };
+
+            // Act
+            await service.InitializeAsync(attributes, cancellationToken);
+
+            // Assert
+            mockContainerGateway.Verify(
+                x => x.CreateContainerAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<PullOption>(),
+                    primaryNetworkAliasAttribute.NetworkService.ServiceId,
+                    primaryNetworkAliasAttribute.Alias,
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<Dictionary<string, string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IHealthCheckDescription>(),
+                    It.IsAny<CancellationToken>()
+                ),
+                Times.Once
+            );
+        }
+
+        [Fact]
         public async Task InitializeAsync_WhenTheContainerHasANetworkAliasForSecondaryNetworks_ExpectTheContainerToBeConnectedToTheNetwork()
         {
             // Arrange

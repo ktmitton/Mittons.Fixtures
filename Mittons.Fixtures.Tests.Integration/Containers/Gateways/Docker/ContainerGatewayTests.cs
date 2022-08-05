@@ -718,7 +718,7 @@ public class ContainerGatewayTests
             var resources = await gateway.GetAvailableResourcesAsync(containerId, cancellationToken).ConfigureAwait(false);
 
             // Assert
-            Assert.Contains(expectedResource, resources);
+            Assert.Contains(expectedResource, resources.ToArray());
             // Assert.Contains(resources, x => x.GuestUri == expectedGuestUri && x.HostUri == expectedHostUri);
         }
         private sealed class TestResource : IResource

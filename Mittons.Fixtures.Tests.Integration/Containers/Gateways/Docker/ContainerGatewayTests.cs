@@ -695,6 +695,9 @@ public class ContainerGatewayTests
             var extensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             var noExtensionFilename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 
+            System.IO.File.Create(extensionFilename);
+            System.IO.File.Create(noExtensionFilename);
+
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "docker";
@@ -720,6 +723,7 @@ public class ContainerGatewayTests
             // Assert
             Assert.Contains(expectedResource, resources.ToArray());
         }
+
         private sealed class TestResource : IResource
         {
             public Uri GuestUri { get; }

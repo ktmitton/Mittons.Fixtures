@@ -418,7 +418,7 @@ public class ContainerServiceTests
     public class ConnectedServiceTests
     {
         [Fact]
-        public async Task InitializeAsync_WhenTheContainerHasANetworkAlias_ExpectTheContainerToBeConnectedToTheNetwork()
+        public async Task InitializeAsync_WhenTheContainerHasANetworkAliasForSecondaryNetworks_ExpectTheContainerToBeConnectedToTheNetwork()
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -429,23 +429,29 @@ public class ContainerServiceTests
 
             var mockNetwork = new Mock<INetworkService>();
 
-            var networkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
+            var primaryNetworkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
             {
                 NetworkService = mockNetwork.Object,
                 ConnectedService = service
             };
 
-            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), networkAliasAttribute };
+            var secondaryNetworkAliasAttribute = new NetworkAliasAttribute("SecondaryNetwork", "secondary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), primaryNetworkAliasAttribute, secondaryNetworkAliasAttribute };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockNetwork.Verify(x => x.ConnectAsync(networkAliasAttribute, It.IsAny<CancellationToken>()), Times.Once);
+            mockNetwork.Verify(x => x.ConnectAsync(secondaryNetworkAliasAttribute, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
-        public async Task InitializeAsync_WhenTheContainerHasANetworkAlias_ExpectTheProvidedCancellationTokenToBeUsed()
+        public async Task InitializeAsync_WhenTheContainerHasANetworkAliasForASecondaryNetwork_ExpectTheProvidedCancellationTokenToBeUsed()
         {
             // Arrange
             var cancellationToken = new CancellationTokenSource().Token;
@@ -456,13 +462,19 @@ public class ContainerServiceTests
 
             var mockNetwork = new Mock<INetworkService>();
 
-            var networkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
+            var primaryNetworkAliasAttribute = new NetworkAliasAttribute("PrimaryNetwork", "primary.example.com")
             {
                 NetworkService = mockNetwork.Object,
                 ConnectedService = service
             };
 
-            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), networkAliasAttribute };
+            var secondaryNetworkAliasAttribute = new NetworkAliasAttribute("SecondaryNetwork", "secondary.example.com")
+            {
+                NetworkService = mockNetwork.Object,
+                ConnectedService = service
+            };
+
+            var attributes = new Attribute[] { new ImageAttribute("TestImage"), new RunAttribute(), primaryNetworkAliasAttribute, secondaryNetworkAliasAttribute };
 
             // Act
             await service.InitializeAsync(attributes, cancellationToken);

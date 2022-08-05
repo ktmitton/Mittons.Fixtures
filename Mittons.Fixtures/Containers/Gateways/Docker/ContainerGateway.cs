@@ -544,22 +544,26 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        [Serializable]
         private sealed class Volume
         {
             public string Destination { get; }
 
+            [JsonConstructor]
             public Volume(string destination)
             {
                 Destination = destination;
             }
         }
 
+        [Serializable]
         private sealed class Port
         {
             public string HostIp { get; }
 
             public string HostPort { get; }
 
+            [JsonConstructor]
             public Port(string hostIp, string hostPort)
             {
                 HostIp = hostIp;
@@ -567,12 +571,14 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             }
         }
 
+        [Serializable]
         private sealed class Resource : IResource
         {
             public Uri GuestUri { get; }
 
             public Uri HostUri { get; }
 
+            [JsonConstructor]
             public Resource(Uri guestUri, Uri hostUri)
             {
                 GuestUri = guestUri;

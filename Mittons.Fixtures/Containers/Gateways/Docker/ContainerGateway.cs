@@ -597,7 +597,7 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             {
                 if (obj is IResource other)
                 {
-                    return !(other is null) && GuestUri == other.GuestUri && HostUri == other.HostUri;
+                    return GuestUri == other.GuestUri && HostUri == other.HostUri;
                 }
 
                 return false;
@@ -608,15 +608,15 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
                 return JsonSerializer.Serialize(this);
             }
 
-            public static bool operator==(Resource left, IResource right)
-            {
-                return (left is null && right is null) || (left?.Equals(right) ?? false);
-            }
+            // public static bool operator==(Resource left, IResource right)
+            // {
+            //     return (left is null && right is null) || (left?.Equals(right) ?? false);
+            // }
 
-            public static bool operator!=(Resource left, IResource right)
-            {
-                return !(left == right);
-            }
+            // public static bool operator!=(Resource left, IResource right)
+            // {
+            //     return !(left == right);
+            // }
         }
     }
 }

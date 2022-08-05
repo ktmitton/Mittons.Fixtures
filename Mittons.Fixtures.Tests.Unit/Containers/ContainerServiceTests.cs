@@ -122,6 +122,8 @@ public class ContainerServiceTests
                     x => x.CreateContainerAsync(
                         It.IsAny<string>(),
                         It.IsAny<PullOption>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.Is<Dictionary<string, string>>(y => y.Any(z => z.Key == "mittons.fixtures.run.id" && z.Value == expectedRunId)),
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<string>(),
@@ -221,7 +223,7 @@ public class ContainerServiceTests
             var cancellationToken = new CancellationTokenSource().Token;
 
             var mockContainerGateway = new Mock<IContainerGateway>();
-            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedContainerId);
 
             var service = new ContainerService(mockContainerGateway.Object);
@@ -257,6 +259,8 @@ public class ContainerServiceTests
                     x => x.CreateContainerAsync(
                         expectedImageName,
                         It.IsAny<PullOption>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<string>(),
@@ -318,7 +322,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
         }
 
         [Theory]
@@ -340,7 +344,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), pullOption, It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), pullOption, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), cancellationToken), Times.Once);
         }
 
         [Fact]
@@ -350,7 +354,7 @@ public class ContainerServiceTests
             var cancellationToken = new CancellationTokenSource().Token;
 
             var mockContainerGateway = new Mock<IContainerGateway>();
-            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
+            mockContainerGateway.Setup(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("TestService");
 
             var service = new ContainerService(mockContainerGateway.Object);
@@ -398,6 +402,8 @@ public class ContainerServiceTests
                     x.CreateContainerAsync(
                         It.IsAny<string>(),
                         It.IsAny<PullOption>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.IsAny<Dictionary<string, string>>(),
                         It.Is<Dictionary<string, string>>(y => y["key1"] == "value1" && y["key2"] == "value2"),
                         It.IsAny<string>(),
@@ -533,7 +539,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), expectedCommand, It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), expectedCommand, It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -569,7 +575,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), default(string), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), default(string), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
     }
 
@@ -593,7 +599,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), expectedHostname, It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), expectedHostname, It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
 
         [Fact]
@@ -629,7 +635,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), default(string), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), default(string), It.IsAny<string>(), It.IsAny<IHealthCheckDescription>(), It.IsAny<CancellationToken>()));
         }
     }
 
@@ -676,6 +682,8 @@ public class ContainerServiceTests
                     x.CreateContainerAsync(
                         It.IsAny<string>(),
                         It.IsAny<PullOption>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<Dictionary<string, string>>(),
                         It.IsAny<string>(),
@@ -727,7 +735,7 @@ public class ContainerServiceTests
             await service.InitializeAsync(attributes, cancellationToken);
 
             // Assert
-            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), default(IHealthCheckDescription), It.IsAny<CancellationToken>()));
+            mockContainerGateway.Verify(x => x.CreateContainerAsync(It.IsAny<string>(), It.IsAny<PullOption>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<string>(), It.IsAny<string>(), default(IHealthCheckDescription), It.IsAny<CancellationToken>()));
         }
 
         [Fact]

@@ -115,6 +115,13 @@ namespace Mittons.Fixtures.Containers.Gateways.Docker
             public long StartPeriod { get; }
 
             public byte Retries { get; }
+
+            public HealthCheckReport(long interval, long startPeriod, byte retries)
+            {
+                Interval = interval;
+                StartPeriod = startPeriod;
+                Retries = retries;
+            }
         }
 
         private async Task<TimeSpan?> GetMinimumHealthCheckTimeSpanAsync(string containerId, CancellationToken cancellationToken)
